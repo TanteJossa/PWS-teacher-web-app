@@ -1,0 +1,44 @@
+{
+  "name": "analyse",
+  "version": "0.0.0",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mdi/font": "7.4.47",
+    "apexcharts": "^3.54.0",
+    "axios": "^1.7.7",
+    "circular-json": "^0.5.9",
+    "firebase": "^10.14.0",
+    "jsdom": "^25.0.1",
+    "jstat": "^1.9.6",
+    "libvips": "^0.0.2",
+    "lodash": "^4.17.21",
+    "maz-ui": "^3.47.1",
+    "pdf.js": "^0.1.0",
+    "pdfjs-dist": "^4.9.155",
+    "pdfobject-vue": "^0.0.4",
+    "pinia": "^2.2.5",
+    "pug": "^3.0.3",
+    "register-service-worker": "^1.7.2",
+    "roboto-fontface": "*",
+    "uuid": "^10.0.0",
+    "vue": "^3.4.31",
+    "vue-pug-plugin": "^2.0.3",
+    "vue-router": "^4.4.5",
+    "vue3-apexcharts": "^1.6.0",
+    "vuetify": "^3.6.11",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.5",
+    "@vue/cli-plugin-pwa": "~5.0.0",
+    "sass": "1.77.6",
+    "unplugin-fonts": "^1.1.1",
+    "unplugin-vue-components": "^0.27.2",
+    "vite": "^5.3.3",
+    "vite-plugin-vuetify": "^2.0.3"
+  }
+}

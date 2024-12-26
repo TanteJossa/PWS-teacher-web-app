@@ -1,0 +1,154 @@
+{
+    "questions": [
+        {
+            "question_number": "1",
+            "question_text": "Noteer \" A \" als antwoord op vraag 1.",
+            "points": [
+                {
+                    "point_index": 0,
+                    "point_name": "versie",
+                    "point_text": "er is een versie genoteerd",
+                    "point_weight": 1,
+                    "target_name": "Notatie"
+                }
+            ]
+        },
+        {
+            "question_number": "2",
+            "question_text": "Is er hier sprake van een volledige of onvolledige verbranding? Beargumenteer je antwoord.",
+            "points": [
+                {
+                    "point_index": 0,
+                    "point_name": "CO",
+                    "point_text": "er ontstaat geen koolstofmonoxide/CO",
+                    "point_weight": 1,
+                    "target_name": "Verbranding"
+                },
+                {
+                    "point_index": 1,
+                    "point_name": "conclusie",
+                    "point_text": "conclusie volledige verbranding",
+                    "point_weight": 1,
+                    "target_name": "Verbranding"
+                }
+            ]
+        },
+        {
+            "question_number": "3",
+            "question_text": "Is er hier sprake van een exotherme of endotherme reactie? Beargumenteer je antwoord.",
+            "points": [
+                {
+                    "point_index": 0,
+                    "point_name": "warmte",
+                    "point_text": "er ontstaat warmte/vuur",
+                    "point_weight": 1,
+                    "target_name": "Energie"
+                },
+                {
+                    "point_index": 1,
+                    "point_name": "conclusie",
+                    "point_text": "conclusie exotherme reactie",
+                    "point_weight": 1,
+                    "target_name": "Energie"
+                }
+            ]
+        },
+        {
+            "question_number": "4",
+            "question_text": "Geef de reactievergelijking van de verbranding van het magnesiumlint. Benoem tevens de fases.",
+            "points": [
+                {
+                    "point_index": 0,
+                    "point_name": "voor pijl",
+                    "point_text": "voor de pijl correct",
+                    "point_weight": 1,
+                    "target_name": "Reactievergelijking"
+                },
+                {
+                    "point_index": 1,
+                    "point_name": "na pijl",
+                    "point_text": "na de pijl correct",
+                    "point_weight": 1,
+                    "target_name": "Reactievergelijking"
+                },
+                {
+                    "point_index": 2,
+                    "point_name": "fases",
+                    "point_text": "alle fases correct -0 p: Mg 2 (s) in plaats van Mg(s)",
+                    "point_weight": 1,
+                    "target_name": "Reactievergelijking"
+                }
+            ]
+        },
+        {
+            "question_number": "5",
+            "question_text": "Geef een tekening van het molecuul ethaan (C 2 H 8 ) Zorg ervoor dat het molecuul aan de Ga uit van een volledige verbranding. oktet regel voldoet.",
+            "points": [
+                {
+                    "point_index": 0,
+                    "point_name": "tekening",
+                    "point_text": "de vlam brandt minder intensief",
+                    "point_weight": 2,
+                    "target_name": "Molecuul"
+                }
+            ]
+        },
+        {
+            "question_number": "6",
+            "question_text": "In het practicum zag je dat één waxinelichtje langer brandde. Beargumenteer waarom dit het geval is.",
+            "points": [
+                {
+                    "point_index": 0,
+                    "point_name": "zuurstof",
+                    "point_text": "er is meer zuurstof bij (waxinelinelichtje) A",
+                    "point_weight": 1,
+                    "target_name": "Verbranding"
+                },
+                {
+                    "point_index": 1,
+                    "point_name": "conclusie",
+                    "point_text": "dus waxinelichtje A blijft langer branden",
+                    "point_weight": 1,
+                    "target_name": "Verbranding"
+                }
+            ]
+        },
+        {
+            "question_number": "7",
+            "question_text": "Philip wil graag het experiment herhalen, alleen gebruikt hij geen klein waxinelichtje, maar een grotere kaars . Voorspel wat er zal gebeuren met de brandingsduur van de kaars ten opzichte van het waxinelichtje. Ga uit van dezelfde omstandigheden. Beargumenteer je antwoord.",
+            "points": [
+                {
+                    "point_index": 0,
+                    "point_name": "zuurstof",
+                    "point_text": "de kaars gebruikt meer zuurstof",
+                    "point_weight": 1,
+                    "target_name": "Verbranding"
+                },
+                {
+                    "point_index": 1,
+                    "point_name": "conclusie",
+                    "point_text": "de kaar zal minder lang branden",
+                    "point_weight": 1,
+                    "target_name": "Verbranding"
+                }
+            ]
+        }
+    ],
+    "targets": [
+        {
+            "target_name": "Notatie"
+        },
+        {
+            "target_name": "Verbranding"
+        },
+        {
+            "target_name": "Energie"
+        },
+        {
+            "target_name": "Reactievergelijking"
+        },
+        {
+            "target_name": "Molecuul"
+        }
+    ]
+}
