@@ -83,6 +83,7 @@
         {
             "question_number": "5",
             "question_text": "Geef een tekening van het molecuul ethaan (C 2 H 8 ) Zorg ervoor dat het molecuul aan de Ga uit van een volledige verbranding. oktet regel voldoet.",
+            "is_draw_question": true,
             "points": [
                 {
                     "point_index": 0,

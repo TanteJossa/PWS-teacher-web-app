@@ -264,7 +264,7 @@ div
                 :hasDeleteButton="true"
                 v-model="selected_page_id"
             )
-                template(v-slot:selected="{ item }")
+                template(v-slot:selected="{ item }" style="position: relative")
                     RequestLoader(v-if="test.loading.sections")
                     v-btn(
                         text="laad deze pagina"
@@ -312,7 +312,7 @@ div
                 v-list(
                     :selected="[selected_student_id]"
                     mandatory
-                    style="width: 155px; overflow-y: scroll"
+                    style="min-width: 155px; overflow-y: scroll"
                 )
                     v-list-item Leerlingen
                     v-divider
@@ -354,7 +354,7 @@ div
                 v-list(
                     :selected="[selected_student_id]"
                     mandatory
-                    style="width: 155px; overflow-y: scroll"
+                    style="min-width: 155px; overflow-y: scroll"
                 )
                     v-list-item Leerlingen
                     v-divider
@@ -367,9 +367,9 @@ div
                 div.pa-2(v-if="selected_student")
                     h2 Leerling {{ selected_student.student_id}}
                     v-btn(
-                        label="Kijk leerling na"
+                        text="Kijk leerling na"
                         @click="selected_student.grade()"
-                        :loading="selected_student.is_gradeing"
+                        :loading="selected_student.is_grading"
                     )
                     v-expansion-panels()
                         v-expansion-panel(
@@ -394,33 +394,40 @@ div
                                 )
                                     thead
                                         tr
-                                            th(width="75px") Pt.
+                                            th Pt.
                                             th Punt
                                             th Uitleg
-                                            th(width="75px") Behaald
+                                            th.pa-0(style="width: 55px") Behaald
                                             th Feedback
                                     tbody
                                         tr(
                                             v-for="(rubric_point, point_index) in result.question.points"
                                         )
-                                            td.pa-0 {{ rubric_point.point_weight }}
-                                            td.pa-0 {{ rubric_point.point_name }}
-                                            td.pa-0 {{ rubric_point.explanation }}
-                                            td.pa-0 
-                                                v-checkbox(
-                                                    v-model="selected_student.results[index].point_results[rubric_point.id].is_correct"
+                                            td {{ rubric_point.point_weight }}
+                                            td {{ rubric_point.point_name }}
+                                            td {{ rubric_point.point_text }}
+                                            td
+                                                v-checkbox.mx-auto(
+                                                    v-model="selected_student.results[index].point_results[rubric_point.point_index].has_point"
                                                     density="compact"
                                                 )
 
                                             td.pa-0
                                                 v-textarea(
                                                     
-                                                    v-model="selected_student.results[index].point_results[rubric_point.id].feedback"
+                                                    v-model="selected_student.results[index].point_results[rubric_point.point_index].feedback"
                                                     auto-grow
                                                     :rows="1"
                                                     density="compact"
 
                                                 )
+                                b Feedback Volledige vraag
+                                v-textarea(
+                                    v-model="selected_student.results[index].feedback"
+                                    auto-grow
+                                    :rows="2"
+                                    density="compact"
+                                )
 
             
 
@@ -516,7 +523,7 @@ export default {
                     ]
                 },
             ],
-            selected_section_id: 'scan',
+            selected_section_id: 'grade',
             test: new Test({}),
             selected_page_id: '',
             selected_student_id: ''
@@ -646,6 +653,23 @@ export default {
 
                 }
             })
+        },
+        printTest(){
+            console.log(this.test.students.map(student => {
+                return {
+                    student_id: student.student_id,
+                    results: student.results.map(result => {
+                        return {
+                            question_number: result.question_number,
+                            scan: {
+                                base64Image: result.scan,
+                                text: result.scan.text,
+                                question_number: result.scan.question_number,
+                            }
+                        }
+                    })
+                }
+            }))
         }
 
 
@@ -680,7 +704,9 @@ export default {
 
         this.test.createPages()
 
-        // await this.test.scanPages()
+        await this.test.scanStudentIdsAndSections(true)
+
+        this.test.loadStudents(true)
 
         console.log(this.test)
 

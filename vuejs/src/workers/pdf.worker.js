@@ -54,7 +54,7 @@ export async function pdfToBase64Images(pdfData) {
                 return new Promise((resolve, reject) => {
                   const reader = new FileReader();
                   reader.onloadend = () => {
-                    console.log('loaded Image: ', imageName)
+                    // console.log('loaded Image: ', imageName)
                     resolve(reader.result)
 
                   };
