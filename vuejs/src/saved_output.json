@@ -1,155 +1,191 @@
 {
     "questions": [
         {
-            "question_number": "1",
-            "question_text": "Noteer \" A \" als antwoord op vraag 1.",
+            "is_draw_question": false,
             "points": [
                 {
+                    "has_point": true,
                     "point_index": 0,
-                    "point_name": "versie",
+                    "point_name": "versie noteren",
                     "point_text": "er is een versie genoteerd",
                     "point_weight": 1,
-                    "target_name": "Notatie"
+                    "target_name": "Zorgvuldigheid"
                 }
-            ]
+            ],
+            "question_number": "1",
+            "question_text": "Noteer \"A\", \"B\" of \"C\"  als antwoord op vraag 1."
         },
         {
+            "is_draw_question": false,
+            "points": [
+                {
+                    "has_point": true,
+                    "point_index": 0,
+                    "point_name": "Verbranding",
+                    "point_text": "er is geen zuurstof(gas) voor de pijl/er is geen zuurstof(gas) als reactant betrokken",
+                    "point_weight": 1,
+                    "target_name": "Reacties"
+                },
+                {
+                    "has_point": true,
+                    "point_index": 1,
+                    "point_name": "Conclusie",
+                    "point_text": "consequente conclusie op basis van argumentatie",
+                    "point_weight": 1,
+                    "target_name": "Redeneren"
+                }
+            ],
             "question_number": "2",
-            "question_text": "Is er hier sprake van een volledige of onvolledige verbranding? Beargumenteer je antwoord.",
-            "points": [
-                {
-                    "point_index": 0,
-                    "point_name": "CO",
-                    "point_text": "er ontstaat geen koolstofmonoxide/CO",
-                    "point_weight": 1,
-                    "target_name": "Verbranding"
-                },
-                {
-                    "point_index": 1,
-                    "point_name": "conclusie",
-                    "point_text": "conclusie volledige verbranding",
-                    "point_weight": 1,
-                    "target_name": "Verbranding"
-                }
-            ]
+            "question_text": "Is er hier sprake van een verbranding? Kijk zorgvuldig naar de reactievergelijking. Beargumenteer je antwoord."
         },
         {
+            "is_draw_question": false,
+            "points": [
+                {
+                    "has_point": true,
+                    "point_index": 0,
+                    "point_name": "Waarnemen energie",
+                    "point_text": "Je neemt waar dat er een vorm van energie vrijkomt, zoals warmte/vuur/licht",
+                    "point_weight": 1,
+                    "target_name": "Waarnemen"
+                },
+                {
+                    "has_point": true,
+                    "point_index": 1,
+                    "point_name": "Conclusie",
+                    "point_text": "Consequente conclusie op basis van argumentatie, zoals bijvoorbeeld er komt energie vrij, dus exotherme reactie. Of er is foutief genoemd dat er energie in de reactie gaat, maar wel consequent geconcludeert dat er sprake is van een endotherme reactie.",
+                    "point_weight": 1,
+                    "target_name": "Redeneren"
+                }
+            ],
             "question_number": "3",
-            "question_text": "Is er hier sprake van een exotherme of endotherme reactie? Beargumenteer je antwoord.",
-            "points": [
-                {
-                    "point_index": 0,
-                    "point_name": "warmte",
-                    "point_text": "er ontstaat warmte/vuur",
-                    "point_weight": 1,
-                    "target_name": "Energie"
-                },
-                {
-                    "point_index": 1,
-                    "point_name": "conclusie",
-                    "point_text": "conclusie exotherme reactie",
-                    "point_weight": 1,
-                    "target_name": "Energie"
-                }
-            ]
+            "question_text": "Is er hier sprake van een exotherme of endotherme reactie? Beargumenteer je antwoord."
         },
         {
-            "question_number": "4",
-            "question_text": "Geef de reactievergelijking van de verbranding van het magnesiumlint. Benoem tevens de fases.",
+            "is_draw_question": false,
             "points": [
                 {
+                    "has_point": true,
                     "point_index": 0,
-                    "point_name": "voor pijl",
-                    "point_text": "voor de pijl correct",
+                    "point_name": "Moleculen",
+                    "point_text": "alle moleculen correct benoemd (Mg, O₂, MgO)",
                     "point_weight": 1,
-                    "target_name": "Reactievergelijking"
+                    "target_name": "Reacties"
                 },
                 {
+                    "has_point": true,
                     "point_index": 1,
-                    "point_name": "na pijl",
-                    "point_text": "na de pijl correct",
+                    "point_name": "Balans",
+                    "point_text": "reactievergelijking is correct gebalanceerd (coëfficiënten) en de correcte moleculen  zijn benoemd (zie punt 1) (2Mg + O 2 → 2MgO)",
                     "point_weight": 1,
-                    "target_name": "Reactievergelijking"
+                    "target_name": "Reacties"
                 },
                 {
+                    "has_point": true,
                     "point_index": 2,
-                    "point_name": "fases",
-                    "point_text": "alle fases correct -0 p: Mg 2 (s) in plaats van Mg(s)",
+                    "point_name": "Fases",
+                    "point_text": "alle fases correct en afkortingen fases correct. 2Mg(s), O 2 (g), 2MgO(s)",
                     "point_weight": 1,
-                    "target_name": "Reactievergelijking"
+                    "target_name": "Fasen"
                 }
-            ]
+            ],
+            "question_number": "4",
+            "question_text": "Geef de reactievergelijking van de verbranding van het magnesiumlint. Benoem tevens de fases."
         },
         {
-            "question_number": "5",
-            "question_text": "Geef een tekening van het molecuul ethaan (C 2 H 8 ) Zorg ervoor dat het molecuul aan de Ga uit van een volledige verbranding. oktet regel voldoet.",
             "is_draw_question": true,
             "points": [
                 {
+                    "has_point": true,
                     "point_index": 0,
-                    "point_name": "tekening",
-                    "point_text": "de vlam brandt minder intensief",
-                    "point_weight": 2,
-                    "target_name": "Molecuul"
+                    "point_name": "Atomen",
+                    "point_text": "structuurformule getekend met 3 Cl atomen en 1 C atoom en 1 H atoom",
+                    "point_weight": 1,
+                    "target_name": "Moleculen"
+                },
+                {
+                    "has_point": true,
+                    "point_index": 1,
+                    "point_name": "Covalentie",
+                    "point_text": "alle atomen in de structuurformule voldoen aan hun covalenties, (C heeft 4 bindingen, Cl en H hebben er 1)",
+                    "point_weight": 1,
+                    "target_name": "Moleculen"
                 }
-            ]
+            ],
+            "question_number": "5",
+            "question_text": "Geef een tekening van het molecuul   TCM.   Zorg ervoor dat   elk atoom   aan de   oktet regel voldoet. Kras niet in de tekening. Bij   correctie , teken opnieuw."
         },
         {
+            "is_draw_question": false,
+            "points": [
+                {
+                    "has_point": true,
+                    "point_index": 0,
+                    "point_name": "Zuurstof",
+                    "point_text": "er is meer zuurstof bij het grotere bekerglas.",
+                    "point_weight": 1,
+                    "target_name": "Reacties"
+                },
+                {
+                    "has_point": true,
+                    "point_index": 1,
+                    "point_name": "Conclusie",
+                    "point_text": "een conclusie waarbij de brandingsduur gekoppeld is aan de hoeveelheid zuurstof in het bekerglas. Mocht de leerling foutief hebben genoemd dat in het kleinere bekerglas meer zuurstof zit, dan kan dit punt wel toegekend worden als er een consequente conclusie wordt getrokken.",
+                    "point_weight": 1,
+                    "target_name": "Redeneren"
+                }
+            ],
             "question_number": "6",
-            "question_text": "In het practicum zag je dat één waxinelichtje langer brandde. Beargumenteer waarom dit het geval is.",
-            "points": [
-                {
-                    "point_index": 0,
-                    "point_name": "zuurstof",
-                    "point_text": "er is meer zuurstof bij (waxinelinelichtje) A",
-                    "point_weight": 1,
-                    "target_name": "Verbranding"
-                },
-                {
-                    "point_index": 1,
-                    "point_name": "conclusie",
-                    "point_text": "dus waxinelichtje A blijft langer branden",
-                    "point_weight": 1,
-                    "target_name": "Verbranding"
-                }
-            ]
+            "question_text": "In het practicum zag je dat één waxinelichtje langer brandde. Geef aan welk waxinelichtje dit is , gebruik met   het   kleinere/grotere bekerglas als aanduiding. Beargumenteer   waarom dit het geval is."
         },
         {
-            "question_number": "7",
-            "question_text": "Philip wil graag het experiment herhalen, alleen gebruikt hij geen klein waxinelichtje, maar een grotere kaars . Voorspel wat er zal gebeuren met de brandingsduur van de kaars ten opzichte van het waxinelichtje. Ga uit van dezelfde omstandigheden. Beargumenteer je antwoord.",
+            "is_draw_question": false,
             "points": [
                 {
+                    "has_point": true,
                     "point_index": 0,
-                    "point_name": "zuurstof",
-                    "point_text": "de kaars gebruikt meer zuurstof",
+                    "point_name": "Zuurstof",
+                    "point_text": "genoemd dat de hoeveelheid zuurstof voor beide waxinelichtjes hetzelfde is. Houd rekening met creatieve antwoorden waarbij de grotere lont een groter volume heeft, waardoor er minder zuurstof is, dit is ook goed",
                     "point_weight": 1,
-                    "target_name": "Verbranding"
+                    "target_name": "Reacties"
                 },
                 {
+                    "has_point": true,
                     "point_index": 1,
-                    "point_name": "conclusie",
-                    "point_text": "de kaar zal minder lang branden",
+                    "point_name": "Conclusie",
+                    "point_text": "consequente conclusie, zoals: het waxinelichtje met de grotere lont gebruikt meer zuurstof per seconde.",
                     "point_weight": 1,
-                    "target_name": "Verbranding"
+                    "target_name": "Redeneren"
                 }
-            ]
+            ],
+            "question_number": "7",
+            "question_text": "Philip wil graag het experiment herhalen, alleen gebruikt hij geen klein waxinelichtje, maar een grotere kaars. Voorspel wat er zal gebeuren met de brandingsduur van de kaars ten opzichte van het waxinelichtje. Ga uit van dezelfde omstandigheden. Beargumenteer je antwoord."
         }
     ],
     "targets": [
         {
-            "target_name": "Notatie"
+            "explanation": "De mate waarin de leerling de scheikundige notatie van de elementen en molecuulformules correct kan opschrijven.",
+            "target_name": "Reacties"
         },
         {
-            "target_name": "Verbranding"
+            "explanation": "De mate waarin de leerling de scheikundige notatie van de fasen correct kan opschrijven.",
+            "target_name": "Fasen"
         },
         {
-            "target_name": "Energie"
+            "explanation": "De mate waarin de leerling de structuur van moleculen correct kan tekenen en de octetregel correct kan toepassen.",
+            "target_name": "Moleculen"
         },
         {
-            "target_name": "Reactievergelijking"
+            "explanation": "De mate waarin de leerling de resultaten van een experiment correct kan waarnemen.",
+            "target_name": "Waarnemen"
         },
         {
-            "target_name": "Molecuul"
+            "explanation": "De mate waarin de leerling een logische en scheikundig correcte beredenering kan opstellen.",
+            "target_name": "Redeneren"
+        },
+        {
+            "explanation": "De mate waarin de leerling zorgvuldig te werk gaat.",
+            "target_name": "Zorgvuldigheid"
         }
     ]
 }

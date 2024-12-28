@@ -7,6 +7,12 @@ import CircularJSON from 'circular-json'
 import {
   v4 as uuidv4
 } from 'uuid'
+import axios from 'axios'
+import {
+    ref
+} from 'vue'
+
+
 // import sharp from 'sharp';
 
 /**
@@ -131,6 +137,90 @@ function imageToPngBase64(imageSource) {
     }
   });
 }
+async function rotateImage180(base64Image) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      canvas.width = image.width;
+      canvas.height = image.height;
+
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(Math.PI); // 180 degrees in radians
+      ctx.translate(-canvas.width / 2, -canvas.height / 2);
+      ctx.drawImage(image, 0, 0);
+
+      resolve(canvas.toDataURL('image/png'));
+    };
+    image.onerror = reject; // Handle potential errors
+    image.src = base64Image;
+  });
+}
+const delay = (ms) => new Promise(res => setTimeout(res, ms));
+
+var total_requests = ref(0)
+const use_localhost = true
+
+var endpoint = (use_localhost&&(location.hostname === "localhost" || location.hostname === "127.0.0.1")) ? 'http://localhost:8080' : 'https://toetspws-function-771520566941.europe-west4.run.app'
+
+const apiRequest = async (route, data) => {
+
+    total_requests.value += 1
+    try{
+        var response = await axios.post(endpoint+route, data);
+
+    } catch (e) {
+        var response = {
+            type: 'server error',
+            error: e
+        }
+    }
+    
+
+    if (response.data
+    && response.data.output){
+        return response.data.output
+    }
+
+    console.warn('Request error', response)
+
+    return response
+}
+
+function downloadPdfFromBase64(base64String, filename = 'downloaded') {
+    /**
+    * Downloads a PDF file from a base64 encoded string.
+    *
+    * Args:
+    *   base64String: The base64 encoded string of the PDF.
+    *   filename: The desired filename for the downloaded PDF (optional, default: 'downloaded.pdf').
+    */
+    filename += '.pdf'
+    const dataPrefix = 'data:application/pdf;base64,';
+    const linkSource = base64String.startsWith(dataPrefix) ? base64String : `${dataPrefix}${base64String}`;
+    const downloadLink = document.createElement("a");
+    downloadLink.href = linkSource;
+    downloadLink.download = filename;
+    downloadLink.click();
+    downloadLink.remove();
+}
+
+
+async function downloadResultPdf(results, feedback_field=false, filename="StudentResult"){
+    const result = await apiRequest('/student-result-pdf', {
+        studentResults: results,
+        addStudentFeedback: feedback_field
+    })
+    if (typeof result == 'string'){
+
+        downloadPdfFromBase64(result, filename)
+    } else {
+        console.log('error: ', result)
+    }
+    
+}
 
 
 export {
@@ -144,5 +234,10 @@ export {
   isNumeric,
   getRandomID,
   downloadJSON,
-  imageToPngBase64
+  imageToPngBase64,
+  rotateImage180,
+  delay,
+  apiRequest,
+  downloadResultPdf,
+  total_requests
 }

@@ -1,31 +1,15 @@
-import axios from 'axios';
-import { getRandomID } from './helpers';
+import { getRandomID, delay, sum, apiRequest, downloadResultPdf } from '@/helpers';
 import { globals } from '@/main'
-import saved_section_data from '@/saved_section_data.json'
+import saved_section_data from '@/saved_section_data2.json'
 import saved_student_data from '@/saved_student_data.json'
-const use_localhost = true
+import saved_grade_data from '@/saved_grade_data.json'
 // const endpoint = 'http://localhost:8080'
-var endpoint = (use_localhost&&(location.hostname === "localhost" || location.hostname === "127.0.0.1")) ? 'http://localhost:8080' : 'https://toetspws-function-771520566941.europe-west4.run.app'
-import {ref} from 'vue'
 import saved_output from '@/saved_output.json'
 
-var total_requests = ref(0)
 
-const apiRequest = async (route, data) => {
+var temp_saved_grade_data = {}
 
-    total_requests.value += 1
-    const response = await axios.post(endpoint+route, data);
-    
 
-    if (response.data
-    && response.data.output){
-        return response.data.output
-    }
-
-    console.warn('Request error', response)
-
-    return response
-}
 
 class ContextData {
     constructor({
@@ -103,6 +87,22 @@ class ScanPage {
         }
 
     }
+    set image(val){
+        switch (this.selected_image_type) {
+            case "raw":
+                this.base64Image = val
+                break;
+            case "cropped":
+                this.croppedImage = val
+                break;
+            case "colcor":
+                this.colorCorrected = val
+                break;
+            default:
+                break;
+        }
+
+    }
     get image_options(){
         const options = ['raw']
         if (this.croppedImage){
@@ -141,7 +141,7 @@ class ScanPage {
         const response = await apiRequest('/extract_red_pen', {
             Base64Image: this.image,
         });
-        console.log(response)
+        console.log('colorCorrect: ',response)
         this.colorCorrected = response.clean;
         this.loading.col_cor = false
         this.selected_image_type = 'colcor'
@@ -164,7 +164,7 @@ class ScanPage {
 
             this.sections.push(section)
         });
-        console.log(response)
+        console.log('detectQrSections: ',response)
 
         this.loading.detect_qr = false
         return this.colorCorrected;
@@ -264,12 +264,12 @@ class ScanPage {
     async linkAnswers() {
         this.is_loading = true
         const unique_questions = [...new Set(this.sections.map(e => e.question_number))].filter(e => e != 0)
-        console.log(unique_questions)
+        console.log('unique_questions: ',unique_questions)
         const response = await Promise.all(unique_questions.map(async question_number => {
             const response = await apiRequest('/link_answer_sections', {
                 sections: this.sections.filter(e => e.question_number == question_number).map(section => section.answer),
             })
-            console.log(response)
+            console.log('link answer: ',response)
             return {response, question_number}
         }))
         this.questions = response.map(e => new ScanQuestion({base64Image: e.response, question_number: e.question_number, page:this}))
@@ -313,7 +313,7 @@ class ScanSection {
         const response = await apiRequest('/question_selector_info', {
             Base64Image: this.question_selector,
         });
-        console.log(response)
+        console.log('extractQuestion: ',response)
         this.question_number = response.most_certain_checked_number || 0;
         this.question_number_data = response
         this.is_loading = false
@@ -355,7 +355,7 @@ class ScanQuestion {
             contextText: context.getContext(this.question_number.toString()),
 
         });
-        console.log(response)
+        console.log('extractText: ', response)
         this.text = response.result?.correctly_spelled_text || "";
         this.data = response
         this.is_loading = false
@@ -407,11 +407,18 @@ class Test {
             structure: false,
             sections: false,
             students: false,
+            grading: false,
 
         }
     }
     get is_loading(){
         return Object.values(this.loading).some(e => e)
+    }
+    get total_points(){
+        return sum(this.questions.map(q => q.total_points))
+    }
+    get student_pdf_data(){
+        return this.students.map(e => e.result_pdf_data)
     }
     async loadDataFromPdf(field_type){
         this.loading.pdf_data = true
@@ -427,7 +434,7 @@ class Test {
         }
         this.loading.pdf_data = false
     }
-    async loadTestStructure(){
+    async loadTestStructure(use_preload=false){
         this.loading.structure = true
         const request_text = `
         Je krijg een toets en de antwoorden. Jouw taak is om die zo goed en precies mogelijk in een digitaal formaat om te zetten.
@@ -463,20 +470,24 @@ class Test {
         const test_data = this.files.test.data
         const rubric_data = this.files.rubric.data
 
+        if (use_preload){
 
-        const result = saved_output
-
-        // const result = await apiRequest('/test-data', {
-        //     requestText: request_text,
-        //     testData: {
-        //         toets: test_data,
-        //         rubric: rubric_data
-        //     }
-        // })
+            var result = saved_output
+        } else {
 
 
+            var result = await apiRequest('/test-data', {
+                requestText: request_text,
+                testData: {
+                    toets: test_data,
+                    rubric: rubric_data
+                }
+            })
+        }
 
-        console.log(result)
+
+
+        console.log('loadTestStructure: ', result)
         this.test_data_result = result
         this.loadTestData()
         this.loading.structure = false
@@ -484,12 +495,12 @@ class Test {
     loadTestData(){
         this.targets = []
 
-        this.test_data_result.targets.forEach(e => {
+        this.test_data_result.targets?.forEach(e => {
             this.addTarget(e)
         })
         this.questions = []
 
-        this.test_data_result.questions.forEach(e => {
+        this.test_data_result.questions?.forEach(e => {
             this.addQuestion(e)
         })
     }
@@ -538,29 +549,32 @@ class Test {
     }
     async scanStudentIdsAndSections(use_preloaded = false){
         this.loading.sections = true
-        const preload = []
-        await Promise.all(
-        this.pages.map(async (page, index) => {
-        // for (let index = 0; index < this.pages.length;index++){
+        // const preload = []
+        // await Promise.all(this.pages.map(async (page, index) => {
+        for (let index = 0; index < this.pages.length;index++){
 
                 
             if (use_preloaded){
+                console.log(saved_section_data[index])
                 this.pages[index].student_id = saved_section_data[index].student_id || ""
 
                 this.pages[index].sections = saved_section_data[index].sections.map(e => {
-                    return new ScanSection(e)
+                    return new ScanSection({
+                        ...e,
+                        student_id: this.pages[index].student_id
+                    })
                 })
             } else {
                 await this.pages[index].detectStudentId()
                 await this.pages[index].loadSections()
                 preload.push({
                     student_id: this.pages[index].student_id,
-                    secions: this.pages[index].sections
+                    sections: this.pages[index].sections
                 })
                 console.log('preload: ', preload)
             }
-        // }
-        }))
+        }
+        // }))
 
 
         this.loading.sections = false
@@ -583,7 +597,8 @@ class Test {
                         student: student,
                         question_id: question.id,
                         // conversion mistake
-                        scan: result?.scan?.base64Image
+                        scan: result?.scan?.base64Image,
+                        student_handwriting_percent: result?.student_handwriting_percent
 
                     })
                     
@@ -595,18 +610,20 @@ class Test {
                 this.students.push(student)
 
             })
-            this.students.sort((a,b) => a.student_id - b.student_id)
+            this.students.sort((a,b) => Number(a.student_id) - Number(b.student_id))
             this.loading.students = false
 
             return 
 
         } 
-        const unique_student_ids = [...new Set(this.pages.map(e => e.student_id))].filter(e => e)
-        unique_student_ids.sort()
+        const unique_student_ids = [...new Set(this.pages.map(e => e.student_id))].filter(e => e).sort((a,b) => Number(a) - Number(b))
+        console.log(unique_student_ids)
+        
         const test_context = this.test_context
 
-        await Promise.all(unique_student_ids.map(async student_id => {
-        // for (const student_id in unique_student_ids){
+        // await Promise.all(unique_student_ids.map(async student_id => {
+        for (var student_id in unique_student_ids){
+            var student_id = unique_student_ids[student_id]
             const student_pages = this.pages.filter(e => e.student_id == student_id)
 
             var student_sections = []
@@ -636,7 +653,7 @@ class Test {
 
                 await scan_question.extractText(test_context)
 
-                return {success: true, question_id: question.id, scan_question}
+                return {success: true, question_id: question.id, scan_question, student_handwriting_percent: response.student_handwriting_percent}
             }))
 
             const student = new Student({
@@ -649,23 +666,60 @@ class Test {
                 const question_result = new StudentQuestionResult({
                     student: student,
                     question_id: scan_question.question_id,
-                    scan: scan_question.success ? scan_question.scan_question : undefined
+                    scan: scan_question.success ? scan_question.scan_question : undefined,
+                    student_handwriting_percent: scan_question.student_handwriting_percent
                 })
                 question_result.resetPoints()
 
                 student.results.push(question_result)
             })
+            console.log(student_id, student)
 
-            this.students.push(student)
-        // }
+            const index = this.students.findIndex(e => e.student_id == student.student_id)
+            if (index == -1){
+                this.students.push(student)
+
+            } else {
+                this.students[index] = student
+            }
+
+        }
+        // }))
+        
+        // print preload
+        console.log(this.students.map(student => {
+            return {
+                student_id: student.student_id,
+                results: student.results.map(result => {
+                    return {
+                        question_number: result.question_number,
+                        scan: {
+                            base64Image: result.scan,
+                            text: result.scan.text,
+                            question_number: result.scan.question_number,
+                        },
+                        student_handwriting_percent: result.student_handwriting_percent
+                    }
+                })
+            }
         }))
-        console.log(this)
 
         this.loading.students = false
     }
-    async gradeStudents(){
-        await Promise.all(this.students.map(e => e.grade()))
+    async gradeStudents(use_preload=false){
+        this.loading.grading = true
+        // await Promise.all(this.students.map(e => e.grade(use_preload)))
+        for (let i = 0 ;i < this.students.length; i++) {
+            await this.students[i].grade(use_preload)
+
+        }
+        this.loading.grading = false
     }
+    async downloadStudentResults(feedback_field=false){
+        await downloadResultPdf(this.student_pdf_data, feedback_field, 'AlleResultaten')
+    }
+
+
 
 }
 
@@ -689,6 +743,9 @@ class Question {
         this.points = []
 
         points.forEach(e => this.addRubricPoint(e))
+    }
+    get total_points(){
+        return sum(this.points.map(point => point.point_weight))
     }
     addRubricPoint(point){
         const target = this.test.targets.find(e => e.target_name == point.target_name)
@@ -740,6 +797,15 @@ class Target {
         this.target_name = target_name
         this.explanation = explanation
     }
+    get average_received_points(){
+        return Math.round(sum(this.test.students.map(student => sum(student.results.map(q_result => sum(Object.values(q_result.point_results).filter(p_result => p_result.point.target_id == this.id).filter(p_result => p_result.has_point).map(p_result => p_result.point.point_weight)))))) / this.test.students.length * 1000) / 1000
+    }
+    get total_points(){
+        return sum(this.test.questions.map(q => sum(q.points.filter(e => e.target_id == this.id).map(e => e.point_weight))))
+    }
+    get percent(){
+        return (this.average_received_points/this.total_points * 100).toFixed(1) + '%'
+    }
 }
 
 class Student {
@@ -759,15 +825,121 @@ class Student {
         this.results.forEach((e, index) => this.results[index].resetPoints())
         this.is_grading = is_grading
     }
-    async grade(){
+    
+    get target_results(){
+        const target_results = {}
+        this.test.targets.forEach(target => {
+            var total_points = 0
+            var received_points = 0
+            
+            this.test.questions.forEach(question => {
+                question.points.forEach(point => {
+                    if (point.target_id == target.id){
+                        total_points += 1
+                        
+                        const question_result = this.results.find(e => e.question_id == question.id)
+                        if (question_result){
+
+                            const point_result = question_result.point_results[point.point_index]
+                            if (point_result){
+                                if (point_result.has_point){
+                                    received_points += point.point_weight
+                                }
+                            }
+                        }
+                    }
+                })
+            })
+
+            target_results[target.id] = {
+                total_points: total_points,
+                received_points: received_points,
+                percent: (received_points/total_points * 100).toFixed(1) + '%',
+                target: target,
+            }
+        })
+        return target_results
+    }
+    get question_results(){
+        const question_results = {}
+        this.test.questions.forEach(question => {
+            var total_points = 0
+            var received_points = 0
+            
+            const result = this.results.find(e => e.question_id == question.id)
+            if (result){
+                question.points.forEach(point => {
+                    total_points += 1
+                    
+                    const point_result = result.point_results[point.point_index]
+                    if (point_result){
+                        if (point_result.has_point){
+                            received_points += point.point_weight
+                        }
+                    }
+                })
+            }
+
+
+            question_results[question.id] = {
+                total_points: total_points,
+                received_points: received_points,
+                percent: (received_points/total_points * 100).toFixed(1) + '%',
+                result: result,
+                question: question,
+            }
+        })
+        return question_results
+    }
+    
+    get received_points(){
+        return sum(Object.values(this.question_results).map(e => e.received_points))
+    }
+    get result_pdf_data(){
+        return {
+            student_id: this.student_id,
+            question_results: Object.values(this.question_results).map(question_result => {
+                return {
+                    question_number: question_result.question.question_number,
+                    student_answer: question_result.result.scan.text,
+                    feedback: question_result.result.feedback,
+                    score: `${question_result.received_points} / ${question_result.total_points}`,
+                    points: Object.values(question_result.result.point_results).map(point_result => {
+                        return {
+                            point_name: point_result.point.point_name,
+                            points: point_result.has_point ? point_result.point.point_weight : 0,
+                            feedback: point_result.feedback.length > 0 ? point_result.feedback : 'Geen feedback',
+                        }
+                    }),
+                }
+            }),
+            targets: Object.values(this.target_results).map(target_result => {
+                return {
+                    target_name: target_result.target.target_name,
+                    explanation: target_result.target.explanation,
+                    score: `${target_result.received_points} / ${target_result.total_points}`,
+                    percent: target_result.percent,
+                }
+
+            })
+        }
+    }
+    async grade(use_preload=false){
         this.is_grading = true
         await Promise.all(this.results.map(async question_result => {
-            await question_result.grade()
+            await question_result.grade(use_preload)
         }))
+        console.log('Temp: ', temp_saved_grade_data)
 
 
         this.is_grading = false
     }
+    async downloadStudentResult(feedback_field = false){
+        console.log('Starting download: ')
+        await downloadResultPdf([this.result_pdf_data], feedback_field, 'LeerlingResultaat_'+this.student_id)
+    }
+
+
 }
 
 class StudentQuestionResult {
@@ -778,7 +950,8 @@ class StudentQuestionResult {
         feedback="",
         point_results={},
         scan=new ScanQuestion({}),
-        is_grading=false
+        is_grading=false,
+        student_handwriting_percent=0
     }) {
         this.id = id
         this.student = student
@@ -787,13 +960,14 @@ class StudentQuestionResult {
         this.point_results = point_results
         this.scan = new ScanQuestion(scan)
         this.is_grading = is_grading
+        this.student_handwriting_percent = student_handwriting_percent
 
     }
     get question(){
         return this.student.test.questions.find(e => e.id == this.question_id) || new Question({})
     }
     resetPoints(){
-        this.point_results = []
+        this.point_results = {}
         this.question.points.forEach(point => {
             this.point_results[point.point_index] = new StudentPointResult({
                 student_result: this,
@@ -801,27 +975,66 @@ class StudentQuestionResult {
             })
         })
     }
-    async grade(){
+    async grade(use_preload=false){
         this.is_grading = true
+
+        if ((!this.question.is_draw_question && this.scan.text.length == 0)
+            || (this.question.is_draw_question && this.scan.base64Image.length == 0)
+        ) {
+            console.log('No answer found for: student ', this.student.student_id, ' question: ', this.question.question_number)
+            return
+        }
 
         const context = this.student.test.test_context
 
-        const response = await apiRequest('/grade', {
-            rubric: context.getRubric(this.question.question_number),
-            question: context.getQuestion(this.question.question_number),
-            answer: this.scan.text,
-            studentImage: this.question.is_draw_question ? this.scan.base64Image : undefined
-        })
-        console.log('Graded: student ', this.student.student_id, '  question: ', this.question.question_number,':' , response)
-        if (response && response.result ){
+        if (use_preload){
+            if (saved_grade_data[this.student.student_id]?.[this.question.question_number]){
+                var response =  saved_grade_data[this.student.student_id]?.[this.question.question_number]
+            }
+        } else {
+            if (this.question.is_draw_question){
+                var model = "gemini-2.0-flash-exp"
+                var provider = "google"
+            }
+
+            var response = await apiRequest('/grade', {
+                rubric: context.getRubric(this.question.question_number),
+                question: context.getQuestion(this.question.question_number),
+                answer: this.question.is_draw_question ? "" : this.scan.text,
+                studentImage: this.question.is_draw_question ? this.scan.base64Image : undefined,
+                model: model,
+                provider: provider,
+            })
+            if (this.question.is_draw_question){
+
+                await delay(5000)
+            }
+
+
+        }
+        if (!use_preload){
+
+            console.log('Graded: student ', this.student.student_id, '  question: ', this.question.question_number,':' , response)
+        }
+        if (response && response.result && response.result.points){
+            var lowest_point_index = 0
+            const sorted_points_indecies = response.result.points.map(e => e.point_index).sort((a,b) => a - b)
+            if (sorted_points_indecies.length > 0){
+                lowest_point_index = sorted_points_indecies[0]
+            }
+
+            if (!temp_saved_grade_data[this.student.student_id]){
+                temp_saved_grade_data[this.student.student_id] = {}
+            }
+            temp_saved_grade_data[this.student.student_id][this.question.question_number] = response
+
             this.feedback = response.result.feedback
             response.result.points.forEach(response_point => {
                 // const index = this.points.findIndex(point => point.point.point_index = response_point.point_index)
-                if (this.point_results[response_point.point_index]){
-                    this.point_results[response_point.point_index].has_point = response_point.has_point
-                    this.point_results[response_point.point_index].feedback = response_point.feedback
+                if (this.point_results[response_point.point_index - lowest_point_index]){
+                    this.point_results[response_point.point_index - lowest_point_index].has_point = response_point.has_point
+                    this.point_results[response_point.point_index - lowest_point_index].feedback = response_point.feedback
                 }
-
             })
         }
 
@@ -871,5 +1084,4 @@ export {
     StudentQuestionResult,
     StudentPointResult,
 
-    total_requests
 }

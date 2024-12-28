@@ -1,0 +1,3762 @@
+{
+    "1": {
+        "1": {
+            "delta_time_s": 2.4625296592712402,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord. Kijk de theorie nog een keer goed door, zodat je de volgende keer de vraag nog beter kan beantwoorden!",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402403.0826013,
+            "tokens_used": 305
+        },
+        "2": {
+            "delta_time_s": 3.5128490924835205,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je conclusie is niet juist. Kijk nog eens goed naar de reactievergelijking en de definitie van een verbranding. Let op de rol van zuurstof(gas).",
+                "points": [
+                    {
+                        "feedback": "Er staat geen zuurstof(gas) voor de pijl, dus er is geen sprake van een verbranding.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie volgt niet uit het argument.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402404.1354177,
+            "tokens_used": 413
+        },
+        "3": {
+            "delta_time_s": 3.823101282119751,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de juiste conclusie getrokken dat de reactie exotherm is, maar je argumentatie is niet helemaal duidelijk. Let op je formulering en spreek de volgende keer duidelijker uit waarom er energie vrijkomt.",
+                "points": [
+                    {
+                        "feedback": "Je hebt terecht waargenomen dat er energie vrijkomt, wat duidt op een exotherme reactie.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie dat het een exotherme reactie is, is correct, maar de argumentatie mist wat duidelijkheid.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402404.4486966,
+            "tokens_used": 486
+        },
+        "4": {
+            "delta_time_s": 4.077986001968384,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de reactievergelijking perfect opgeschreven! Top! Alleen mis je nog de fases, denk hierbij aan de aggregatietoestanden (vast, vloeibaar, gas).",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn correct benoemd.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is correct gebalanceerd en de correcte moleculen  zijn benoemd.",
+                        "has_point": true,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fases ontbreken.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402404.7075782,
+            "tokens_used": 492
+        },
+        "5": {
+            "delta_time_s": 2.5750250816345215,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402403.2116473,
+            "tokens_used": 690
+        },
+        "6": {
+            "delta_time_s": 3.3836259841918945,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed begrepen en een correct antwoord gegeven. Kijk wel even naar je notatie van zuurstof, dit noteer je als O₂.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct aangegeven dat het waxinelichtje onder het kleinere bekerglas eerder uitgaat.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt correct beredeneerd dat dit komt door de kleinere hoeveelheid zuurstof.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402404.3113034,
+            "tokens_used": 506
+        },
+        "7": {
+            "delta_time_s": 3.6909046173095703,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt het niet helemaal goed, want je vergeet dat de hoeveelheid zuurstof hetzelfde is. Kijk nog eens goed naar de vraag en probeer het nog eens.",
+                "points": [
+                    {
+                        "feedback": "Je hebt niet meegenomen dat de hoeveelheid zuurstof voor beide kaarsen gelijk is.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie dat de grotere kaars sneller dooft, klopt niet als je uitgaat van dezelfde hoeveelheid zuurstof.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402407.0833075,
+            "tokens_used": 514
+        }
+    },
+    "2": {
+        "1": {
+            "delta_time_s": 2.4000959396362305,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord. Kijk wel even na of je de rest van de vragen ook hebt gemaakt!",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402411.2487564,
+            "tokens_used": 297
+        },
+        "2": {
+            "delta_time_s": 3.3835227489471436,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een onjuiste conclusie getrokken. Kijk goed naar de definitie van een verbranding en of die hier van toepassing is.",
+                "points": [
+                    {
+                        "feedback": "Er staat geen zuurstof voor de pijl, dus er is geen sprake van een verbranding.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie volgt niet uit het gegeven argument.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402412.2351804,
+            "tokens_used": 401
+        },
+        "3": {
+            "delta_time_s": 3.6066954135894775,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een onjuiste observatie gedaan, waardoor je conclusie ook onjuist is. Kijk nog eens goed naar de definitie van endotherm en exotherm.",
+                "points": [
+                    {
+                        "feedback": "Je hebt onjuist geobserveerd dat er energie van buitenaf wordt toegevoegd.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie is onjuist, maar volgt wel uit je onjuiste observatie.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402412.4645965,
+            "tokens_used": 447
+        },
+        "4": {
+            "delta_time_s": 4.49098014831543,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de verkeerde molecuul gebruikt, het gaat hier om zuurstof en niet om koolstofdioxide. De beschrijving van de fase klopt ook niet. Let hier in de toekomst beter op!",
+                "points": [
+                    {
+                        "feedback": "Je hebt de verkeerde molecuul gebruikt, het moet O₂ zijn.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is niet correct gebalanceerd met de juiste moleculen.",
+                        "has_point": false,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De beschrijving van de fase klopt niet, magnesiumoxide is een vaste stof.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402413.3498821,
+            "tokens_used": 525
+        },
+        "5": {
+            "delta_time_s": 3.183098554611206,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402412.130882,
+            "tokens_used": 690
+        },
+        "6": {
+            "delta_time_s": 3.3797483444213867,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een deel van de vraag goed, maar je conclusie mist de koppeling met de brandingsduur en de hoeveelheid zuurstof. Denk aan de verschillen tussen de bekerglazen en hoe die de brandduur beïnvloeden.",
+                "points": [
+                    {
+                        "feedback": "Je hebt wel iets over zuurstof en de bekerglazen gezegd, maar niet over de brandduur.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie mist de koppeling tussen brandduur en hoeveelheid zuurstof.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402412.537698,
+            "tokens_used": 510
+        },
+        "7": {
+            "delta_time_s": 3.7657628059387207,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt helaas te weinig opgeschreven om punten te krijgen. Probeer de vraag goed te lezen en te kijken wat er gevraagd wordt. Denk aan de hoeveelheid zuurstof en de conclusie die je moet trekken.",
+                "points": [
+                    {
+                        "feedback": "Noem expliciet dat de hoeveelheid zuurstof voor beide kaarsen gelijk is.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Trek een conclusie over de brandingsduur van de grotere kaars ten opzichte van het waxinelichtje.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402415.3202255,
+            "tokens_used": 507
+        }
+    },
+    "3": {
+        "1": {
+            "delta_time_s": 2.326190710067749,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt vraag 1 goed beantwoord. Kijk de volgende keer wel even goed of je netjes schrijft!",
+                "points": [
+                    {
+                        "feedback": "Je hebt het juiste antwoord gegeven.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402420.097417,
+            "tokens_used": 296
+        },
+        "2": {
+            "delta_time_s": 3.433894157409668,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt onvoldoende geredeneerd om de vraag te beantwoorden. Kijk goed naar de reactievergelijking en wat er nodig is voor een verbranding. ",
+                "points": [
+                    {
+                        "feedback": "Je hebt niet goed bekeken of er zuurstof(gas) bij betrokken is.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie volgt niet uit je argumentatie.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402421.2051206,
+            "tokens_used": 417
+        },
+        "3": {
+            "delta_time_s": 4.012632369995117,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een onvolledige argumentatie gegeven. De argumentatie dat de stoffen niet van buitenaf verwarmd werden, is niet voldoende om te concluderen dat de reactie exotherm is. Probeer de definitie van een exotherme reactie nog eens te bekijken.",
+                "points": [
+                    {
+                        "feedback": "Je hebt wel de juiste conclusie getrokken, maar je argumentatie mist een belangrijke component.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt niet volledig kunnen beredeneren waarom er sprake is van een exotherme reactie.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402421.7880402,
+            "tokens_used": 469
+        },
+        "4": {
+            "delta_time_s": 4.6496195793151855,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de formule voor magnesiumoxide correct, maar de reactievergelijking is niet compleet en niet gebalanceerd. Denk aan de zuurstof en de fases in de vergelijking. Bekijk de theorie over verbrandingsreacties nog eens goed.",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn niet correct benoemd in de reactievergelijking.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is niet correct gebalanceerd en de moleculen zijn niet correct benoemd.",
+                        "has_point": false,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fases ontbreken in de reactievergelijking.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402422.4322,
+            "tokens_used": 517
+        },
+        "5": {
+            "delta_time_s": 3.2654600143432617,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 T atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen voldoen aan hun covalenties, C heeft 4 bindingen, Cl en T hebben er 1.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402421.0549278,
+            "tokens_used": 699
+        },
+        "6": {
+            "delta_time_s": 3.2352049350738525,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een deel van de vraag goed beantwoord, maar je bent vergeten te beargumenteren waarom het waxinelichtje langer brandt. Let hier volgende keer op!",
+                "points": [
+                    {
+                        "feedback": "Je hebt goed aangegeven dat er minder zuurstof in het kleinere bekerglas zit.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt niet aangegeven welk waxinelichtje langer brandt.  Vergeet niet te concluderen welk waxinelichtje langer brandt.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402421.3154862,
+            "tokens_used": 501
+        },
+        "7": {
+            "delta_time_s": 2.9903440475463867,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt maar een deel van de vraag beantwoord. Denk eraan dat je de vraag volledig moet beantwoorden en je antwoord moet beargumenteren. ",
+                "points": [
+                    {
+                        "feedback": "Je hebt niet beargumenteerd waarom het langer duurt voordat het kaarsvet bereikt wordt.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt niet genoemd dat de hoeveelheid zuurstof voor beide kaarsen hetzelfde is.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402423.399182,
+            "tokens_used": 480
+        }
+    },
+    "4": {
+        "1": {
+            "delta_time_s": 2.177672863006592,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed begrepen en correct beantwoord. Ga zo door!",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402428.8775508,
+            "tokens_used": 289
+        },
+        "2": {
+            "delta_time_s": 3.648770570755005,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt onjuist geargumenteerd. Een verbranding is een reactie met zuurstof, die hier ontbreekt. Let op de beginstoffen in de reactievergelijking.",
+                "points": [
+                    {
+                        "feedback": "Onjuist, er is geen zuurstof(gas) aanwezig voor de pijl dus geen verbranding.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie is onjuist, het is geen verbranding.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402430.3650036,
+            "tokens_used": 429
+        },
+        "3": {
+            "delta_time_s": 4.416361331939697,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een goed begin, maar de uitleg over endotherme reacties is niet helemaal juist. Endotherme reacties nemen energie op in plaats van af te geven.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct waargenomen dat er energie, namelijk warmte, vrijkomt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie dat het een exotherme reactie is, is ook juist op basis van je waarneming.",
+                        "has_point": true,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De uitleg over endotherme reacties is niet correct. Endotherme reacties absorberen energie in plaats van deze af te staan.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402431.1190777,
+            "tokens_used": 524
+        },
+        "4": {
+            "delta_time_s": 4.075963258743286,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de reactievergelijking en de fases correct, goed gedaan! Let wel op de coëfficiënten in de reactievergelijking, deze kloppen nog niet helemaal. ",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn correct benoemd.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is niet correct gebalanceerd.",
+                        "has_point": false,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fases zijn correct beschreven en de afkortingen kloppen.",
+                        "has_point": true,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402430.7821584,
+            "tokens_used": 507
+        },
+        "5": {
+            "delta_time_s": 3.2838408946990967,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de structuurformule correct getekend en alle atomen voldoen aan hun covalenties. Goed gedaan!",
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402429.998073,
+            "tokens_used": 720
+        },
+        "6": {
+            "delta_time_s": 2.80135178565979,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord, je hebt alleen de verkeerde grootte bekerglas genoemd. Kijk nog eens goed naar je antwoord en verbeter het.",
+                "points": [
+                    {
+                        "feedback": "Je hebt het juiste waxinelichtje genoemd.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt de juiste reden gegeven waarom het waxinelichtje langer brandt.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402429.8071742,
+            "tokens_used": 495
+        },
+        "7": {
+            "delta_time_s": 3.0522642135620117,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag niet helemaal goed begrepen. Denk aan de hoeveelheid zuurstof die beschikbaar is en hoe dit de brandingsduur beïnvloedt.",
+                "points": [
+                    {
+                        "feedback": "De hoeveelheid zuurstof is hetzelfde voor beide kaarsen, niet meer of minder.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Een grotere kaars met een grotere lont verbruikt inderdaad meer zuurstof per tijdseenheid.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402432.238509,
+            "tokens_used": 521
+        }
+    },
+    "5": {
+        "1": {
+            "delta_time_s": 5.510073661804199,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord. Let wel op je taalgebruik, want je mag best wat netter formuleren.",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402441.1392105,
+            "tokens_used": 298
+        },
+        "2": {
+            "delta_time_s": 6.089337587356567,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt onjuist geantwoord. Kijk goed naar de reactievergelijking en let op welke stoffen er reageren.",
+                "points": [
+                    {
+                        "feedback": "Er is geen zuurstof(gas) aanwezig voor de pijl, dus geen verbranding.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie is onjuist, het is geen verbranding.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402441.7194762,
+            "tokens_used": 417
+        },
+        "3": {
+            "delta_time_s": 3.1691055297851562,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag perfect beantwoord, goed gedaan! Let wel op dat rook geen vorm van energie is, maar een gevolg van de warmte.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct geconstateerd dat er energie, zoals warmte, vrijkomt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt op basis van je waarnemingen de juiste conclusie getrokken dat het om een exotherme reactie gaat.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402438.8017523,
+            "tokens_used": 477
+        },
+        "4": {
+            "delta_time_s": 3.6419451236724854,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de reactievergelijking en de fases correct, goed gedaan! Let wel op de coëfficiënten in de reactievergelijking, deze kloppen nog niet helemaal. ",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn correct benoemd.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is niet correct gebalanceerd.",
+                        "has_point": false,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fases zijn correct beschreven en de afkortingen kloppen.",
+                        "has_point": true,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402439.280601,
+            "tokens_used": 507
+        },
+        "5": {
+            "delta_time_s": 3.1028900146484375,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402438.7480721,
+            "tokens_used": 690
+        },
+        "6": {
+            "delta_time_s": 4.4300148487091064,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord en de argumentatie is helder en klopt. Let wel op je formulering;  \"de glas\" moet \"het glas\" zijn en \"volume kleiner is dan de bekerglas\" moet zijn \"volume kleiner is dan dat van het bekerglas\".",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct aangegeven dat het waxinelichtje onder het grotere bekerglas langer brandt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt correct aangegeven dat er meer zuurstof is in het grotere bekerglas en dit gekoppeld aan de brandingsduur.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402440.3686163,
+            "tokens_used": 607
+        },
+        "7": {
+            "delta_time_s": 3.6952192783355713,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een goed begin, maar je argumentatie kan preciezer. De hoeveelheid zuurstof is inderdaad hetzelfde, maar je moet ook uitleggen *waarom* de grotere kaars sneller de zuurstof verbruikt.",
+                "points": [
+                    {
+                        "feedback": "Je hebt terecht opgemerkt dat de hoeveelheid zuurstof voor beide kaarsen gelijk is.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie dat de grotere kaars eerder uitgaat, is juist, maar de argumentatie mist de nuance dat een grotere vlam meer zuurstof per tijdseenheid verbruikt.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402442.7569678,
+            "tokens_used": 580
+        }
+    },
+    "6": {
+        "1": {
+            "delta_time_s": 2.4803414344787598,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord! Kijk alleen even na of je antwoord ook daadwerkelijk klopt met wat er in de les is behandeld.",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402446.878516,
+            "tokens_used": 307
+        },
+        "2": {
+            "delta_time_s": 3.2655351161956787,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag niet goed gelezen en de reactievergelijking niet zorgvuldig bekeken. Let hier volgende keer beter op!",
+                "points": [
+                    {
+                        "feedback": "Er is geen zuurstof(gas) aanwezig als reactant, dus geen verbranding.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie volgt niet uit de gegeven argumentatie.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402447.707417,
+            "tokens_used": 422
+        },
+        "3": {
+            "delta_time_s": 3.1578214168548584,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord en de argumentatie is duidelijk. Let wel op dat de uitspraak 'er is geen energie nodig om de reactie plaats te laten vinden' niet helemaal klopt, denk aan activeringsenergie. ",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct geobserveerd dat er een vorm van energie vrijkomt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt een consequente conclusie getrokken op basis van je argumentatie.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402447.6028254,
+            "tokens_used": 473
+        },
+        "4": {
+            "delta_time_s": 3.6057746410369873,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de reactievergelijking wel goed gebalanceerd, maar de fase van MgO is niet goed. MgO is een vaste stof.",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn correct benoemd.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is correct gebalanceerd en de correcte moleculen  zijn benoemd.",
+                        "has_point": true,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fase van MgO is fout, het is een vaste stof.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402448.053779,
+            "tokens_used": 488
+        },
+        "5": {
+            "delta_time_s": 2.944420576095581,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402447.400858,
+            "tokens_used": 690
+        },
+        "6": {
+            "delta_time_s": 3.7448384761810303,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed begrepen en een correct antwoord gegeven. Let wel op je formulering; het waxinelichtje *is* het kaarsje zelf, het *dooft* dus in het kleinere bekerglas.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct aangegeven dat het waxinelichtje in het kleinere bekerglas eerder uitgaat.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt correct beredeneerd dat dit komt door de kleinere hoeveelheid zuurstof in het kleinere bekerglas.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402448.4530752,
+            "tokens_used": 534
+        },
+        "7": {
+            "delta_time_s": 4.559564113616943,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een goed begin, maar je antwoord is niet helemaal compleet. Denk na over de hoeveelheid brandstof en hoe dit de brandingsduur beïnvloedt. Probeer je antwoord nog iets verder uit te werken.",
+                "points": [
+                    {
+                        "feedback": "Je hebt terecht opgemerkt dat de hoeveelheid zuurstof voor beide kaarsen gelijk is.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je redenering dat de grotere lont meer zuurstof nodig heeft, is correct.",
+                        "has_point": true,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De conclusie dat de grotere kaars eerder uitgaat, is niet per se juist. De grotere kaars heeft meer brandstof.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402451.7537434,
+            "tokens_used": 576
+        }
+    },
+    "7": {
+        "1": {
+            "delta_time_s": 2.234529733657837,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord! Kijk alleen even na of C ook echt het goede antwoord is.",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402455.2876887,
+            "tokens_used": 295
+        },
+        "2": {
+            "delta_time_s": 3.7332656383514404,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag niet goed gelezen en de reactievergelijking niet zorgvuldig bekeken. Let hier volgende keer beter op!",
+                "points": [
+                    {
+                        "feedback": "Er staat geen zuurstof voor de pijl, dus is er geen sprake van een verbranding.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie dat er sprake is van een verbranding is onjuist, aangezien er geen zuurstof voor de pijl staat.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402456.7849505,
+            "tokens_used": 435
+        },
+        "3": {
+            "delta_time_s": 3.5505568981170654,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord en de argumentatie is helder en correct. Je hebt een goed begrip van exotherme reacties getoond.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct waargenomen dat er energie vrijkomt in de vorm van warmte.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt op basis van de warmtevrijgave correct geconcludeerd dat het een exotherme reactie is.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402456.6047156,
+            "tokens_used": 460
+        },
+        "5": {
+            "delta_time_s": 3.562645673751831,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de structuurformule correct getekend, maar je hebt gekrast. Let op dat je netjes werkt.",
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402456.6303399,
+            "tokens_used": 721
+        },
+        "6": {
+            "delta_time_s": 3.3550243377685547,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord, de argumentatie is helder en correct. Let wel op je formulering; \"50 mL met zuurstof\" is niet helemaal correct, het gaat om de hoeveelheid lucht en niet om pure zuurstof.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct aangegeven welk waxinelichtje het langst brandt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt correct beredeneerd dat dit komt door de hoeveelheid zuurstof.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402456.4177215,
+            "tokens_used": 530
+        },
+        "7": {
+            "delta_time_s": 4.007292985916138,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag niet goed begrepen. De vraag gaat over de brandingsduur, niet over de hoeveelheid zuurstof die nodig is. Denk aan de verhouding tussen de hoeveelheid brandstof en de snelheid van verbranding.",
+                "points": [
+                    {
+                        "feedback": "Je hebt niet genoemd dat de hoeveelheid zuurstof voor beide kaarsen hetzelfde is.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie is niet consistent met de vraagstelling. De vraag gaat over de brandingsduur, niet over de hoeveelheid zuurstof.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402457.0740023,
+            "tokens_used": 539
+        }
+    },
+    "8": {
+        "1": {
+            "delta_time_s": 2.468519449234009,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed begrepen en correct beantwoord. Kijk wel even na of B ook daadwerkelijk het goede antwoord is.",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402464.73501,
+            "tokens_used": 302
+        },
+        "2": {
+            "delta_time_s": 3.7289679050445557,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt onjuist geantwoord. Kijk goed naar wat er voor de pijl staat, en of dat voldoet aan de definitie van een verbranding. Let op de definitie van een verbranding.",
+                "points": [
+                    {
+                        "feedback": "Er staat geen zuurstof voor de pijl, dus voldoet het niet aan de definitie van een verbranding.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie is niet consequent met de argumentatie.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402465.997456,
+            "tokens_used": 426
+        },
+        "3": {
+            "delta_time_s": 3.4274704456329346,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt wel het juiste antwoord, maar je moet je antwoord wel onderbouwen. Volgende keer beter je antwoord toelichten!",
+                "points": [
+                    {
+                        "feedback": "Je noemt dat er een vorm van energie vrijkomt, zoals warmte/vuur/licht.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je concludeert op basis van je argumentatie dat er sprake is van een exotherme reactie.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402465.6994681,
+            "tokens_used": 434
+        },
+        "4": {
+            "delta_time_s": 4.015291452407837,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de reactievergelijking bijna correct, let alleen op de fase van MgO. MgO is een vaste stof in plaats van een gas.",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn correct benoemd.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is correct gebalanceerd en de correcte moleculen  zijn benoemd.",
+                        "has_point": true,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fase van MgO is incorrect. MgO is een vaste stof.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402466.2903218,
+            "tokens_used": 490
+        },
+        "5": {
+            "delta_time_s": 3.1167807579040527,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402465.4003425,
+            "tokens_used": 690
+        },
+        "6": {
+            "delta_time_s": 3.916975975036621,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord en een correcte conclusie getrokken. Let er in het vervolg op dat je ook aangeeft welk waxinelichtje langer brandt: die in het grotere bekerglas.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct geconcludeerd dat het waxinelichtje langer brandt onder het grotere bekerglas.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt correct aangegeven dat er meer zuurstof is in het grotere bekerglas, waardoor het waxinelichtje langer brandt.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402466.495533,
+            "tokens_used": 574
+        },
+        "7": {
+            "delta_time_s": 3.5417299270629883,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een begin gemaakt, maar je antwoord is niet af. Leg uit waarom het waxinelichtje met de grotere lont eerder dooft. Denk aan de hoeveelheid zuurstof en de grootte van de vlam.",
+                "points": [
+                    {
+                        "feedback": "Je hebt niet genoemd dat de hoeveelheid zuurstof voor beide kaarsen gelijk is.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt geen consequente conclusie getrokken over de brandingsduur.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402468.5855992,
+            "tokens_used": 488
+        }
+    },
+    "9": {
+        "1": {
+            "delta_time_s": 2.3055689334869385,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt vraag 1 goed beantwoord. Kijk de volgende keer wel even je spelling na!",
+                "points": [
+                    {
+                        "feedback": "Je hebt het juiste antwoord gegeven.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402473.323767,
+            "tokens_used": 292
+        },
+        "2": {
+            "delta_time_s": 4.1657960414886475,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt onjuiste argumenten gebruikt om te bepalen of er sprake is van een verbranding. Kijk nog eens goed naar de definitie van een verbranding en probeer de vraag opnieuw te beantwoorden.",
+                "points": [
+                    {
+                        "feedback": "Er staat nergens in de vraag dat er zuurstof(gas) voor de pijl staat, dus dit punt kan je niet toekennen.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie dat het een thermolyse is, is onjuist, aangezien thermolyse geen verbranding is.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402475.1875026,
+            "tokens_used": 471
+        },
+        "3": {
+            "delta_time_s": 4.025408983230591,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een onjuiste conclusie getrokken. Kijk nog eens goed naar de definities van endotherm en exotherm. Denk bijvoorbeeld aan de termen 'endo' (naar binnen) en 'exo' (naar buiten).",
+                "points": [
+                    {
+                        "feedback": "Je hebt onjuist geconcludeerd dat de reactie endotherm is.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt onjuist beredeneerd dat de reactie endotherm is, omdat er geen vlam is toegevoegd.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402475.053139,
+            "tokens_used": 480
+        },
+        "4": {
+            "delta_time_s": 3.376162528991699,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de reactievergelijking perfect opgeschreven! Top! Alleen de fases miste je nog, waardoor je niet alle punten hebt.",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn correct benoemd.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is correct gebalanceerd en alle moleculen zijn correct benoemd.",
+                        "has_point": true,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fases ontbreken in je antwoord.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402474.4058912,
+            "tokens_used": 482
+        },
+        "5": {
+            "delta_time_s": 3.350595474243164,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de structuurformule correct getekend, goed gedaan! Let op dat je netjes werkt en niet krast.",
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402474.3868551,
+            "tokens_used": 721
+        },
+        "6": {
+            "delta_time_s": 3.0110960006713867,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt het verband tussen de hoeveelheid zuurstof en de brandduur goed begrepen. Probeer je antwoord volgende keer iets beknopter te formuleren.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct aangegeven dat het waxinelichtje in het grotere bekerglas langer brandt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je legt goed uit dat dit komt door de grotere hoeveelheid zuurstof in het grotere bekerglas.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402474.3480606,
+            "tokens_used": 576
+        },
+        "7": {
+            "delta_time_s": 3.50182843208313,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een goed begin, maar je redenering klopt niet helemaal. De hoeveelheid zuurstof is hetzelfde, maar een grotere vlam verbruikt die zuurstof sneller, waardoor de kaars korter brandt.",
+                "points": [
+                    {
+                        "feedback": "Je hebt terecht opgemerkt dat een grotere lont een grotere vlam betekent.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De hoeveelheid zuurstof is hetzelfde voor beide kaarsen, maar een grotere vlam verbruikt meer zuurstof per tijdseenheid.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402477.1372862,
+            "tokens_used": 550
+        }
+    },
+    "10": {
+        "1": {
+            "delta_time_s": 2.304393768310547,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt vraag 1 goed beantwoord! Kijk nog even naar de rest van de vragen.",
+                "points": [
+                    {
+                        "feedback": "Je hebt het juiste antwoord gegeven.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402482.3193896,
+            "tokens_used": 292
+        },
+        "2": {
+            "delta_time_s": 3.2933809757232666,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een onjuiste conclusie getrokken. Let op de definitie van een verbranding en bekijk de reactievergelijking.",
+                "points": [
+                    {
+                        "feedback": "Je hebt niet goed bekeken of zuurstofgas als reactant aanwezig is.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie volgt niet uit je argumentatie.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402483.3093612,
+            "tokens_used": 392
+        },
+        "3": {
+            "delta_time_s": 3.671309232711792,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord en de argumentatie is ook correct. Let wel op je formulering; rook is een gevolg van een chemische reactie en geen vorm van energie.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct waargenomen dat er een vorm van energie vrijkomt, zoals warmte.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt op basis van je argumentatie de juiste conclusie getrokken dat het om een exotherme reactie gaat.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402483.6912918,
+            "tokens_used": 459
+        },
+        "4": {
+            "delta_time_s": 4.2518322467803955,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je vergeet zuurstof en de reactie is niet gebalanceerd. Probeer de fasen erbij te zetten, zoals vast(s), gas(g), opgelost(aq) of vloeibaar(l).",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn niet correct benoemd, je mist zuurstof (O2).",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is niet correct gebalanceerd.",
+                        "has_point": false,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fases zijn niet benoemd.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402484.2748861,
+            "tokens_used": 515
+        },
+        "5": {
+            "delta_time_s": 3.4195823669433594,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de structuurformule correct getekend en alle atomen voldoen aan hun covalenties. Goed gedaan!",
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402483.4541855,
+            "tokens_used": 720
+        },
+        "6": {
+            "delta_time_s": 4.089190483093262,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed begrepen en een correct antwoord gegeven. Kijk wel even naar de formulering van je antwoord, want je kan het antwoord nog wat preciezer formuleren door expliciet te zeggen dat het waxinelichtje in het grotere bekerglas langer brandt.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct aangegeven dat er in het kleinere bekerglas minder zuurstof past.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt correct beredeneerd dat het waxinelichtje in het kleinere bekerglas eerder zal doven door een gebrek aan zuurstof.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402484.4171672,
+            "tokens_used": 557
+        },
+        "7": {
+            "delta_time_s": 3.216888666152954,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een kort antwoord gegeven, maar je argumentatie ontbreekt. Denk aan de hoeveelheid zuurstof en de grootte van de vlam bij je antwoord.",
+                "points": [
+                    {
+                        "feedback": "De hoeveelheid zuurstof is niet genoemd in je antwoord.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt geen conclusie getrokken over de brandingsduur.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402485.8552427,
+            "tokens_used": 467
+        }
+    },
+    "11": {
+        "1": {
+            "delta_time_s": 1.882746696472168,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed gemaakt. Kijk alleen even na of je notatie klopt met wat er gevraagd wordt.",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402490.957996,
+            "tokens_used": 297
+        },
+        "2": {
+            "delta_time_s": 3.319422721862793,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een onjuiste conclusie getrokken. Let volgende keer beter op of zuurstof voor de pijl staat, dit is een vereiste voor een verbranding. ",
+                "points": [
+                    {
+                        "feedback": "Er staat geen zuurstof voor de pijl, dus geen verbranding.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie is niet consequent met de redenatie.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402492.4011912,
+            "tokens_used": 410
+        },
+        "3": {
+            "delta_time_s": 2.560871124267578,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord, de argumentatie is correct en de conclusie klopt. Top!",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct waargenomen dat er energie vrijkomt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt op basis van de argumentatie de juiste conclusie getrokken.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402491.6456652,
+            "tokens_used": 418
+        },
+        "4": {
+            "delta_time_s": 3.4403369426727295,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vergelijking niet gebalanceerd en bent een fase vergeten. Probeer de volgende keer de coëfficiënten te controleren en alle fases te benoemen.",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn correct benoemd.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is niet correct gebalanceerd.",
+                        "has_point": false,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "Niet alle fases zijn correct benoemd, je bent de fase van MgO vergeten.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402492.5291305,
+            "tokens_used": 484
+        },
+        "5": {
+            "delta_time_s": 3.2365453243255615,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de structuurformule correct getekend, goed gedaan! Let wel op dat je niet krast in de tekening.",
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402492.4153705,
+            "tokens_used": 722
+        },
+        "6": {
+            "delta_time_s": 3.622734785079956,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een deel van de vraag beantwoord, maar je conclusie mist en je hebt een onjuiste observatie gedaan. Kijk nog eens goed naar de vraag en je antwoord.",
+                "points": [
+                    {
+                        "feedback": "Je hebt niet het juiste waxinelichtje in je antwoord. Kijk de vraag en je antwoord nog eens na.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt wel een verband gelegd tussen de brandingsduur en de hoeveelheid zuurstof, maar je hebt het verkeerde waxinelichtje in je antwoord. Let hier volgende keer op.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402493.0010498,
+            "tokens_used": 518
+        },
+        "7": {
+            "delta_time_s": 3.057115316390991,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag niet volledig beantwoord. Denk eraan dat je ook moet voorspellen wat er met de brandingsduur van de kaars gebeurt en dit moet beargumenteren.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct genoemd dat een groter lont meer zuurstof nodig heeft.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt niet beargumenteerd waarom de kaars langer of korter zal branden.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402494.328059,
+            "tokens_used": 501
+        }
+    },
+    "12": {
+        "1": {
+            "delta_time_s": 2.195274591445923,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord. Kijk de volgende keer wel even goed of je antwoord ook echt klopt met wat er in de vraag staat!",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402500.2445576,
+            "tokens_used": 304
+        },
+        "2": {
+            "delta_time_s": 3.2782647609710693,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord en de argumentatie is correct. Kijk goed naar de definitie van een verbranding, daar staat dat zuurstofgas(O2) met een andere stof reageert.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct geconstateerd dat er geen zuurstof voor de reactiepijl staat.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt de juiste conclusie getrokken op basis van je argumentatie.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402501.3310683,
+            "tokens_used": 435
+        },
+        "3": {
+            "delta_time_s": 3.827761650085449,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt geen antwoord gegeven op de vraag, waardoor ik je geen punten kan geven. Probeer de vraag te beantwoorden op basis van wat je ziet, zoals warmte/licht/vuur, en trek daaruit je conclusie.",
+                "points": [
+                    {
+                        "feedback": "Je hebt geen antwoord gegeven op de vraag of er warmte/licht/vuur vrijkomt.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt geen conclusie getrokken over of de reactie exotherm of endotherm is.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402501.8835776,
+            "tokens_used": 457
+        },
+        "4": {
+            "delta_time_s": 3.5078608989715576,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de reactievergelijking en de fases correct, goed gedaan! Let wel op de coëfficiënten in de reactievergelijking, deze kloppen nog niet helemaal.",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn correct benoemd.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is niet correct gebalanceerd.",
+                        "has_point": false,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fases zijn correct beschreven en de afkortingen kloppen.",
+                        "has_point": true,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402501.5676749,
+            "tokens_used": 522
+        },
+        "5": {
+            "delta_time_s": 3.1260273456573486,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "points": [
+                    {
+                        "feedback": "Er is geen tekening gemaakt, dus dit punt is niet behaald.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Er is geen tekening gemaakt, dus dit punt is niet behaald.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402501.1948693,
+            "tokens_used": 675
+        },
+        "6": {
+            "delta_time_s": 3.3494415283203125,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed begrepen, maar je hebt het verkeerde bekerglas genoemd. Kijk nog eens goed naar de vraag en je zult zien waar je de fout in bent gegaan.",
+                "points": [
+                    {
+                        "feedback": "Je hebt niet het juiste bekerglas benoemd.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt een goede redenatie gegeven over de hoeveelheid zuurstof en de brandingsduur.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402501.7119021,
+            "tokens_used": 502
+        },
+        "7": {
+            "delta_time_s": 3.8160154819488525,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een goed begin, maar je argumentatie kan preciezer. De hoeveelheid zuurstof is gelijk, maar een grotere vlam verbruikt meer zuurstof per tijdseenheid. Denk daar eens over na!",
+                "points": [
+                    {
+                        "feedback": "Je hebt het idee van minder zuurstof, maar leg uit dat de totale hoeveelheid zuurstof gelijk is, maar de verbranding sneller.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie dat de kaars eerder dooft, is niet volledig juist. De grotere vlam verbruikt weliswaar meer zuurstof per seconde, maar de kaars is ook groter.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402504.3751667,
+            "tokens_used": 569
+        }
+    },
+    "13": {
+        "1": {
+            "delta_time_s": 1.713043212890625,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed begrepen en correct beantwoord. Ga zo door!",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402508.5492206,
+            "tokens_used": 289
+        },
+        "2": {
+            "delta_time_s": 3.0062477588653564,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt ongelijk, let op de reactanten. Kijk nog eens goed naar de definitie van een verbranding, je hebt hier zeker wat aan.",
+                "points": [
+                    {
+                        "feedback": "Er staat geen zuurstof voor de pijl, dus is er geen sprake van een verbranding.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie is niet consequent met de argumentatie.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402509.8444228,
+            "tokens_used": 409
+        },
+        "3": {
+            "delta_time_s": 3.112304925918579,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord en de argumentatie is helder en bondig. Top!",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct geobserveerd dat er warmte vrijkomt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt de juiste conclusie getrokken dat het een exotherme reactie is.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402509.9484823,
+            "tokens_used": 422
+        },
+        "4": {
+            "delta_time_s": 4.233024835586548,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de reactievergelijking perfect opgesteld! Let er in het vervolg op dat je ook de fases benoemd, zoals vast (s), vloeibaar (l), gas (g) en opgelost in water (aq).",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn correct benoemd.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is correct gebalanceerd en de juiste moleculen zijn gebruikt.",
+                        "has_point": true,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fases ontbreken in je antwoord.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402511.079199,
+            "tokens_used": 503
+        },
+        "5": {
+            "delta_time_s": 3.848949432373047,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de structuurformule correct getekend, maar let op dat je niet krast. Probeer netter te werken.",
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402510.700652,
+            "tokens_used": 722
+        },
+        "6": {
+            "delta_time_s": 3.6088831424713135,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt het juiste waxinelichtje, maar je moet ook uitleggen waarom dit waxinelichtje langer brandt. Werk je antwoord verder uit, zodat je de vraag volledig beantwoordt.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct aangegeven dat het waxinelichtje onder het kleinere bekerglas minder zuurstof heeft.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt niet uitgelegd waarom het waxinelichtje met meer zuurstof langer brandt.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402510.754338,
+            "tokens_used": 490
+        },
+        "7": {
+            "delta_time_s": 3.784048557281494,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag niet helemaal goed begrepen. De vraag gaat over de brandingsduur, niet over de brandsnelheid. Denk aan de hoeveelheid brandstof die beschikbaar is voor de grotere kaars.",
+                "points": [
+                    {
+                        "feedback": "Je hebt niet genoemd dat de hoeveelheid zuurstof voor beide kaarsen hetzelfde is.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie dat de grotere kaars sneller opbrandt omdat hij meer brandstof gebruikt, is niet consistent met de vraag over brandingsduur.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402512.653181,
+            "tokens_used": 509
+        }
+    },
+    "14": {
+        "1": {
+            "delta_time_s": 2.4312517642974854,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt vraag 1 goed beantwoord. Kijk de theorie nog een keer goed door als je iets niet helemaal snapt.",
+                "points": [
+                    {
+                        "feedback": "Je hebt het juiste antwoord gegeven.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402518.767182,
+            "tokens_used": 299
+        },
+        "2": {
+            "delta_time_s": 3.6920528411865234,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag perfect beantwoord! Kijk eens naar verbrandingsreacties met een andere oxidator, zoals nitraat.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct geconstateerd dat er geen zuurstofgas bij de reactie betrokken is.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt op basis van de afwezigheid van zuurstofgas terecht geconcludeerd dat er geen sprake is van een verbranding.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402520.039515,
+            "tokens_used": 422
+        },
+        "3": {
+            "delta_time_s": 3.526026487350464,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag perfect beantwoord, goed gedaan! Let er in het vervolg op dat je netjes schrijft, want nu is het een beetje slordig.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct geobserveerd dat er warmte vrijkomt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt op basis van de warmtevrijgave correct geconcludeerd dat het een exotherme reactie is.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402519.8684766,
+            "tokens_used": 450
+        },
+        "4": {
+            "delta_time_s": 3.6699910163879395,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de reactievergelijking inclusief de fases correct opgeschreven, goed gedaan! Let wel op de spatie tussen de coëfficiënt en de molecuulformule.",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn correct benoemd.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is correct gebalanceerd en de correcte moleculen  zijn benoemd.",
+                        "has_point": true,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fases zijn correct en de afkortingen van de fases zijn correct.",
+                        "has_point": true,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402520.0144522,
+            "tokens_used": 498
+        },
+        "5": {
+            "delta_time_s": 3.687499761581421,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de structuurformule correct getekend en alle atomen voldoen aan hun covalenties. Goed gedaan!",
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402520.0405173,
+            "tokens_used": 720
+        },
+        "6": {
+            "delta_time_s": 3.291893243789673,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed begrepen en een correct antwoord gegeven. Kijk wel even naar de formulering van je antwoord, zodat het nog duidelijker is welk waxinelichtje langer brandt.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct aangegeven dat er in het kleinere bekerglas minder lucht en dus minder zuurstof zit.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt correct beredeneerd dat het waxinelichtje in het kleinere bekerglas eerder uitgaat doordat er minder zuurstof is.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402519.936603,
+            "tokens_used": 541
+        },
+        "7": {
+            "delta_time_s": 3.457944393157959,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt het over de hoeveelheid brandstof, maar de vraag gaat over de hoeveelheid zuurstof. Denk aan de oppervlakte van de vlam en hoeveel zuurstof deze gebruikt. Probeer het nog eens!",
+                "points": [
+                    {
+                        "feedback": "De hoeveelheid zuurstof is niet genoemd in je antwoord.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie is niet gebaseerd op de hoeveelheid zuurstof.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402522.5307,
+            "tokens_used": 523
+        }
+    },
+    "16": {
+        "1": {
+            "delta_time_s": 1.9494705200195312,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt vraag 1 goed beantwoord. Kijk de volgende keer wel even goed of je alle vragen hebt gemaakt!",
+                "points": [
+                    {
+                        "feedback": "Je hebt het juiste antwoord gegeven.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402527.6289697,
+            "tokens_used": 296
+        },
+        "2": {
+            "delta_time_s": 3.2738473415374756,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt ongelijk, er is geen sprake van een verbranding. Kijk goed naar de definitie van een verbranding en probeer de vraag opnieuw te beantwoorden.",
+                "points": [
+                    {
+                        "feedback": "Er staat geen zuurstof voor de pijl, dus geen verbranding.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie volgt niet uit de argumentatie.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402528.9588807,
+            "tokens_used": 414
+        },
+        "3": {
+            "delta_time_s": 3.5328478813171387,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een onjuiste conclusie getrokken over de reactie. Let op de definitie van endotherm en exotherm.",
+                "points": [
+                    {
+                        "feedback": "Je hebt onjuist geconcludeerd dat er energie van binnen komt.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie dat het een endotherme reactie is, is onjuist.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402529.221882,
+            "tokens_used": 434
+        },
+        "4": {
+            "delta_time_s": 4.227925539016724,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de reactievergelijking en de fases correct, goed gedaan! Let wel op de subscript bij O2, deze moet klein zijn.",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn correct benoemd: Mg, O2 en MgO.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is correct gebalanceerd met de juiste coëfficiënten.",
+                        "has_point": true,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fases zijn correct en de afkortingen zijn correct gebruikt (s) voor vast en (g) voor gas.",
+                        "has_point": true,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402529.9235187,
+            "tokens_used": 503
+        },
+        "5": {
+            "delta_time_s": 3.371751308441162,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de structuurformule correct getekend en alle atomen voldoen aan hun covalenties. Goed gedaan!",
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402529.097962,
+            "tokens_used": 720
+        },
+        "6": {
+            "delta_time_s": 3.7747578620910645,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt goed beredeneerd waarom het waxinelichtje in het grotere bekerglas langer brandt. Probeer volgende keer ook expliciet te benoemen dat het waxinelichtje in het grotere bekerglas langer brandt.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct aangegeven dat er meer zuurstof in het grotere bekerglas zit.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt correct beredeneerd dat meer zuurstof betekent dat het waxinelichtje langer brandt.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402529.7675142,
+            "tokens_used": 525
+        },
+        "7": {
+            "delta_time_s": 3.8024380207061768,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een goed begin, maar je vergeet te kijken naar de hoeveelheid zuurstof die beschikbaar is. Denk na over hoe de grootte van de kaars en de lont de zuurstoftoevoer beïnvloeden en hoe dit de brandduur verandert.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct beredeneerd dat een grotere lont meer kaarsvet verbrandt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De hoeveelheid zuurstof is niet meegenomen in je antwoord.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402531.7480848,
+            "tokens_used": 515
+        }
+    },
+    "17": {
+        "1": {
+            "delta_time_s": 2.489905595779419,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord! Kijk de volgende keer wel even goed of je antwoord ook echt klopt met de vraag.",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402537.2200859,
+            "tokens_used": 300
+        },
+        "2": {
+            "delta_time_s": 3.217068672180176,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de reactievergelijking niet goed bekeken. Let volgende keer beter op de reactanten voor de pijl.",
+                "points": [
+                    {
+                        "feedback": "Er is geen zuurstof(gas) aanwezig als reactant dus geen verbranding.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie volgt niet uit de argumentatie.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402537.947761,
+            "tokens_used": 402
+        },
+        "3": {
+            "delta_time_s": 3.4676504135131836,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord. Kijk nog eens goed naar de definitie van exo- en endotherme reacties, zodat je het helemaal snapt!",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct geobserveerd dat er warmte vrijkomt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt op basis van de warmtevrijgave correct geconcludeerd dat het een exotherme reactie is.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402538.2003632,
+            "tokens_used": 448
+        },
+        "5": {
+            "delta_time_s": 3.425121307373047,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de structuurformule correct getekend, maar let op dat je netjes werkt en niet krast. ",
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402538.167356,
+            "tokens_used": 720
+        },
+        "6": {
+            "delta_time_s": 3.6362717151641846,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag niet volledig beantwoord.  Probeer in je antwoord ook te vermelden welk waxinelichtje langer brandt (het waxinelichtje onder het grotere bekerglas).",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct beredeneerd dat er meer zuurstof is in het grotere bekerglas.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt niet correct aangegeven welk waxinelichtje langer brandt.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402538.3775084,
+            "tokens_used": 511
+        },
+        "7": {
+            "delta_time_s": 3.1995160579681396,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een begin gemaakt aan de vraag, maar je antwoord is niet helemaal compleet. Denk eraan dat de hoeveelheid zuurstof voor beide kaarsen gelijk is en probeer je antwoord te verbeteren. Let op je formulering en zinsbouw.",
+                "points": [
+                    {
+                        "feedback": "De hoeveelheid zuurstof is in beide gevallen gelijk.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt geen consequente conclusie getrokken.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402537.9447472,
+            "tokens_used": 506
+        }
+    },
+    "18": {
+        "1": {
+            "delta_time_s": 2.1440646648406982,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed begrepen en correct beantwoord. Goed gedaan!",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402545.948229,
+            "tokens_used": 288
+        },
+        "2": {
+            "delta_time_s": 3.374011516571045,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord, maar je argumentatie kan preciezer. Let erop dat zuurstof als reactant nodig is voor een verbranding. Probeer volgende keer de argumentatie duidelijker te formuleren.",
+                "points": [
+                    {
+                        "feedback": "Je hebt wel het juiste antwoord, maar de argumentatie is niet helemaal juist.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie is correct.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402547.1771781,
+            "tokens_used": 410
+        },
+        "3": {
+            "delta_time_s": 3.4566290378570557,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een onjuiste argumentatie gegeven voor een exotherme reactie. Kijk nog eens goed naar de definitie van een exotherme reactie en probeer de vraag opnieuw te beantwoorden.",
+                "points": [
+                    {
+                        "feedback": "Je hebt onjuist beredeneerd dat het exotherm is.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie is onjuist, want er komt geen energie vrij.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402547.2597957,
+            "tokens_used": 448
+        },
+        "4": {
+            "delta_time_s": 4.488229751586914,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt helaas de hele reactievergelijking fout. Bekijk de theorie over de verbranding van metalen zoals magnesium nog eens goed. Let hierbij op welke stoffen reageren en welke stoffen ontstaan.",
+                "points": [
+                    {
+                        "feedback": "De moleculen in de vergelijking kloppen niet. Je hebt de reactieproducten en beginstoffen omgedraaid.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is niet gebalanceerd en de gebruikte moleculen kloppen niet. ",
+                        "has_point": false,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fases ontbreken.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402548.2954078,
+            "tokens_used": 532
+        },
+        "5": {
+            "delta_time_s": 3.2910802364349365,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt geen tekening gemaakt, dus ik kan je geen feedback geven. Probeer de volgende keer de vraag wel te beantwoorden.",
+                "points": [
+                    {
+                        "feedback": "Er is geen tekening gemaakt, dus geen punten.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Er is geen tekening gemaakt, dus geen punten.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402547.107244,
+            "tokens_used": 699
+        },
+        "6": {
+            "delta_time_s": 3.038102388381958,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt geen antwoord gegeven op de vraag.  Probeer de vraag nog eens te beantwoorden en let op de hoeveelheid zuurstof in het bekerglas.",
+                "points": [
+                    {
+                        "feedback": "Je hebt niet aangegeven welk waxinelichtje langer brandde. Let op de vraag.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt geen argumentatie gegeven waarom een waxinelichtje langer brandt. Denk aan de hoeveelheid zuurstof.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402547.1554203,
+            "tokens_used": 475
+        },
+        "7": {
+            "delta_time_s": 1.9961225986480713,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt geen antwoord gegeven op de vraag, waardoor ik je geen punten kan geven. Probeer de volgende keer de vraag te beantwoorden, zodat ik je werk kan nakijken.",
+                "points": []
+            },
+            "timestamp": 1735402548.2531936,
+            "tokens_used": 406
+        }
+    },
+    "19": {
+        "1": {
+            "delta_time_s": 1.7703156471252441,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord, ga zo door!",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402554.508861,
+            "tokens_used": 285
+        },
+        "2": {
+            "delta_time_s": 3.4787564277648926,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een onjuist argument gebruikt om te concluderen dat er geen verbranding is.  Kijk goed naar de definitie van een verbranding en probeer de vraag opnieuw te beantwoorden.",
+                "points": [
+                    {
+                        "feedback": "Je hebt niet het juiste argument gebruikt om te bepalen of er sprake is van een verbranding.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie is onjuist. ",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402556.2173018,
+            "tokens_used": 415
+        },
+        "3": {
+            "delta_time_s": 3.6045851707458496,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt geantwoord dat het een endotherme reactie is. Leg uit waarom je dit denkt en welke waarneming hiertoe leidt. Kijk nog eens goed naar de definitie van endotherm en exotherm. ",
+                "points": [
+                    {
+                        "feedback": "Je hebt niet correct geantwoord en ook geen argumentatie gegeven.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt geen consequente conclusie gegeven op basis van je argumentatie.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402556.3456635,
+            "tokens_used": 437
+        },
+        "4": {
+            "delta_time_s": 4.972766399383545,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de juiste beginstof, maar de reactievergelijking is niet compleet. Probeer de reactievergelijking te balanceren en de juiste fase-aanduidingen te gebruiken. Bekijk de theorie over verbrandingsreacties nog eens goed.",
+                "points": [
+                    {
+                        "feedback": "De beginstof Mg is correct benoemd.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is niet gebalanceerd en O2 ontbreekt.",
+                        "has_point": false,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fase van Mg is correct, maar de fase van MgO is fout. MgO is een vaste stof (s) en geen vloeistof (f). O2 ontbreekt.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402557.717843,
+            "tokens_used": 530
+        },
+        "5": {
+            "delta_time_s": 3.0393059253692627,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402555.9375226,
+            "tokens_used": 690
+        },
+        "6": {
+            "delta_time_s": 3.5603151321411133,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed begrepen en een correct antwoord gegeven. Kijk wel even naar je formulering, die kan iets preciezer.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct aangegeven dat het waxinelichtje in het grotere bekerglas langer brandt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt correct beredeneerd dat dit komt door de grotere hoeveelheid zuurstof.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402556.3144665,
+            "tokens_used": 483
+        }
+    },
+    "20": {
+        "1": {
+            "delta_time_s": 2.2295565605163574,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed begrepen en correct beantwoord. Ga zo door!",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402563.803882,
+            "tokens_used": 289
+        },
+        "2": {
+            "delta_time_s": 3.619218111038208,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een onjuiste definitie van verbranding gebruikt. Kijk nog eens goed naar de definitie van verbranding en probeer de vraag opnieuw te beantwoorden. Let op de rol van zuurstof(gas).",
+                "points": [
+                    {
+                        "feedback": "Je hebt niet goed bekeken of er zuurstof(gas) bij de reactie betrokken is.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie volgt niet uit je argumentatie.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402565.1935434,
+            "tokens_used": 416
+        },
+        "3": {
+            "delta_time_s": 3.721595287322998,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een onjuiste definitie van een exotherme reactie gegeven. Een exotherme reactie staat juist gelijk aan het vrijkomen van energie, zoals warmte.",
+                "points": [
+                    {
+                        "feedback": "Je hebt onjuist geconcludeerd dat de reactie exotherm is, terwijl je stelt dat energie van buitenaf komt.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt niet goed beargumenteerd waarom de reactie endotherm of exotherm is.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402565.296917,
+            "tokens_used": 451
+        },
+        "4": {
+            "delta_time_s": 3.2112417221069336,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vergelijking niet gebalanceerd en daardoor klopt de verbranding niet. Let hier volgende keer beter op!",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn correct benoemd.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is niet correct gebalanceerd.",
+                        "has_point": false,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fases zijn correct benoemd en de afkortingen kloppen.",
+                        "has_point": true,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402564.7895644,
+            "tokens_used": 470
+        },
+        "5": {
+            "delta_time_s": 2.576237201690674,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "points": [
+                    {
+                        "feedback": "De structuurformule is niet correct getekend, er is geen C atoom en H atoom aanwezig.",
+                        "has_point": false,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402564.1620903,
+            "tokens_used": 638
+        },
+        "6": {
+            "delta_time_s": 2.9722390174865723,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag niet volledig beantwoord, je mist de conclusie. Denk eraan dat je de vraag volledig moet beantwoorden. ",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct aangegeven dat er in het kleinere bekerglas minder zuurstof is.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie ontbreekt.  Koppel de brandingsduur aan de hoeveelheid zuurstof in het bekerglas.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402564.857639,
+            "tokens_used": 488
+        },
+        "7": {
+            "delta_time_s": 3.3264589309692383,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt het over een groter lont, maar niet over de hoeveelheid zuurstof. Bedenk dat de hoeveelheid zuurstof in de pot gelijk blijft. Werk je antwoord verder uit en leg uit wat er met de brandingsduur gebeurt.",
+                "points": [
+                    {
+                        "feedback": "De hoeveelheid zuurstof is niet genoemd.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De consequente conclusie ontbreekt.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402567.4462147,
+            "tokens_used": 479
+        }
+    },
+    "22": {
+        "1": {
+            "delta_time_s": 2.5282325744628906,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt vraag 1 goed beantwoord. Let er in het vervolg op dat je netter schrijft, het is nu wat slordig.",
+                "points": [
+                    {
+                        "feedback": "Je hebt het juiste antwoord gegeven.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402572.3184173,
+            "tokens_used": 303
+        },
+        "2": {
+            "delta_time_s": 2.966717004776001,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je argument klopt niet, verbranding is een reactie met zuurstof. Let hier volgende keer op!",
+                "points": [
+                    {
+                        "feedback": "De leerling noemt niet dat er geen zuurstof is als reactant.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De leerling trekt een foute conclusie.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402572.7594235,
+            "tokens_used": 397
+        },
+        "3": {
+            "delta_time_s": 3.3406529426574707,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een onjuiste redenering gebruikt om te concluderen dat het een exotherme reactie is. Let op de definitie van exotherm en endotherm.",
+                "points": [
+                    {
+                        "feedback": "Je hebt onjuist beredeneert dat het een exotherme reactie is.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie is onjuist.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402573.145739,
+            "tokens_used": 452
+        },
+        "4": {
+            "delta_time_s": 3.9982516765594482,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de juiste beginstof, magnesium, maar de reactievergelijking is niet compleet. Probeer de andere stoffen en de fasen erbij te zetten. Bekijk de verbranding van metalen nog eens goed.",
+                "points": [
+                    {
+                        "feedback": "De beginstof Mg is correct benoemd en de fase ook.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is niet correct gebalanceerd en de stof O2 ontbreekt.",
+                        "has_point": false,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fase van MgO is niet correct. MgO is een vaste stof.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402573.8053408,
+            "tokens_used": 501
+        },
+        "5": {
+            "delta_time_s": 3.192051887512207,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de structuurformule correct getekend, maar let op dat je de bindingen netjes tekent. Je bent een beetje slordig.",
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402573.0618742,
+            "tokens_used": 727
+        },
+        "6": {
+            "delta_time_s": 3.6594655513763428,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord, je hebt alleen de bekerglazen niet goed benoemd. Let er de volgende keer op dat je de juiste aanduiding gebruikt, zoals gevraagd in de vraag.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct geconcludeerd dat het waxinelichtje onder het grotere bekerglas langer brandt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt correct beredeneerd dat dit komt door de hoeveelheid zuurstof.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402573.7604444,
+            "tokens_used": 535
+        },
+        "7": {
+            "delta_time_s": 4.708195209503174,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt het juiste idee te pakken, maar je formulering kan wat preciezer. Let erop dat je de redenering volledig en duidelijk uitlegt. Je hebt benoemd dat de kaars met de grotere lont meer zuurstof nodig heeft, maar je mist de vergelijking met de hoeveelheid zuurstof die beschikbaar is. Werk je antwoord wat netter uit en leg de relatie tussen de hoeveelheid zuurstof en de brandingsduur explicieter uit.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct benoemd dat de kaars met de grotere lont meer zuurstof nodig heeft.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De hoeveelheid zuurstof is niet expliciet benoemd in je antwoord.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402577.3398912,
+            "tokens_used": 568
+        }
+    },
+    "24": {
+        "1": {
+            "delta_time_s": 2.2614989280700684,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord, let de volgende keer op je taalgebruik.",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402580.977834,
+            "tokens_used": 289
+        },
+        "2": {
+            "delta_time_s": 3.584132194519043,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt onvoldoende laten zien dat je verbranding begrijpt. Kijk nog eens goed naar de definitie van een verbrandingsreactie en probeer de vraag opnieuw te beantwoorden.",
+                "points": [
+                    {
+                        "feedback": "Er staat geen zuurstof voor de pijl, dus is er geen sprake van een verbranding.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie volgt niet uit het gegeven argument.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402582.3004673,
+            "tokens_used": 408
+        },
+        "3": {
+            "delta_time_s": 3.504946231842041,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een klein spellingsfoutje gemaakt, maar je redenering klopt. Let er in het vervolg op dat je de spelling controleert. Goed dat je de redenering ook opneemt in je antwoord!",
+                "points": [
+                    {
+                        "feedback": "Je hebt terecht opgemerkt dat er energie vrijkomt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je concludeert correct dat het om een exotherme reactie gaat.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402582.2182827,
+            "tokens_used": 452
+        },
+        "4": {
+            "delta_time_s": 3.61019229888916,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de reactievergelijking en de fases perfect opgeschreven, goed gedaan! Let er de volgende keer op dat je ook de verschillende fases benoemd.",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn correct benoemd.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is correct gebalanceerd en de correcte moleculen  zijn benoemd.",
+                        "has_point": true,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fases zijn correct, maar je hebt ze niet benoemd.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402582.324524,
+            "tokens_used": 490
+        },
+        "5": {
+            "delta_time_s": 3.7515041828155518,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de structuurformule correct getekend, goed gedaan! Let op dat je netjes werkt en niet krast.",
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402582.473292,
+            "tokens_used": 715
+        },
+        "6": {
+            "delta_time_s": 3.3344664573669434,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed begrepen en een correct antwoord gegeven. Kijk wel even na of je de bekers goed hebt onthouden, want het waxinelichtje onder de grote beker brandde langer.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct aangegeven dat er minder lucht en dus minder zuurstof is in het kleinere bekerglas.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt correct beredeneerd dat er minder zuurstof is om de verbranding plaats te laten vinden.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402582.360644,
+            "tokens_used": 514
+        },
+        "7": {
+            "delta_time_s": 3.2266886234283447,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt het over de hoeveelheid brandstof, maar de vraag gaat over de hoeveelheid zuurstof. De hoeveelheid zuurstof is gelijk, maar de grotere kaars heeft een grotere lont en zal dus sneller de zuurstof verbruiken en eerder uitgaan.",
+                "points": [
+                    {
+                        "feedback": "De hoeveelheid zuurstof is niet genoemd.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie dat de grotere kaars eerder uitgaat is onjuist.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402584.5173032,
+            "tokens_used": 514
+        }
+    },
+    "25": {
+        "1": {
+            "delta_time_s": 2.403742790222168,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord. Kijk wel even na of B ook echt het goede antwoord is!",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402590.533088,
+            "tokens_used": 295
+        },
+        "2": {
+            "delta_time_s": 3.497225284576416,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een onjuiste argumentatie gegeven. Kijk nog eens goed naar de reactievergelijking en let op waar de zuurstof staat. ",
+                "points": [
+                    {
+                        "feedback": "Er staat wel zuurstof in de reactievergelijking, maar niet aan de goede kant van de pijl.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie is niet consequent met de argumentatie.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402591.6276255,
+            "tokens_used": 416
+        },
+        "3": {
+            "delta_time_s": 2.6365249156951904,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord, de argumentatie is helder en de conclusie is correct. Top!",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct waargenomen dat er energie vrijkomt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt op basis van de argumentatie de juiste conclusie getrokken.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402590.76587,
+            "tokens_used": 416
+        },
+        "4": {
+            "delta_time_s": 3.927363872528076,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je antwoord is netjes en correct, goed gedaan! Let wel op het gebruik van een reactiepijl (→) in plaats van een gelijkteken (=).",
+                "points": [
+                    {
+                        "feedback": "Correcte moleculen gebruikt: Mg, O₂, MgO.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Reactievergelijking correct gebalanceerd: 2Mg + O₂ → 2MgO.",
+                        "has_point": true,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "Fases correct: 2Mg(s) + O₂(g) → 2MgO(s).",
+                        "has_point": true,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402592.057764,
+            "tokens_used": 513
+        },
+        "5": {
+            "delta_time_s": 3.717198133468628,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "feedback": "Je moet vraag 5 goed recenseren. Je moet beter opletten en de vraag goed lezen.",
+                "points": [
+                    {
+                        "feedback": "Er is geen structuurformule getekend.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Er is geen structuurformule getekend.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402591.8566005,
+            "tokens_used": 689
+        },
+        "6": {
+            "delta_time_s": 3.723198652267456,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt het antwoord niet helemaal goed, want het waxinelichtje in het grotere bekerglas brandt langer. Kijk nog eens goed naar de vraag en probeer het opnieuw!",
+                "points": [
+                    {
+                        "feedback": "Je hebt niet goed aangegeven welk waxinelichtje langer brandt.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt wel een verband gelegd tussen de brandingsduur en de hoeveelheid zuurstof, maar je hebt het verkeerde bekerglas genoemd.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402591.8556008,
+            "tokens_used": 507
+        }
+    },
+    "26": {
+        "1": {
+            "delta_time_s": 2.234286308288574,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt vraag 1 goed beantwoord. Kijk de volgende keer wel even goed of je netjes schrijft!",
+                "points": [
+                    {
+                        "feedback": "Je hebt het juiste antwoord gegeven.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402599.74247,
+            "tokens_used": 296
+        },
+        "2": {
+            "delta_time_s": 3.3160080909729004,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag niet goed gelezen en begrepen. Kijk goed naar de reactievergelijking en let op de aanwezigheid van zuurstof.",
+                "points": [
+                    {
+                        "feedback": "Er staat nergens in de vraag een reactievergelijking, dus dit is geen argument.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De conclusie volgt niet uit het gegeven argument.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402600.8251765,
+            "tokens_used": 398
+        },
+        "3": {
+            "delta_time_s": 3.0079505443573,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt een onjuiste argumentatie gegeven voor een exotherme reactie. Let op de definitie van een exotherme reactie en probeer de vraag opnieuw te beantwoorden.",
+                "points": [
+                    {
+                        "feedback": "Je hebt onjuist geargumenteerd waarom de reactie exotherm is.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie is onjuist.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402600.517119,
+            "tokens_used": 444
+        },
+        "4": {
+            "delta_time_s": 3.5146067142486572,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt geen reactievergelijking gegeven. Probeer de vergelijking te noteren en de fases te benoemen.",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn niet benoemd.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking ontbreekt.",
+                        "has_point": false,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fases ontbreken.",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402601.0259082,
+            "tokens_used": 448
+        },
+        "6": {
+            "delta_time_s": 2.6324703693389893,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt geen antwoord gegeven, probeer de vraag te beantwoorden. Kijk naar de proef en beantwoord de vraag.",
+                "points": [
+                    {
+                        "feedback": "De leerling heeft geen antwoord gegeven.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De leerling heeft geen antwoord gegeven.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402600.1552703,
+            "tokens_used": 442
+        },
+        "7": {
+            "delta_time_s": 2.023103713989258,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt geen antwoord gegeven op de vraag over de brandingsduur. Probeer de vraag aandachtig te lezen en te beantwoorden met een argumentatie.",
+                "points": []
+            },
+            "timestamp": 1735402599.546896,
+            "tokens_used": 397
+        }
+    },
+    "27": {
+        "1": {
+            "delta_time_s": 2.0808584690093994,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord. Kijk de volgende keer wel even goed of je antwoord ook echt klopt met wat er in de vraag staat.",
+                "points": [
+                    {
+                        "feedback": "Je hebt een versie genoteerd.",
+                        "has_point": true,
+                        "point_index": 0
+                    }
+                ]
+            },
+            "timestamp": 1735402603.7318556,
+            "tokens_used": 304
+        },
+        "2": {
+            "delta_time_s": 4.103664398193359,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt onjuist geantwoord. Kijk nog eens goed naar de reactievergelijking en let op welke stoffen er aan de linkerkant van de pijl staan. Bij een verbranding is zuurstof een beginstof.",
+                "points": [
+                    {
+                        "feedback": "Er staat geen zuurstof voor de pijl, dus is er geen sprake van een verbranding.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie dat er sprake is van een verbranding is onjuist, omdat er geen zuurstof voor de pijl staat.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402605.7603014,
+            "tokens_used": 455
+        },
+        "3": {
+            "delta_time_s": 3.8393163681030273,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag goed beantwoord en de argumentatie is ook correct. Let wel op je formulering: een exotherme reactie heeft geen energie nodig om te *beginnen*, maar heeft wel activeringsenergie nodig.",
+                "points": [
+                    {
+                        "feedback": "Je hebt correct waargenomen dat er een vorm van energie, namelijk warmte, vrijkomt.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt op basis van je argumentatie de juiste conclusie getrokken dat het om een exotherme reactie gaat.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402605.500032,
+            "tokens_used": 480
+        },
+        "4": {
+            "delta_time_s": 4.382038593292236,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de reactievergelijking wel goed gebalanceerd, maar de fase van MgO is niet goed. MgO is een vaste stof na de verbranding.",
+                "points": [
+                    {
+                        "feedback": "De moleculen zijn correct benoemd: Mg, O2 en MgO.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "De reactievergelijking is correct gebalanceerd met de juiste coëfficiënten.",
+                        "has_point": true,
+                        "point_index": 1
+                    },
+                    {
+                        "feedback": "De fase van MgO is fout, het is een vaste stof (s) en geen gas (g).",
+                        "has_point": false,
+                        "point_index": 2
+                    }
+                ]
+            },
+            "timestamp": 1735402606.0488896,
+            "tokens_used": 507
+        },
+        "5": {
+            "delta_time_s": 3.3760335445404053,
+            "model_used": "gemini-2.0-flash-exp",
+            "model_version": "gemini-2.0-flash-exp",
+            "provider": "google",
+            "result": {
+                "points": [
+                    {
+                        "feedback": "De structuurformule is correct getekend met 3 Cl atomen, 1 C atoom en 1 H atoom.",
+                        "has_point": true,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Alle atomen in de structuurformule voldoen aan hun covalenties.",
+                        "has_point": true,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402605.1467338,
+            "tokens_used": 690
+        },
+        "6": {
+            "delta_time_s": 3.192200183868408,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag niet volledig beantwoord, je hebt niet aangegeven welk waxinelichtje langer brand. Denk eraan dat je alle onderdelen van de vraag moet beantwoorden. ",
+                "points": [
+                    {
+                        "feedback": "Je hebt niet aangegeven welk waxinelichtje langer brandt.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je hebt wel een verband gelegd tussen de brandingsduur en de hoeveelheid zuurstof, maar je hebt niet het juiste waxinelichtje benoemd.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402605.151244,
+            "tokens_used": 505
+        },
+        "7": {
+            "delta_time_s": 3.1977553367614746,
+            "model_used": false,
+            "model_version": false,
+            "provider": "google",
+            "result": {
+                "feedback": "Je hebt de vraag niet helemaal goed begrepen. Denk eraan dat de hoeveelheid zuurstof voor beide kaarsen gelijk is en probeer de vraag nog eens te beantwoorden.",
+                "points": [
+                    {
+                        "feedback": "Je noemt niet dat de hoeveelheid zuurstof voor beide kaarsen hetzelfde is.",
+                        "has_point": false,
+                        "point_index": 0
+                    },
+                    {
+                        "feedback": "Je conclusie dat de grotere kaars eerder zal doven omdat hij meer zuurstof nodig heeft, klopt niet in dezelfde omstandigheden.",
+                        "has_point": false,
+                        "point_index": 1
+                    }
+                ]
+            },
+            "timestamp": 1735402607.2377508,
+            "tokens_used": 513
+        }
+    }
+}

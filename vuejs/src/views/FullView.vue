@@ -1,5 +1,10 @@
 <template lang="pug">
-div
+div(style="position: relative")
+    RequestLoader(
+        style="position: fixed"
+        v-if="is_loading"
+        :current_request_status="currently_loading"
+    )
     v-navigation-drawer(
         permanent
         nav
@@ -222,7 +227,7 @@ div
                             v-for="(page, index) in test.pages"
                         )
                             RequestLoader(v-if="page.is_loading")
-                            div.d-flex.flex-row
+                            div.d-flex.flex-row.flex-wrap
                                 v-btn.mr-1(
                                     text="Crop" 
                                     @click="test.pages[index].cropImage()"
@@ -231,10 +236,15 @@ div
                                     text="Rode pen" 
                                     @click="test.pages[index].colorCorrect()"
                                 )
+
                                 v-select(
                                     :items="page.image_options"
                                     v-model="test.pages[index].selected_image_type"
                                     density="compact"
+                                )
+                                v-icon.mr-1(
+                                    icon="mdi-flip-vertical"
+                                    @click="async () => {test.pages[index].image = await rotateImage180(test.pages[index].image)}"
                                 )
                                 v-icon.ml-auto(
                                     icon="mdi-delete" 
@@ -264,8 +274,8 @@ div
                 :hasDeleteButton="true"
                 v-model="selected_page_id"
             )
-                template(v-slot:selected="{ item }" style="position: relative")
-                    RequestLoader(v-if="test.loading.sections")
+                template(v-slot:selected="{ item }" )
+                    RequestLoader( v-if="test.loading.sections")
                     v-btn(
                         text="laad deze pagina"
                         @click="async () => {this.test.loading.sections = true; await test.pages[item.index].detectStudentId(); await test.pages[item.index].loadSections();this.test.loading.sections = false}"
@@ -348,9 +358,9 @@ div
                 v-btn(
                     text="Kijk alle leerlingen na"
                     @click="test.gradeStudents()"
-                    :loading="test.loading.students"
+                    :loading="test.loading.grading"
                 )
-            div.d-flex.flex-row(style="height: calc(100vh - 72px)")
+            div.d-flex.flex-row.w-100(style="height: calc(100vh - 72px)")
                 v-list(
                     :selected="[selected_student_id]"
                     mandatory
@@ -362,15 +372,21 @@ div
                         v-for="student in test.students"
                         :value="student.id"
                         @click="selected_student_id = student.id"
-                    ) {{ student.student_id }}
+                        
+                    ) 
+                        v-progress-linear(v-if="student.is_grading" indeterminate)
+                        p {{ student.student_id }}
                 v-divider(vertical)
-                div.pa-2(v-if="selected_student")
+                div.pa-2(v-if="selected_student" style="position: relative; overflow-y: scroll; width: calc(100% - 155px)" )
                     h2 Leerling {{ selected_student.student_id}}
                     v-btn(
                         text="Kijk leerling na"
                         @click="selected_student.grade()"
                         :loading="selected_student.is_grading"
+
                     )
+                    RequestLoader(v-if="selected_student.is_grading")
+
                     v-expansion-panels()
                         v-expansion-panel(
                             v-for="(result, index) in selected_student.results"
@@ -381,8 +397,8 @@ div
                                 p {{ result.question.question_text  }}
                                 
                                 b Antwoord Leerling:
+                                    //- v-if="result.question.is_draw_question"
                                 v-img(
-                                    v-if="result.question.is_draw_question"
                                     style="max-height: 700px; "
                                     :src="result.scan.base64Image"
                                 )
@@ -398,7 +414,7 @@ div
                                             th Punt
                                             th Uitleg
                                             th.pa-0(style="width: 55px") Behaald
-                                            th Feedback
+                                            th(style="width: 35%") Feedback
                                     tbody
                                         tr(
                                             v-for="(rubric_point, point_index) in result.question.points"
@@ -428,16 +444,139 @@ div
                                     :rows="2"
                                     density="compact"
                                 )
+    div.h-100(v-if="selected_section_id == 'analyze'")
+        div(v-if="selected_subsection.id == 'individual'" style="position: relative")
+            div.d-flex.flex-row(style="height: calc(100vh - 0px)")
+                v-list(
+                    :selected="[selected_student_id]"
+                    mandatory
+                    style="width: 155px; overflow-y: scroll"
+                )
+                    v-list-item Leerlingen
+                    v-btn(
+                        @click="downloadStudentResults()"
+                        text="Download Alle"
+                    )
+                    v-switch(
+                        v-model="self_feedback_field"
+                        label="Zelfreflectieveld"
+                    )
+                    v-divider
+                    v-list-item(
+                        v-for="student in test.students"
+                        :value="student.id"
+                        @click="selected_student_id = student.id"
+                    ) {{ student.student_id }}
+                v-divider(vertical)
+                div.pa-2(style="width: calc(100% - 155px); position: relative;overflow-y: scroll" v-if="selected_student || is_generating_pdf" )
+                    div.d-flex.flex-row
 
-            
+                        v-btn(
+                            @click="downloadSelectedResult()"
+                            text="Download Selected Leerling Resultaten"
+                        )
+                    RequestLoader.w-100.h-100(v-if="is_generating_pdf" :current_request_status="'Generating PDF '" style="color: black")
+                    div.individualStudentResult(
+                        v-for="student in test.students.filter(student => student?.id == selected_student?.id || is_generating_pdf)"
+                        :class="student?.id == selected_student?.id ? 'selectedStudentResult' : ''"
+                        :style="{'overflow-y': 'scroll', 'background-color': is_generating_pdf ? 'white' : '', 'color': is_generating_pdf ? 'black' : ''}"
+                    )
+                        h1 Leerling: {{ student.student_id }}
+                        h2 Per vraag
+
+                        v-table(:theme=" is_generating_pdf ? 'light' : ''" )
+                            thead
+                                tr
+                                    th Vraag
+                                    th(style="width: 30%") Antwoord
+                                    th Score
+                                    th Feedback
+                                    th(style="width: 30%") Score Per Punt
+                            tbody
+                                tr(
+                                    v-for="(question, index) in test.questions"
+                                )
+                                    td {{ question.question_number }}
+                                    td 
+                                        v-img(
+                                            :src="student.question_results[question.id].result.scan.base64Image"
+                                        )
+                                    td {{ student.question_results[question.id].received_points }} / {{ student.question_results[question.id].total_points }}
+                                    td {{ student.question_results[question.id].result.feedback }}
+                                    td 
+                                        v-table(:theme=" is_generating_pdf ? 'light' : ''" )
+                                            
+                                            tbody
+                                                tr(
+                                                    v-for="point_result in student.question_results[question.id].result.point_results"
+                                                )
+                                                    td {{ point_result.point.point_name }}
+                                                    td(style="width: 50px") {{ point_result.has_point ? point_result.point.point_weight : 0 }}
+                                                    td(style="width: 50%") {{ point_result.feedback.length > 0 ? point_result.feedback : 'Geen feedback' }}
+                        h2 Per leerdoel
+                        v-table(:theme=" is_generating_pdf ? 'light' : ''" )
+                            thead
+                                tr
+                                    th Leerdoel
+                                    th Uitleg leedoel
+                                    th Punten
+                                    th Percentage
+                            tbody
+                                tr(
+                                    v-for="target in test.targets"
+                                )
+                                    td {{ target.target_name }}
+                                    td {{ target.explanation }}
+                                    td {{ student.target_results[target.id].received_points }} / {{ student.target_results[target.id].total_points }}
+                                    td {{ student.target_results[target.id].percent }}
+
+        div.pa-2(v-if="selected_subsection.id == 'group'" style="position: relative")
+            h2 Per leerling
+            v-table(density="compact")
+                thead
+                    tr 
+                        th Leerling
+                        th(v-for="question in test.questions") {{question.question_number}}
+                        th totaal
+                        th %
+                tbody
+                    tr(
+                        v-for="student in test.students"
+                    )
+                        td(style="height: fit-content") {{ student.student_id }}
+                        td(style="height: fit-content")(v-for="question in test.questions") {{ student.question_results[question.id].received_points }} / {{ student.question_results[question.id].total_points }}
+                        td(style="height: fit-content") {{ student.received_points }} / {{ test.total_points }}
+                        td(style="height: fit-content")(:style="{'background-color': getGradeColor(student.received_points / test.total_points)}") {{ (student.received_points / test.total_points * 100).toFixed(1) }}%
+                    tr
+                        th Totaal
+                        th(v-for="question in test.questions") {{ average(test.students.map(e => e.question_results[question.id].received_points)).toFixed(2) }}
+                        th {{ average(test.students.map(e => e.received_points / test.total_points * 100)).toFixed(1) }}
+
+            h2 Per Leerdoel
+            h2 Per leerdoel
+            v-table(:theme=" is_generating_pdf ? 'light' : ''" )
+                thead
+                    tr
+                        th Leerdoel
+                        th Uitleg leedoel
+                        th Punten
+                        th Percentage
+                tbody
+                    tr(
+                        v-for="target in test.targets"
+                    )
+                        td {{ target.target_name }}
+                        td {{ target.explanation }}
+                        td {{ target.average_received_points }} / {{ target.total_points }}
+                        td {{ target.percent }}
 
                             
 </template>
 
 <script>
 // Data 
-import { imageToPngBase64 } from '@/helpers'
-import { Test, total_requests } from '@/scan_api_classes'
+import { imageToPngBase64, rotateImage180, average, total_requests } from '@/helpers'
+import { Test } from '@/scan_api_classes'
 import test_example from '@/assets/test_example.pdf'
 import rubric_example from '@/assets/rubric_example.pdf'
 import student_example from '@/assets/24-11-13_PWStoetsG3B.pdf'
@@ -456,11 +595,15 @@ export default {
     emits: [],
     setup() {
         return {
-            total_requests
+            total_requests,
+            rotateImage180,
+            average
         }
     },
     data() {
         return {
+            is_loading: false,
+            currently_loading: "",
             main_sections: [
                 {
                     name: 'Toets inladen',
@@ -484,7 +627,7 @@ export default {
                 {
                     name: 'Inscannen',
                     id: 'scan',
-                    selected_subsection_id: 'generate_students',
+                    selected_subsection_id: 'load_pages',
                     subsections: [
                         {
                             name: "Inladen",
@@ -515,18 +658,27 @@ export default {
                 {
                     name: 'analyseer',
                     id: 'analyze',
+                    selected_subsection_id: 'individual',
+
                     subsections: [
                         {
-                            name: "",
-                            id: ""
-                        }
+                            name: "Individueel",
+                            id: "individual"
+                        },
+                        {
+                            name: "Groep",
+                            id: "group"
+                        },
+
                     ]
                 },
             ],
-            selected_section_id: 'grade',
+            selected_section_id: 'analyze',
             test: new Test({}),
             selected_page_id: '',
-            selected_student_id: ''
+            selected_student_id: '',
+            is_generating_pdf: false,
+            self_feedback_field: false,
         }
     },
     computed: {
@@ -665,13 +817,41 @@ export default {
                                 base64Image: result.scan,
                                 text: result.scan.text,
                                 question_number: result.scan.question_number,
-                            }
+                            },
+                            student_handwriting_percent: result.student_handwriting_percent
                         }
                     })
                 }
             }))
-        }
+        },
+        async downloadStudentResults(){
+            this.is_generating_pdf = true
+            // wait for component updates
+            console.log(this.test.student_pdf_data)
+            await this.test.downloadStudentResults(this.self_feedback_field)
+            this.is_generating_pdf = false
 
+        },
+        async downloadSelectedResult(){
+            this.is_generating_pdf = true
+            // wait for component updates
+            if (this.selected_student){
+            console.log(this.selected_student)
+
+                await this.selected_student.downloadStudentResult(this.self_feedback_field)
+            }
+            this.is_generating_pdf = false
+
+        },
+        getGradeColor(percent){
+            
+            if (percent < 0.55){
+                return 'rgba(255,100,100,'+(-percent + 0.55)+')'
+
+            } 
+
+            return 'rgba(100,255,100,'+(percent - 0.55)+')'
+        }
 
     },
     watch: {
@@ -681,34 +861,50 @@ export default {
 
     // },
     async mounted() {
+        this.is_loading =  true
+        this.currently_loading = 'Starting blobs'
+        // 
         const test_blob = await this.loadBlob(test_example)
         const rubric_blob = await this.loadBlob(rubric_example)
         var student_blob = this.loadBlob(student_example)
 
 
+        this.currently_loading = 'test and rubric pdf data'
         this.test.files.test.raw = test_blob
         this.test.files.test.url = URL.createObjectURL(test_blob)//await this.toDataURL(test_blob)
         await this.test.loadDataFromPdf('test')
         this.test.files.rubric.raw = rubric_blob
         this.test.files.rubric.url = URL.createObjectURL(rubric_blob)//await this.toDataURL(rubric_blob)
         await this.test.loadDataFromPdf('rubric')
+        // 
 
-        await this.test.loadTestStructure()
+        this.currently_loading = 'structure'
+        await this.test.loadTestStructure(true)
 
+        // 
+        this.currently_loading = 'student PDF'
         student_blob = await student_blob
 
         this.test.files.students.raw = student_blob
         this.test.files.students.url = URL.createObjectURL(student_blob)//await this.toDataURL(student_blob)
-
+        
+        this.currently_loading = 'data from pdf'
         await this.test.loadDataFromPdf('students')
 
-        this.test.createPages()
+        this.currently_loading = 'Create pages'
 
+        this.test.createPages()
+        // 
+
+        this.currently_loading = 'Starting loading student and sections'
         await this.test.scanStudentIdsAndSections(true)
 
         this.test.loadStudents(true)
-
+        // console.log(this.printTest())
+        this.currently_loading = 'Starting grading students'
+        await this.test.gradeStudents(true)
         console.log(this.test)
+        this.is_loading =  false
 
 
 
@@ -717,6 +913,7 @@ export default {
 
 
 }
+
 </script>
 
 <style scoped></style>

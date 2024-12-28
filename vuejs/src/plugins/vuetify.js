@@ -21,6 +21,7 @@ export default createVuetify({
   },
   theme: {
     defaultTheme: 'dark',
+    printTheme: false
   },
   defaults: {
     global: {
