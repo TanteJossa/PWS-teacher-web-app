@@ -1,10 +1,8 @@
 import { getRandomID, delay, sum, apiRequest, downloadResultPdf } from '@/helpers';
 import { globals } from '@/main'
-import saved_section_data from '@/saved_section_data2.json'
-import saved_student_data from '@/saved_student_data.json'
-import saved_grade_data from '@/saved_grade_data.json'
-// const endpoint = 'http://localhost:8080'
-import saved_output from '@/saved_output.json'
+
+
+
 
 
 var temp_saved_grade_data = {}
@@ -402,6 +400,14 @@ class Test {
         this.targets = targets.map(e => new Target({test: this, ...e}))
         this.test_data_result=test_data_result
 
+
+        this.saved_section_data = []
+        this.saved_student_data = []
+        this.saved_grade_data = {}
+        this.saved_output = {
+            questions: [],
+            targets: []
+        }
         this.loading = {
             pdf_data: false,
             structure: false,
@@ -472,7 +478,7 @@ class Test {
 
         if (use_preload){
 
-            var result = saved_output
+            var result = this.saved_output
         } else {
 
 
@@ -555,10 +561,10 @@ class Test {
 
                 
             if (use_preloaded){
-                console.log(saved_section_data[index])
-                this.pages[index].student_id = saved_section_data[index].student_id || ""
+                console.log(this.saved_section_data[index])
+                this.pages[index].student_id = this.saved_section_data[index].student_id || ""
 
-                this.pages[index].sections = saved_section_data[index].sections.map(e => {
+                this.pages[index].sections = this.saved_section_data[index].sections.map(e => {
                     return new ScanSection({
                         ...e,
                         student_id: this.pages[index].student_id
@@ -585,7 +591,7 @@ class Test {
         this.loading.students = true
 
         if (use_preload){
-            saved_student_data.forEach(student_data => {
+            this.saved_student_data.forEach(student_data => {
                 const student = new Student({
                     test: this,
                     student_id: student_data.student_id
@@ -717,6 +723,23 @@ class Test {
     }
     async downloadStudentResults(feedback_field=false){
         await downloadResultPdf(this.student_pdf_data, feedback_field, 'AlleResultaten')
+    }   
+    async loadPreload(){
+        const [
+            saved_section_data, 
+            saved_student_data, 
+            saved_grade_data, 
+            saved_output
+        ] = await Promise.all([
+            import('/src/saved_section_data2.json').then(module => module.default),
+            import('/src/saved_student_data.json').then(module => module.default),
+            import('/src/saved_grade_data.json').then(module => module.default),
+            import('/src/saved_output.json').then(module => module.default),
+        ])
+        this.saved_section_data = saved_section_data
+        this.saved_student_data = saved_student_data
+        this.saved_grade_data = saved_grade_data
+        this.saved_output = saved_output
     }
 
 
@@ -988,8 +1011,8 @@ class StudentQuestionResult {
         const context = this.student.test.test_context
 
         if (use_preload){
-            if (saved_grade_data[this.student.student_id]?.[this.question.question_number]){
-                var response =  saved_grade_data[this.student.student_id]?.[this.question.question_number]
+            if (this.test.saved_grade_data[this.student.student_id]?.[this.question.question_number]){
+                var response =  this.test.saved_grade_data[this.student.student_id]?.[this.question.question_number]
             }
         } else {
             if (this.question.is_draw_question){

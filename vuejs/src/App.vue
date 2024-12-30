@@ -76,4 +76,7 @@ h1, h2, h3, h4, p{
     background: #646464;
     border-radius: 6px;
 }
+
+.v-btn__content { width: 100%; white-space: normal; }
+
 </style>

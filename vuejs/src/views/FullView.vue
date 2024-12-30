@@ -14,6 +14,11 @@ div(style="position: relative")
             :selected="[selected_section_id]"
             mandatory
         )
+            v-btn(
+                text="Laad preload (200MB)"
+                @click="loadPreload()"
+                :loading="test.loading.preload"
+            )
             v-list-item Onderdelen
             v-divider
             v-list-item(
@@ -577,9 +582,6 @@ div(style="position: relative")
 // Data 
 import { imageToPngBase64, rotateImage180, average, total_requests } from '@/helpers'
 import { Test } from '@/scan_api_classes'
-import test_example from '@/assets/test_example.pdf'
-import rubric_example from '@/assets/rubric_example.pdf'
-import student_example from '@/assets/24-11-13_PWStoetsG3B.pdf'
 
 // Components
 import ImagesPreview from '@/components/image/ImagesPreview.vue'
@@ -851,6 +853,71 @@ export default {
             } 
 
             return 'rgba(100,255,100,'+(percent - 0.55)+')'
+        },
+        async loadPreload(){
+            this.is_loading =  true
+            
+            this.currently_loading = 'Downloading pdfs'
+            try{
+                var [
+                    test_blob,
+                    rubric_blob,
+                    student_blob,
+                    preload_result
+                ] = await Promise.all([
+                    this.loadBlob('/src/assets/test_example.pdf'),
+                    this.loadBlob('/src/assets/rubric_example.pdf'),
+                    this.loadBlob('/src/assets/24-11-13_PWStoetsG3B.pdf'),
+                    this.test.loadPreload()
+                ]);
+
+                this.currently_loading = 'Starting blobs'
+                // 
+
+
+                this.currently_loading = 'test and rubric pdf data'
+                this.test.files.test.raw = test_blob
+                this.test.files.test.url = URL.createObjectURL(test_blob)//await this.toDataURL(test_blob)
+                await this.test.loadDataFromPdf('test')
+                this.test.files.rubric.raw = rubric_blob
+                this.test.files.rubric.url = URL.createObjectURL(rubric_blob)//await this.toDataURL(rubric_blob)
+                await this.test.loadDataFromPdf('rubric')
+                // 
+
+                this.currently_loading = 'structure'
+                await this.test.loadTestStructure(true)
+
+                // 
+                this.currently_loading = 'student PDF'
+
+                this.test.files.students.raw = student_blob
+                this.test.files.students.url = URL.createObjectURL(student_blob)//await this.toDataURL(student_blob)
+                
+                this.currently_loading = 'data from pdf'
+                await this.test.loadDataFromPdf('students')
+
+                this.currently_loading = 'Create pages'
+
+                this.test.createPages()
+                // 
+
+                this.currently_loading = 'Starting loading student and sections'
+                await this.test.scanStudentIdsAndSections(true)
+
+                this.test.loadStudents(true)
+                // console.log(this.printTest())
+                this.currently_loading = 'Starting grading students'
+                await this.test.gradeStudents(true)
+                console.log(this.test)
+                this.is_loading =  false
+            } catch (e){
+                this.currently_loading = 'Inladen gefaalt'
+                console.log(e)
+                setTimeout(() => {
+                    this.is_loading = false
+                }, 2000);
+
+            }
         }
 
     },
@@ -861,50 +928,7 @@ export default {
 
     // },
     async mounted() {
-        this.is_loading =  true
-        this.currently_loading = 'Starting blobs'
-        // 
-        const test_blob = await this.loadBlob(test_example)
-        const rubric_blob = await this.loadBlob(rubric_example)
-        var student_blob = this.loadBlob(student_example)
-
-
-        this.currently_loading = 'test and rubric pdf data'
-        this.test.files.test.raw = test_blob
-        this.test.files.test.url = URL.createObjectURL(test_blob)//await this.toDataURL(test_blob)
-        await this.test.loadDataFromPdf('test')
-        this.test.files.rubric.raw = rubric_blob
-        this.test.files.rubric.url = URL.createObjectURL(rubric_blob)//await this.toDataURL(rubric_blob)
-        await this.test.loadDataFromPdf('rubric')
-        // 
-
-        this.currently_loading = 'structure'
-        await this.test.loadTestStructure(true)
-
-        // 
-        this.currently_loading = 'student PDF'
-        student_blob = await student_blob
-
-        this.test.files.students.raw = student_blob
-        this.test.files.students.url = URL.createObjectURL(student_blob)//await this.toDataURL(student_blob)
         
-        this.currently_loading = 'data from pdf'
-        await this.test.loadDataFromPdf('students')
-
-        this.currently_loading = 'Create pages'
-
-        this.test.createPages()
-        // 
-
-        this.currently_loading = 'Starting loading student and sections'
-        await this.test.scanStudentIdsAndSections(true)
-
-        this.test.loadStudents(true)
-        // console.log(this.printTest())
-        this.currently_loading = 'Starting grading students'
-        await this.test.gradeStudents(true)
-        console.log(this.test)
-        this.is_loading =  false
 
 
 
@@ -916,4 +940,5 @@ export default {
 
 </script>
 
-<style scoped></style>
+<style scoped>
+</style>
