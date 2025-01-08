@@ -189,7 +189,7 @@ const apiRequest = async (route, data) => {
     return response
 }
 
-function downloadPdfFromBase64(base64String, filename = 'downloaded') {
+export function downloadPdfFromBase64(base64String, filename = 'downloaded') {
     /**
     * Downloads a PDF file from a base64 encoded string.
     *
@@ -206,7 +206,13 @@ function downloadPdfFromBase64(base64String, filename = 'downloaded') {
     downloadLink.click();
     downloadLink.remove();
 }
-
+export function blobToBase64(blob) {
+  return new Promise((resolve, _) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
+}
 
 async function downloadResultPdf(results, feedback_field=false, filename="StudentResult"){
     const result = await apiRequest('/student-result-pdf', {

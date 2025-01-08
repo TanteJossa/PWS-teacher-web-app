@@ -1011,8 +1011,8 @@ class StudentQuestionResult {
         const context = this.student.test.test_context
 
         if (use_preload){
-            if (this.test.saved_grade_data[this.student.student_id]?.[this.question.question_number]){
-                var response =  this.test.saved_grade_data[this.student.student_id]?.[this.question.question_number]
+            if (this.student.test.saved_grade_data[this.student.student_id]?.[this.question.question_number]){
+                var response =  this.student.test.saved_grade_data[this.student.student_id]?.[this.question.question_number]
             }
         } else {
             if (this.question.is_draw_question){

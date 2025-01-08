@@ -19,6 +19,10 @@ div(style="position: relative")
                 @click="loadPreload()"
                 :loading="test.loading.preload"
             )
+            v-btn(
+                text="Download Antwoordpagina"
+                @click="downloadAnswerSheet()"
+            )
             v-list-item Onderdelen
             v-divider
             v-list-item(
@@ -580,8 +584,12 @@ div(style="position: relative")
 
 <script>
 // Data 
-import { imageToPngBase64, rotateImage180, average, total_requests } from '@/helpers'
+import { imageToPngBase64, rotateImage180, average, total_requests, downloadPdfFromBase64, blobToBase64 } from '@/helpers'
 import { Test } from '@/scan_api_classes'
+import test_example from '@/assets/test_example.pdf'
+import rubric_example from '@/assets/rubric_example.pdf'
+import toets_example from '@/assets/24-11-13_PWStoetsG3B.pdf'
+import answer_print from '@/assets/answer_print.pdf'
 
 // Components
 import ImagesPreview from '@/components/image/ImagesPreview.vue'
@@ -854,6 +862,12 @@ export default {
 
             return 'rgba(100,255,100,'+(percent - 0.55)+')'
         },
+        async downloadAnswerSheet(){
+            const pdf_blob = await this.loadBlob(answer_print)
+            const base64_pdf = await blobToBase64(pdf_blob)
+            downloadPdfFromBase64(base64_pdf, 'AnswerSheetToetsPWS')
+        },
+
         async loadPreload(){
             this.is_loading =  true
             
@@ -865,10 +879,10 @@ export default {
                     student_blob,
                     preload_result
                 ] = await Promise.all([
-                    this.loadBlob('/src/assets/test_example.pdf'),
-                    this.loadBlob('/src/assets/rubric_example.pdf'),
-                    this.loadBlob('/src/assets/24-11-13_PWStoetsG3B.pdf'),
-                    this.test.loadPreload()
+                    this.loadBlob(test_example),
+                    this.loadBlob(rubric_example),
+                    this.loadBlob(toets_example),
+                    this.test.loadPreload(),
                 ]);
 
                 this.currently_loading = 'Starting blobs'
