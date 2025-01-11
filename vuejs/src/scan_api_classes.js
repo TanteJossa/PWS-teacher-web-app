@@ -1,4 +1,4 @@
-import { getRandomID, delay, sum, apiRequest, downloadResultPdf } from '@/helpers';
+import { getRandomID, delay, sum, apiRequest, downloadResultPdf, downloadTestPdf } from '@/helpers';
 import { globals } from '@/main'
 
 
@@ -491,6 +491,19 @@ class GptTestSettings{
     }
 }
 
+class TestPdfSettings {
+    constructor({
+        test_name="",
+        show_targets=true,
+        show_answers=false,
+    }){
+        this.test_name = test_name
+        this.show_targets = show_targets
+        this.show_answers = show_answers
+    }
+
+}
+
 class Test {
     constructor({
         id=getRandomID(),
@@ -520,6 +533,7 @@ class Test {
         test_data_result=null,
         gpt_test=new GptTestSettings({}),
         gpt_question=new GptQuestionSettings({}),
+        test_settings=new TestPdfSettings({}),
     }){
         this.id = id
         this.files = files
@@ -530,6 +544,8 @@ class Test {
         this.students = students.map(e => new Student({test: this, ...e}))
         this.targets = targets.map(e => new Target({test: this, ...e}))
         this.test_data_result=test_data_result
+
+        this.test_settings = test_settings
 
 
         this.saved_section_data = []
@@ -549,6 +565,7 @@ class Test {
             sections: false,
             students: false,
             grading: false,
+            test_pdf: false
 
         }
     }
@@ -929,6 +946,44 @@ class Test {
         this.test_data_result = result
         this.loadTestData()
         this.loading.structure = false
+    }
+    async downloadTestPdf(){
+        this.loading.test_pdf = true
+
+        const test_data = {
+            questions: [],
+            targets: [],
+            settings: this.test_settings
+        }
+
+        this.questions.forEach(question => {
+            test_data.questions.push({
+                question_number: question.question_number,
+                question_text: question.question_text,
+                question_context: question.question_context,
+                answer_text: question.answer_text,
+                points: question.points.map(point => {
+                    return {
+                        point_name: point.point_name,
+                        point_text: point.point_text,
+                        point_index: point.point_index,
+                        point_weight: point.point_weight,
+                        target_name: point.target_name
+                    }
+                }),
+            })
+        })
+        this.targets.forEach(target => {
+            test_data.targets.push({
+                target_name: target.target_name,
+                explanation: target.explanation
+            })
+        })
+
+        await downloadTestPdf(test_data)
+        console.log(test_data)
+        this.loading.test_pdf = false
+
     }
     loadTestData(){
         this.targets = []

@@ -317,10 +317,32 @@ div(style="position: relative")
                                     @update:modelValue="test.gpt_question.targets[target.id] = !test.gpt_question.targets[target.id]"
                                     density="compact"
                                 )
-                                p {{ test.gpt_question.selected_targets.map(e => e.id)}}
+                                //- p {{ test.gpt_question.selected_targets.map(e => e.id)}}
                             v-btn(
                                 @click="test.generateGptQuestion()"
                             ) Genereer vraag
+            
+            v-card.ma-2.pa-2
+                h3 Download toets
+                v-text-field(
+                    v-model="test.test_settings.test_name"
+                    label="naam"
+                )
+                v-checkbox(
+                    v-model="test.test_settings.show_targets"
+                    label="Toon leerdoelen"
+                )
+                v-checkbox(
+                    v-model="test.test_settings.show_answers"
+                    label="Toon antwoorden"
+                )
+                v-btn(
+                    @click="test.downloadTestPdf()"
+                    :loading="test.loading.test_pdf"
+                    
+                ) Download Toets Pdf
+
+
 
 
                             

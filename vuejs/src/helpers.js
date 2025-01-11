@@ -189,7 +189,7 @@ const apiRequest = async (route, data) => {
     return response
 }
 
-export function downloadPdfFromBase64(base64String, filename = 'downloaded') {
+function downloadPdfFromBase64(base64String, filename = 'downloaded') {
     /**
     * Downloads a PDF file from a base64 encoded string.
     *
@@ -206,12 +206,25 @@ export function downloadPdfFromBase64(base64String, filename = 'downloaded') {
     downloadLink.click();
     downloadLink.remove();
 }
-export function blobToBase64(blob) {
+function blobToBase64(blob) {
   return new Promise((resolve, _) => {
     const reader = new FileReader();
     reader.onloadend = () => resolve(reader.result);
     reader.readAsDataURL(blob);
   });
+}
+
+async function downloadTestPdf(test_data, feedback_field=false, filename="Toets"){
+    const result = await apiRequest('/test-pdf', {
+        testData: test_data,
+    })
+    if (typeof result == 'string'){
+
+        downloadPdfFromBase64(result, filename)
+    } else {
+        console.log('error: ', result)
+    }
+    
 }
 
 async function downloadResultPdf(results, feedback_field=false, filename="StudentResult"){
@@ -245,5 +258,8 @@ export {
   delay,
   apiRequest,
   downloadResultPdf,
-  total_requests
+  downloadPdfFromBase64,
+  downloadTestPdf,
+  total_requests,
+  blobToBase64
 }
