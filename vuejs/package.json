@@ -28,6 +28,7 @@
     "roboto-fontface": "*",
     "uuid": "^10.0.0",
     "vue": "^3.4.31",
+    "vue-draggable-next": "^2.2.1",
     "vue-pug-plugin": "^2.0.3",
     "vue-router": "^4.4.5",
     "vue3-apexcharts": "^1.6.0",

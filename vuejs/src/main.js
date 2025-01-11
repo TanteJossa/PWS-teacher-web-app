@@ -14,6 +14,7 @@ import { vFullscreenImgInstall } from 'maz-ui'
 import router from './router'
 import pdfUtilsPlugin from './pdf_utils';
 import PDFObjectPlugin from 'pdfobject-vue';
+import { VueDraggableNext } from 'vue-draggable-next'
 
 // Components
 import App from './App.vue'
@@ -32,6 +33,8 @@ app
     .use(vuePugPlugin)
     .use(pdfUtilsPlugin)
     .use(PDFObjectPlugin)
+    .component("draggable", VueDraggableNext)
+
 
 const globals = app.config.globalProperties
 

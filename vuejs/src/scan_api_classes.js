@@ -362,6 +362,135 @@ class ScanQuestion {
 
 }
 
+
+class GptQuestionSettings{
+    constructor({
+        test=null,
+        id=getRandomID(),
+        rtti="i",
+        subject="motor",
+        targets={},
+        point_count=3
+
+    }){
+        this.test = test
+        this.id = id
+        this.rtti = rtti
+        this.subject = subject
+        this.targets = targets
+        this.point_count = point_count
+    }
+    get selected_targets(){
+        var selected_targets = this.test.targets.filter(target => this.targets[target.id])
+        if (selected_targets.length == 0){
+            selected_targets =this.test.targets
+        }
+        return selected_targets
+    
+    }
+    get request_text(){
+        return `
+        Je moet een toets vraag gaan genereren op het juiste niveau.
+
+        Dit is de informatie van de toets:
+        School Type: ${this.test.gpt_test.school_type}
+        School Jaar: ${this.test.gpt_test.school_year}
+        Vak: ${this.test.gpt_test.school_subject}
+        Onderwerp(en): ${this.test.gpt_test.subject}
+        Geleerde stof: ${this.test.gpt_test.learned}
+        Door de docent aangevraagde onderwerpen die op de toets komen: ${this.test.gpt_test.requested_topics}
+
+        de vraag moet het volgdende rtti (de R staat voor Reproductie, de eerste T voor Training, de tweede T voor Transfer en de I voor Inzicht) hebben: 
+        ${this.rtti}
+
+        ${this.subject.length == 0 ? '' : `De vraag moet over het volgende onderwerp gaan: ${this.subject}`}
+
+        Geef de vraag in het aangegeven schema
+            vraag tekst: de exacte tekst van de vraag
+            question_number: dit is het nummer van de vraag, oftewel vraagnummer.
+            question_context: is de tekst die voor een vraag staat om de situatie te schetsen of de vraag in te leiden, dit is niet altijd nodig
+            is_draw_question: geeft aan of het antwoord bij deze vraag het antwoord geen puur tekstantwoord is
+            points: Haal uit de rubric bij elke vraag de rubric punten, als er geen punten in de rubric staan moet je zelf punten bedenken.
+        elk punt heeft:
+            een naam (point_name) met in 1 of 2 woorden waar die punt overgaat
+            een tekst (point_text) met daarin de exacte uitleg van dit punt
+            een nummber (point_index) welk punt dit is, bij deze vraag, start bij 0
+            een gewicht (point_weight) voor hoeveel punten deze rubricpoint mee telt
+            leerdoel (target_name) het leerdoel waar dit punt bij hoort, hieronder kan je zien welke namen je hier mag invullen
+        
+        hier zijn de leerdoelen die in de vraag/punten moeten voorkomen JE MAG GEEN ANDERE LEERDOEL NAMEN GEBRUIKEN, geef alleen de naam van het leerdoel (voor de ":"):
+        ${this.selected_targets.map(e => `${e.target_name}: ${e.explanation}`).join('\n')}
+        
+        Dit zijn de vragen die al in de toets gestelt zijn, houdt hier rekening mee, zodat je niet 2x hetzelde vraagt:
+        ${this.test.questions.map(e => `Vraag ${e.question_number}: ${e.question_text}`).join('\n')}
+
+        De vraag mag maximaal ${this.point_count} punten hebben.
+
+        geeft de resultaten in de taal van de gegeven toets(vaak zal dat Nederlands zijn)
+        
+        Houd je altijd aan het gegeven schema
+        `
+    }
+}
+
+class GptTestSettings{
+    constructor({
+        test=null,
+        id=getRandomID(),
+        school_type="vwo",
+        school_year=3,
+        school_subject="Scheikunde",
+        subject="Verbranding",
+        learned="",
+        requested_topics="",
+    }){
+        this.test = test
+        this.id = id
+        this.school_type = school_type
+        this.school_year = school_year
+        this.school_subject = school_subject
+        this.subject = subject
+        this.learned = learned
+        this.requested_topics = requested_topics
+    }
+    get request_text(){
+        return `
+        Je moet een toets gaan genereren op het juiste niveau.
+        School Type: ${this.school_type}
+        School Jaar: ${this.school_year}
+        Vak: ${this.school_subject}
+        Onderwerp(en): ${this.subject}
+
+        Nu krijg je wat informatie over wat er in de toets moet komen en wat je de leerlingen kan vragen.
+        Geleerde stof: ${this.learned}
+        Door de docent aangevraagde onderwerpen die op de toets komen: ${this.requested_topics}
+
+        Geef de vragen in het aangegeven schema
+            vraag tekstQ: de exacte tekst van de vraag
+            question_number: dit is het nummer van de vraag, oftewel vraagnummer.
+            question_context: is de tekst die voor een vraag staat om de situatie te schetsen of de vraag in te leiden, dit is niet altijd nodig
+            is_draw_question: geeft aan of het antwoord bij deze vraag het antwoord geen puur tekstantwoord is
+            points: Haal uit de rubric bij elke vraag de rubric punten, als er geen punten in de rubric staan moet je zelf punten bedenken.
+        een vraag heeft 1-3 punten en elk punt heeft:
+            een naam (point_name) met in 1 of 2 woorden waar die punt overgaat
+            een tekst (point_text) met daarin de exacte uitleg van dit punt
+            een nummber (point_index) welk punt dit is, bij deze vraag, start bij 0
+            een gewicht (point_weight) voor hoeveel punten deze rubricpoint mee telt
+            leerdoel (target_name) het leerdoel waar dit punt bij hoort
+        
+        Daarmaast moet je bij de hele toets een paar overkoepelende leerdoelen bedenken.
+        Elk leerdoel heeft een korte naam: dit is ook de naam die bij elk punt waar dit leerdoel het meest bij hoort wordt ingevuld
+        en een uitleg (explanation) met daarin exact wat dit leerdoel inhoud.
+
+
+        geeft de resultaten in de taal van de gegeven toets(vaak zal dat Nederlands zijn)
+        
+        Houd je altijd aan het gegeven schema
+
+        `
+    }
+}
+
 class Test {
     constructor({
         id=getRandomID(),
@@ -389,6 +518,8 @@ class Test {
         pages=[],
 
         test_data_result=null,
+        gpt_test=new GptTestSettings({}),
+        gpt_question=new GptQuestionSettings({}),
     }){
         this.id = id
         this.files = files
@@ -408,6 +539,10 @@ class Test {
             questions: [],
             targets: []
         }
+        this.gpt_test = gpt_test
+        this.gpt_test.test = this
+        this.gpt_question = gpt_question
+        this.gpt_question.test = this
         this.loading = {
             pdf_data: false,
             structure: false,
@@ -426,6 +561,11 @@ class Test {
     get student_pdf_data(){
         return this.students.map(e => e.result_pdf_data)
     }
+    setQuestionNumbers(){
+        this.questions.forEach((question, index) => {
+            question.question_number = (index + 1).toString()
+        })
+    }
     async loadDataFromPdf(field_type){
         this.loading.pdf_data = true
         if (["rubric", "test"].includes(field_type)) {
@@ -440,6 +580,291 @@ class Test {
         }
         this.loading.pdf_data = false
     }
+    async generateGptTest(){
+        this.loading.structure = true
+        const request_text = this.gpt_test.request_text
+
+        
+
+        var result = await apiRequest('/gpt-test', {
+            requestText: request_text,
+        })
+
+    //     var result = {result: {
+    // "questions": [
+    //     {
+    //         "is_draw_question": false,
+    //         "points": [
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 0,
+    //                 "point_name": "Reactanten",
+    //                 "point_text": "Methaan en zuurstof staan voor de pijl",
+    //                 "point_weight": 1,
+    //                 "target_name": "Reactievergelijkingen"
+    //             },
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 1,
+    //                 "point_name": "Producten",
+    //                 "point_text": "Koolstofdioxide en water staan na de pijl",
+    //                 "point_weight": 1,
+    //                 "target_name": "Reactievergelijkingen"
+    //             },
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 2,
+    //                 "point_name": "Kloppend",
+    //                 "point_text": "De reactievergelijking is kloppend gemaakt",
+    //                 "point_weight": 1,
+    //                 "target_name": "Reactievergelijkingen"
+    //             }
+    //         ],
+    //         "question_context": "Bij een volledige verbranding van een brandstof reageert de brandstof met zuurstof. Hierbij ontstaan een of meerdere verbrandingsproducten.",
+    //         "question_number": "1",
+    //         "question_text": "Wat is de reactievergelijking van de volledige verbranding van methaan (CH4)?"
+    //     },
+    //     {
+    //         "is_draw_question": false,
+    //         "points": [
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 0,
+    //                 "point_name": "Antwoord",
+    //                 "point_text": "Koolstofmono-oxide of roet",
+    //                 "point_weight": 1,
+    //                 "target_name": "Volledige en onvolledige verbranding"
+    //             }
+    //         ],
+    //         "question_context": "Bij een onvolledige verbranding is er te weinig zuurstof aanwezig voor een volledige verbranding.",
+    //         "question_number": "2",
+    //         "question_text": "Welke stof kan er ontstaan bij een onvolledige verbranding die niet ontstaat bij een volledige verbranding?"
+    //     },
+    //     {
+    //         "is_draw_question": false,
+    //         "points": [
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 0,
+    //                 "point_name": "Nadeel 1",
+    //                 "point_text": "Bij verbranding komt CO2 vrij, wat bijdraagt aan het versterkte broeikaseffect",
+    //                 "point_weight": 1,
+    //                 "target_name": "Fossiele brandstoffen"
+    //             },
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 1,
+    //                 "point_name": "Nadeel 2",
+    //                 "point_text": "Fossiele brandstoffen raken op",
+    //                 "point_weight": 1,
+    //                 "target_name": "Fossiele brandstoffen"
+    //             }
+    //         ],
+    //         "question_context": "Aardgas is een fossiele brandstof die veel gebruikt wordt in huishoudens.",
+    //         "question_number": "3",
+    //         "question_text": "Noem twee nadelen van het gebruik van fossiele brandstoffen."
+    //     },
+    //     {
+    //         "is_draw_question": false,
+    //         "points": [
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 0,
+    //                 "point_name": "Zuurstof",
+    //                 "point_text": "De hoeveelheid zuurstof in de ruimte neemt af",
+    //                 "point_weight": 1,
+    //                 "target_name": "Volledige en onvolledige verbranding"
+    //             },
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 1,
+    //                 "point_name": "Verbranding",
+    //                 "point_text": "De verbranding wordt onvollediger",
+    //                 "point_weight": 1,
+    //                 "target_name": "Volledige en onvolledige verbranding"
+    //             },
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 2,
+    //                 "point_name": "Vlam",
+    //                 "point_text": "De vlam wordt kleiner en zal uiteindelijk doven",
+    //                 "point_weight": 1,
+    //                 "target_name": "Volledige en onvolledige verbranding"
+    //             }
+    //         ],
+    //         "question_context": "Een kaars brandt in een afgesloten ruimte.",
+    //         "question_number": "4",
+    //         "question_text": "Leg uit wat er gebeurt met de vlam van de kaars naarmate de tijd verstrijkt."
+    //     }
+    // ],
+    // "targets": [
+    //     {
+    //         "explanation": "De leerling kan reactievergelijkingen van verbrandingsreacties opstellen en kloppend maken.",
+    //         "target_name": "Reactievergelijkingen"
+    //     },
+    //     {
+    //         "explanation": "De leerling begrijpt het verschil tussen volledige en onvolledige verbranding en kan de reactieproducten benoemen.",
+    //         "target_name": "Volledige en onvolledige verbranding"
+    //     },
+    //     {
+    //         "explanation": "De leerling kent de nadelen van het gebruik van fossiele brandstoffen.",
+    //         "target_name": "Fossiele brandstoffen"
+    //     }
+    // ]
+    //     }}
+
+        if(!result.result){
+            return
+        } 
+        
+
+        this.test_data_result = result.result
+        this.loadTestData()
+        console.log('loadTestStructure: ', result, '\n Test: ', this)
+        this.loading.structure = false
+    }
+    async generateGptQuestion(){
+        this.loading.structure = true
+        const request_text = this.gpt_question.request_text
+
+        
+
+        var result = await apiRequest('/gpt-test-question', {
+            requestText: request_text,
+        })
+
+    //     var result = {result: {
+    // "questions": [
+    //     {
+    //         "is_draw_question": false,
+    //         "points": [
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 0,
+    //                 "point_name": "Reactanten",
+    //                 "point_text": "Methaan en zuurstof staan voor de pijl",
+    //                 "point_weight": 1,
+    //                 "target_name": "Reactievergelijkingen"
+    //             },
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 1,
+    //                 "point_name": "Producten",
+    //                 "point_text": "Koolstofdioxide en water staan na de pijl",
+    //                 "point_weight": 1,
+    //                 "target_name": "Reactievergelijkingen"
+    //             },
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 2,
+    //                 "point_name": "Kloppend",
+    //                 "point_text": "De reactievergelijking is kloppend gemaakt",
+    //                 "point_weight": 1,
+    //                 "target_name": "Reactievergelijkingen"
+    //             }
+    //         ],
+    //         "question_context": "Bij een volledige verbranding van een brandstof reageert de brandstof met zuurstof. Hierbij ontstaan een of meerdere verbrandingsproducten.",
+    //         "question_number": "1",
+    //         "question_text": "Wat is de reactievergelijking van de volledige verbranding van methaan (CH4)?"
+    //     },
+    //     {
+    //         "is_draw_question": false,
+    //         "points": [
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 0,
+    //                 "point_name": "Antwoord",
+    //                 "point_text": "Koolstofmono-oxide of roet",
+    //                 "point_weight": 1,
+    //                 "target_name": "Volledige en onvolledige verbranding"
+    //             }
+    //         ],
+    //         "question_context": "Bij een onvolledige verbranding is er te weinig zuurstof aanwezig voor een volledige verbranding.",
+    //         "question_number": "2",
+    //         "question_text": "Welke stof kan er ontstaan bij een onvolledige verbranding die niet ontstaat bij een volledige verbranding?"
+    //     },
+    //     {
+    //         "is_draw_question": false,
+    //         "points": [
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 0,
+    //                 "point_name": "Nadeel 1",
+    //                 "point_text": "Bij verbranding komt CO2 vrij, wat bijdraagt aan het versterkte broeikaseffect",
+    //                 "point_weight": 1,
+    //                 "target_name": "Fossiele brandstoffen"
+    //             },
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 1,
+    //                 "point_name": "Nadeel 2",
+    //                 "point_text": "Fossiele brandstoffen raken op",
+    //                 "point_weight": 1,
+    //                 "target_name": "Fossiele brandstoffen"
+    //             }
+    //         ],
+    //         "question_context": "Aardgas is een fossiele brandstof die veel gebruikt wordt in huishoudens.",
+    //         "question_number": "3",
+    //         "question_text": "Noem twee nadelen van het gebruik van fossiele brandstoffen."
+    //     },
+    //     {
+    //         "is_draw_question": false,
+    //         "points": [
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 0,
+    //                 "point_name": "Zuurstof",
+    //                 "point_text": "De hoeveelheid zuurstof in de ruimte neemt af",
+    //                 "point_weight": 1,
+    //                 "target_name": "Volledige en onvolledige verbranding"
+    //             },
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 1,
+    //                 "point_name": "Verbranding",
+    //                 "point_text": "De verbranding wordt onvollediger",
+    //                 "point_weight": 1,
+    //                 "target_name": "Volledige en onvolledige verbranding"
+    //             },
+    //             {
+    //                 "has_point": true,
+    //                 "point_index": 2,
+    //                 "point_name": "Vlam",
+    //                 "point_text": "De vlam wordt kleiner en zal uiteindelijk doven",
+    //                 "point_weight": 1,
+    //                 "target_name": "Volledige en onvolledige verbranding"
+    //             }
+    //         ],
+    //         "question_context": "Een kaars brandt in een afgesloten ruimte.",
+    //         "question_number": "4",
+    //         "question_text": "Leg uit wat er gebeurt met de vlam van de kaars naarmate de tijd verstrijkt."
+    //     }
+    // ],
+    // "targets": [
+    //     {
+    //         "explanation": "De leerling kan reactievergelijkingen van verbrandingsreacties opstellen en kloppend maken.",
+    //         "target_name": "Reactievergelijkingen"
+    //     },
+    //     {
+    //         "explanation": "De leerling begrijpt het verschil tussen volledige en onvolledige verbranding en kan de reactieproducten benoemen.",
+    //         "target_name": "Volledige en onvolledige verbranding"
+    //     },
+    //     {
+    //         "explanation": "De leerling kent de nadelen van het gebruik van fossiele brandstoffen.",
+    //         "target_name": "Fossiele brandstoffen"
+    //     }
+    // ]
+    //     }}
+
+        if(!result.result){
+            return
+        } 
+        
+
+        this.addQuestion(result.result)
+        console.log('loadTestQuestion: ', result, '\n Test: ', this)
+        this.loading.structure = false
+    }
     async loadTestStructure(use_preload=false){
         this.loading.structure = true
         const request_text = `
@@ -447,6 +872,7 @@ class Test {
         je hoeft niets te doen met de context om een vraag. Het gaat alleen om de vraag zelf
         Extraheer uit de teksten de vragen:
             vraag tekst: de exacte tekst van de vraag
+            question_context: tekst die voor een vraag staat, het is niet altijd nodig
             question_number: 
                 dit is het nummer van de vraag, oftewel vraagnummer, dit kan ook een samenstelling zijn van nummers en letters: 1a, 4c enz. Het is SUPER belangrijk dat dit bij ELKE vraag wordt gegeven.
             is_draw_question: geeft aan of het antwoord bij deze vraag het antwoord geen puur tekstantwoord is
@@ -478,7 +904,7 @@ class Test {
 
         if (use_preload){
 
-            var result = this.saved_output
+            var result = {result: this.saved_output}
         } else {
 
 
@@ -491,6 +917,12 @@ class Test {
             })
         }
 
+        if(!result.result){
+            return
+        } 
+        
+
+        this.test_data_result = result.result
 
 
         console.log('loadTestStructure: ', result)
@@ -506,7 +938,10 @@ class Test {
         })
         this.questions = []
 
-        this.test_data_result.questions?.forEach(e => {
+        this.test_data_result.questions?.forEach((e, index) => {
+            if (!e.question_number){
+                e.question_number = (index + 1).toString()
+            }
             this.addQuestion(e)
         })
     }
@@ -753,6 +1188,7 @@ class Question {
         id=getRandomID(),
         question_number="",
         question_text="",
+        question_context="",
         answer_text="",
         is_draw_question=false,
         points=[],
@@ -761,6 +1197,7 @@ class Question {
         this.is_draw_question = is_draw_question
         this.id = id
         this.question_number = question_number
+        this.question_context = question_context
         this.question_text = question_text
         this.answer_text = answer_text
         this.points = []

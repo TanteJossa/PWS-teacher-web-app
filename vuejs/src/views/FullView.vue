@@ -89,33 +89,145 @@ div(style="position: relative")
                                         v-textarea(v-model="test.files[selected_subsection.id].data[index].data")
                                     div(v-if="item.type == 'image'")
                                         img(style="height: 300px" :src="item.data")
-        div(v-if="selected_subsection.id == 'structure'")
-            v-row(style="height: 100vh")
-                v-col.h-100(style="overflow-y: scroll; position: relative")
-                    v-card.d-flex.flex-row(style="position: sticky; top: 0; z-index: 3")
-                        h2 Laad structuur
-                        v-btn(
-                            text="Laad structuur met gpt request"
-                            @click="test.loadTestStructure()"
-                            :loading="test.loading.structure"
+        div(v-if="selected_subsection.id == 'structure'" style="overflow-y: scroll; position: relative; ")
 
+            RequestLoader(v-if="test.loading.structure")
+            v-card()
+                v-tabs(v-model="selected_test_source")
+                    v-tab(
+                        value="gpt"
+                    ) AI
+                    v-tab(
+                        value="pdf"
+                    ) PDF's
+                v-card-text
+                    v-tabs-window(
+                        v-model="selected_test_source"
+                    )
+                        v-tabs-window-item.w-100(
+                            value="gpt"
                         )
-                    h2 Vragen
-                    v-expansion-panels
-                        v-expansion-panel(
-                            v-for="(question,index) in test.questions"
-                            :title="question.question_number + '. ' + question.question_text"
+                            v-radio-group(v-model="test.gpt_test.school_type" inline)
+                                v-radio(value="basisschool" label="basisschool") 
+                                v-radio(value="vmbo" label="vmbo") 
+                                v-radio(value="havo" label="havo") 
+                                v-radio(value="vwo" label="vwo") 
+                                v-radio(value="mbo" label="mbo") 
+                                v-radio(value="hbo" label="hbo") 
+                                v-radio(value="universiteit" label="universiteit") 
+
+                            v-number-input(
+                                type="number"
+                                v-model="test.gpt_test.school_year"
+                            )
+                            v-text-field(
+                                label="Vak"
+                                v-model="test.gpt_test.school_subject"
+                            )
+                            v-text-field(
+                                label="Onderwerp"
+                                v-model="test.gpt_test.subject"
+                            )
+                            v-textarea(
+                                label="geleerde stof (optioneel)"
+                                auto-grow
+                                :rows="2"
+                                v-model="test.gpt_test.learned"
+                            )
+                            v-textarea(
+                                label="Onderwerpen die voor moeten komen"
+                                hint="Scheiden met komma's"
+                                auto-grow
+                                :rows="2"
+                                v-model="test.gpt_test.requested_topics"
+                            )
+                            v-btn.mt-2(@click="test.generateGptTest()") Genereer vragen
+
+                        v-tabs-window-item(
+                            value="pdf"
                         )
-                            v-expansion-panel-text
+                            v-btn(
+                                text="Laad structuur met gpt request uit pdfs"
+                                @click="test.loadTestStructure()"
+                                :loading="test.loading.structure"
+                            )
+            div
+                h2 Leerdoelen
+                v-table(
+                    density="compact"
+                )
+                    thead
+                        tr
+                            th Naam
+                            th Uitleg
+                            th(width="55px")
+                    tbody
+                        tr(
+                            v-for="(target, index) in test.targets"
+                        )
+                            td.pa-0
+                                v-text-field(
+                                    v-model="test.targets[index].target_name"
+                                    density="compact"
+                                )
+                            td.pa-0
+                                v-textarea(
+                                    v-model="test.targets[index].explanation"
+                                    auto-grow
+                                    :rows="1"
+                                    density="compact"
+                                )
+                            td.pa-0
+                                v-icon(icon="mdi-delete" color="red" @click="test.targets.splice(index,1)" )
+                v-btn(
+                    prepend-icon="mdi-plus"
+                    text="Voeg toe"
+                    @click="test.addTarget({})"
+                )
+            div
+                h2 Vragen
+                div
+                    transition-group
+                        v-card.ma-2(
+                            v-for="(question, index) in test.questions"
+                            :key="question.id"
+                        )
+                            v-card-text
+                                div.d-flex.flex-row
+                                    div
+                                        v-icon(
+                                            icon="mdi-chevron-up"
+                                            :disabled="index == 0"
+                                            @click="[test.questions[index], test.questions[index-1]] = [test.questions[index-1], test.questions[index]]; test.setQuestionNumbers()"
+                                        )
+                                        v-icon(
+                                            icon="mdi-chevron-down"
+                                            :disabled="index == test.questions.length - 1"
+                                            @click="[test.questions[index], test.questions[index+1]] = [test.questions[index+1], test.questions[index]]; test.setQuestionNumbers()"
+                                        )
+                                        v-icon(
+                                            icon="mdi-delete"
+                                            color="red"
+                                            @click="test.questions.splice(index,1)"
+                                        )
+                                    h3 {{ question.question_number + '. ' }}
+                                    v-textarea(
+                                        v-model="test.questions[index].question_context"
+                                        label="Context"
+                                        auto-grow
+                                        :rows="1"
+                                    )
+                                    v-textarea(
+                                        v-model="test.questions[index].question_text"
+                                        label="Vraag text"
+                                        auto-grow
+                                        :rows="1"
+
+                                    )
                                 v-switch(
                                     v-model="test.questions[index].is_draw_question"
                                     label="Tekenvraag"
                                     
-                                )
-                                v-textarea(
-                                    v-model="test.questions[index].question_text"
-                                    label="Vraag text"
-                                    auto-grow
                                 )
                                 b Rubric
                                 v-table(
@@ -165,42 +277,54 @@ div(style="position: relative")
                                                 v-icon(icon="mdi-delete" color="red" @click="test.questions[index].points.splice(point_index,1)" )
                                 v-btn(
                                     prepend-icon="mdi-plus"
-                                    text="Voeg toe"
+                                    text="Voeg punt toe"
                                     @click="test.questions[index].addRubricPoint({})"
                                 )
-                v-col.h-100
-                    h2 Leerdoelen
-                    v-table(
-                        density="compact"
-                    )
-                        thead
-                            tr
-                                th Naam
-                                th Uitleg
-                                th(width="55px")
-                        tbody
-                            tr(
-                                v-for="(target, index) in test.targets"
-                            )
-                                td.pa-0
-                                    v-text-field(
-                                        v-model="test.targets[index].target_name"
-                                        density="compact"
-                                    )
-                                td.pa-0
-                                    v-textarea(
-                                        v-model="test.targets[index].explanation"
-                                        auto-grow
-                                        :rows="1"
-                                        density="compact"
-                                    )
-                                td.pa-0
-                                    v-icon(icon="mdi-delete" color="red" @click="test.targets.splice(index,1)" )
-                    v-btn(
+                    v-btn.ml-4(
                         prepend-icon="mdi-plus"
-                        text="Voeg toe"
-                        @click="test.addTarget({})"
+                        text="Voeg eigen vraag toe"
+                        @click="test.addQuestion({})"
                     )
+                    v-divider.ma-4
+                    v-card.ma-2()
+                        v-card-text
+                            h3 Genereer nieuwe vraag
+                            v-radio-group(v-model="test.gpt_question.rtti" inline label="Vraag type")
+                                v-radio(value="Reproductie" label="Reproductie") 
+                                v-radio(value="Training" label="Training") 
+                                v-radio(value="Transfer" label="Transfer") 
+                                v-radio(value="Inzicht" label="Inzicht") 
+                                v-radio(value="Maakt niet uit" label="Maakt niet uit") 
+                            v-text-field(
+                                label="Idee/onderwerp"
+                                v-model="test.gpt_question.subject"
+                            )
+                            v-number-input(
+                                v-model="test.gpt_question.point_count"
+                                type="number"
+                                :min="0"
+                                controlVariant="stacked"
+                                density="compact"
+                                label="max aantal punten"
+                                
+                            )
+                            div
+                                p.text-gray Leerdoel (niets selecteren = alle leerdoelen)
+                                v-checkbox(
+                                    v-for="target in test.targets"
+                                    :label="target.target_name"
+                                    :modelValue="test.gpt_question.targets[target.id]"
+                                    @update:modelValue="test.gpt_question.targets[target.id] = !test.gpt_question.targets[target.id]"
+                                    density="compact"
+                                )
+                                p {{ test.gpt_question.selected_targets.map(e => e.id)}}
+                            v-btn(
+                                @click="test.generateGptQuestion()"
+                            ) Genereer vraag
+
+
+                            
+
     div.h-100(v-if="selected_section_id == 'scan'")
         div(v-if="selected_subsection.id == 'load_pages'")
             v-row(style="height: 100vh")
@@ -618,7 +742,7 @@ export default {
                 {
                     name: 'Toets inladen',
                     id: 'test',
-                    selected_subsection_id: 'test',
+                    selected_subsection_id: 'structure',
                     subsections: [
                         {
                             name: "toets",
@@ -683,12 +807,14 @@ export default {
                     ]
                 },
             ],
-            selected_section_id: 'analyze',
+            selected_section_id: 'test',
             test: new Test({}),
             selected_page_id: '',
             selected_student_id: '',
             is_generating_pdf: false,
             self_feedback_field: false,
+            selected_test_source: 'gpt',
+
         }
     },
     computed: {
