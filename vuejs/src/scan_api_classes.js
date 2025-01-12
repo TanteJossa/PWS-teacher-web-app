@@ -424,6 +424,11 @@ class GptQuestionSettings{
         Dit zijn de vragen die al in de toets gestelt zijn, houdt hier rekening mee, zodat je niet 2x hetzelde vraagt:
         ${this.test.questions.map(e => `Vraag ${e.question_number}: ${e.question_text}`).join('\n')}
 
+        Voor de vraag teksten mag je markdown gebruiken 
+        Ook kan je dollar tekens gebruiken om latex equations te laten zien
+        niewe regels ook toegestaan bij bijvoorbeeld meerkeuzevragen of een opsomming van dingen die een leerling moet beantwoorden.
+        ook zijn nieuwe regels in de context toegestaan.
+
         De vraag mag maximaal ${this.point_count} punten hebben.
 
         geeft de resultaten in de taal van de gegeven toets(vaak zal dat Nederlands zijn)
@@ -482,6 +487,10 @@ class GptTestSettings{
         Elk leerdoel heeft een korte naam: dit is ook de naam die bij elk punt waar dit leerdoel het meest bij hoort wordt ingevuld
         en een uitleg (explanation) met daarin exact wat dit leerdoel inhoud.
 
+        Voor de vraag teksten mag je markdown gebruiken 
+        Ook kan je dollar tekens gebruiken om latex equations te laten zien
+        niewe regels ook toegestaan bij bijvoorbeeld meerkeuzevragen of een opsomming van dingen die een leerling moet beantwoorden.
+        ook zijn nieuwe regels in de context toegestaan.
 
         geeft de resultaten in de taal van de gegeven toets(vaak zal dat Nederlands zijn)
         
@@ -607,132 +616,120 @@ class Test {
             requestText: request_text,
         })
 
-    //     var result = {result: {
-    // "questions": [
-    //     {
-    //         "is_draw_question": false,
-    //         "points": [
-    //             {
-    //                 "has_point": true,
-    //                 "point_index": 0,
-    //                 "point_name": "Reactanten",
-    //                 "point_text": "Methaan en zuurstof staan voor de pijl",
-    //                 "point_weight": 1,
-    //                 "target_name": "Reactievergelijkingen"
-    //             },
-    //             {
-    //                 "has_point": true,
-    //                 "point_index": 1,
-    //                 "point_name": "Producten",
-    //                 "point_text": "Koolstofdioxide en water staan na de pijl",
-    //                 "point_weight": 1,
-    //                 "target_name": "Reactievergelijkingen"
-    //             },
-    //             {
-    //                 "has_point": true,
-    //                 "point_index": 2,
-    //                 "point_name": "Kloppend",
-    //                 "point_text": "De reactievergelijking is kloppend gemaakt",
-    //                 "point_weight": 1,
-    //                 "target_name": "Reactievergelijkingen"
-    //             }
-    //         ],
-    //         "question_context": "Bij een volledige verbranding van een brandstof reageert de brandstof met zuurstof. Hierbij ontstaan een of meerdere verbrandingsproducten.",
-    //         "question_number": "1",
-    //         "question_text": "Wat is de reactievergelijking van de volledige verbranding van methaan (CH4)?"
-    //     },
-    //     {
-    //         "is_draw_question": false,
-    //         "points": [
-    //             {
-    //                 "has_point": true,
-    //                 "point_index": 0,
-    //                 "point_name": "Antwoord",
-    //                 "point_text": "Koolstofmono-oxide of roet",
-    //                 "point_weight": 1,
-    //                 "target_name": "Volledige en onvolledige verbranding"
-    //             }
-    //         ],
-    //         "question_context": "Bij een onvolledige verbranding is er te weinig zuurstof aanwezig voor een volledige verbranding.",
-    //         "question_number": "2",
-    //         "question_text": "Welke stof kan er ontstaan bij een onvolledige verbranding die niet ontstaat bij een volledige verbranding?"
-    //     },
-    //     {
-    //         "is_draw_question": false,
-    //         "points": [
-    //             {
-    //                 "has_point": true,
-    //                 "point_index": 0,
-    //                 "point_name": "Nadeel 1",
-    //                 "point_text": "Bij verbranding komt CO2 vrij, wat bijdraagt aan het versterkte broeikaseffect",
-    //                 "point_weight": 1,
-    //                 "target_name": "Fossiele brandstoffen"
-    //             },
-    //             {
-    //                 "has_point": true,
-    //                 "point_index": 1,
-    //                 "point_name": "Nadeel 2",
-    //                 "point_text": "Fossiele brandstoffen raken op",
-    //                 "point_weight": 1,
-    //                 "target_name": "Fossiele brandstoffen"
-    //             }
-    //         ],
-    //         "question_context": "Aardgas is een fossiele brandstof die veel gebruikt wordt in huishoudens.",
-    //         "question_number": "3",
-    //         "question_text": "Noem twee nadelen van het gebruik van fossiele brandstoffen."
-    //     },
-    //     {
-    //         "is_draw_question": false,
-    //         "points": [
-    //             {
-    //                 "has_point": true,
-    //                 "point_index": 0,
-    //                 "point_name": "Zuurstof",
-    //                 "point_text": "De hoeveelheid zuurstof in de ruimte neemt af",
-    //                 "point_weight": 1,
-    //                 "target_name": "Volledige en onvolledige verbranding"
-    //             },
-    //             {
-    //                 "has_point": true,
-    //                 "point_index": 1,
-    //                 "point_name": "Verbranding",
-    //                 "point_text": "De verbranding wordt onvollediger",
-    //                 "point_weight": 1,
-    //                 "target_name": "Volledige en onvolledige verbranding"
-    //             },
-    //             {
-    //                 "has_point": true,
-    //                 "point_index": 2,
-    //                 "point_name": "Vlam",
-    //                 "point_text": "De vlam wordt kleiner en zal uiteindelijk doven",
-    //                 "point_weight": 1,
-    //                 "target_name": "Volledige en onvolledige verbranding"
-    //             }
-    //         ],
-    //         "question_context": "Een kaars brandt in een afgesloten ruimte.",
-    //         "question_number": "4",
-    //         "question_text": "Leg uit wat er gebeurt met de vlam van de kaars naarmate de tijd verstrijkt."
-    //     }
-    // ],
-    // "targets": [
-    //     {
-    //         "explanation": "De leerling kan reactievergelijkingen van verbrandingsreacties opstellen en kloppend maken.",
-    //         "target_name": "Reactievergelijkingen"
-    //     },
-    //     {
-    //         "explanation": "De leerling begrijpt het verschil tussen volledige en onvolledige verbranding en kan de reactieproducten benoemen.",
-    //         "target_name": "Volledige en onvolledige verbranding"
-    //     },
-    //     {
-    //         "explanation": "De leerling kent de nadelen van het gebruik van fossiele brandstoffen.",
-    //         "target_name": "Fossiele brandstoffen"
-    //     }
-    // ]
-    //     }}
+        // var result = {result: {
+        //     "questions": [
+        //         {
+        //             "is_draw_question": false,
+        //             "points": [
+        //                 {
+        //                     "has_point": true,
+        //                     "point_index": 0,
+        //                     "point_name": "Formule opstellen",
+        //                     "point_text": "De leerling kan de juiste formule opstellen.",
+        //                     "point_weight": 1,
+        //                     "target_name": "Formulegebruik"
+        //                 },
+        //                 {
+        //                     "has_point": true,
+        //                     "point_index": 1,
+        //                     "point_name": "Sinus toepassen",
+        //                     "point_text": "De leerling past de sinus correct toe in de formule.",
+        //                     "point_weight": 1,
+        //                     "target_name": "Wiskundige vaardigheden"
+        //                 },
+        //                 {
+        //                     "has_point": true,
+        //                     "point_index": 2,
+        //                     "point_name": "Eenheden",
+        //                     "point_text": "De leerling gebruikt de juiste eenheden.",
+        //                     "point_weight": 1,
+        //                     "target_name": "Eenheden"
+        //                 }
+        //             ],
+        //             "question_context": "Een massa hangt aan een veer. De uitwijking $u$ van de massa ten opzichte van de evenwichtsstand wordt gegeven door de formule: $u = A \\cdot \\sin(2\\pi ft)$",
+        //             "question_number": "1",
+        //             "question_text": "De amplitude $A$ is 0,1 m, de frequentie $f$ is 2 Hz en de tijd $t$ is 0,5 s. Bereken de uitwijking $u$."
+        //         },
+        //         {
+        //             "is_draw_question": false,
+        //             "points": [
+        //                 {
+        //                     "has_point": true,
+        //                     "point_index": 0,
+        //                     "point_name": "Formule opstellen",
+        //                     "point_text": "De leerling kan de juiste formule opstellen.",
+        //                     "point_weight": 1,
+        //                     "target_name": "Formulegebruik"
+        //                 },
+        //                 {
+        //                     "has_point": true,
+        //                     "point_index": 1,
+        //                     "point_name": "Wortel toepassen",
+        //                     "point_text": "De leerling past de wortel correct toe in de formule.",
+        //                     "point_weight": 1,
+        //                     "target_name": "Wiskundige vaardigheden"
+        //                 },
+        //                 {
+        //                     "has_point": true,
+        //                     "point_index": 2,
+        //                     "point_name": "Eenheden",
+        //                     "point_text": "De leerling gebruikt de juiste eenheden.",
+        //                     "point_weight": 1,
+        //                     "target_name": "Eenheden"
+        //                 }
+        //             ],
+        //             "question_context": "De snelheid $v$ van een golf in een snaar wordt gegeven door de formule: $v = \\sqrt{\\frac{F}{\\mu}}$",
+        //             "question_number": "2",
+        //             "question_text": "De spankracht $F$ in de snaar is 100 N en de massa per lengte-eenheid $\\mu$ is 0,1 kg/m. Bereken de snelheid $v$ van de golf."
+        //         },
+        //         {
+        //             "is_draw_question": false,
+        //             "points": [
+        //                 {
+        //                     "has_point": true,
+        //                     "point_index": 0,
+        //                     "point_name": "Tabel lezen",
+        //                     "point_text": "De leerling kan de juiste waarden uit de tabel aflezen.",
+        //                     "point_weight": 1,
+        //                     "target_name": "Tabellen"
+        //                 },
+        //                 {
+        //                     "has_point": true,
+        //                     "point_index": 1,
+        //                     "point_name": "Formule toepassen",
+        //                     "point_text": "De leerling past de formule correct toe.",
+        //                     "point_weight": 1,
+        //                     "target_name": "Formulegebruik"
+        //                 }
+        //             ],
+        //             "question_context": "In de tabel hieronder staan de waarden voor de sinus van een aantal hoeken.\n\n| Hoek (graden) | sin(hoek) |\n|---|---|\n| 0 | 0 |\n| 30 | 0,5 |\n| 45 | 0,71 |\n| 60 | 0,87 |\n| 90 | 1 |\n\nDe uitwijking $u$ van een trillend voorwerp wordt gegeven door de formule $u = A \\cdot \\sin(\\alpha)$, waarbij $A$ de amplitude is en $\\alpha$ de hoek in graden.",
+        //             "question_number": "3",
+        //             "question_text": "De amplitude $A$ is 5 cm. Wat is de uitwijking $u$ bij een hoek van 30 graden?"
+        //         }
+        //     ],
+        //     "targets": [
+        //         {
+        //             "explanation": "De leerling kan formules met sinussen en wortels toepassen in verschillende contexten.",
+        //             "target_name": "Formulegebruik"
+        //         },
+        //         {
+        //             "explanation": "De leerling kan wiskundige bewerkingen zoals het berekenen van een sinus en een wortel correct uitvoeren.",
+        //             "target_name": "Wiskundige vaardigheden"
+        //         },
+        //         {
+        //             "explanation": "De leerling kan de juiste eenheden gebruiken bij het toepassen van formules.",
+        //             "target_name": "Eenheden"
+        //         },
+        //         {
+        //             "explanation": "De leerling kan informatie uit tabellen aflezen en gebruiken in berekeningen.",
+        //             "target_name": "Tabellen"
+        //         }
+        //     ]
+        // }}
 
-        if(!result.result){
-            return
-        } 
+        // if(!result.result){
+        //     return
+        // } 
         
 
         this.test_data_result = result.result
@@ -943,7 +940,6 @@ class Test {
 
 
         console.log('loadTestStructure: ', result)
-        this.test_data_result = result
         this.loadTestData()
         this.loading.structure = false
     }
@@ -991,6 +987,7 @@ class Test {
         this.test_data_result.targets?.forEach(e => {
             this.addTarget(e)
         })
+        console.log(this.test_data_result)
         this.questions = []
 
         this.test_data_result.questions?.forEach((e, index) => {
