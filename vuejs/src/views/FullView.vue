@@ -19,9 +19,23 @@ div(style="position: relative")
                 @click="loadPreload()"
                 :loading="test.loading.preload"
             )
-            v-btn(
+            v-btn.mt-1(
                 text="Download Antwoordpagina"
                 @click="downloadAnswerSheet()"
+            )
+            v-btn.mt-1.w-100(
+                text="Bekijk PWS"
+                href="/pdf"
+            )
+            v-select(
+                :items='["google", "openai", "deepseek"]'
+                v-model="test.gpt_provider"
+                @update:modelValue="test.gpt_model = test.gpt_models[0]"
+            )
+            v-select(
+                :items="test.gpt_models"
+                v-model="test.gpt_model"
+                multi-line
             )
             v-list-item Onderdelen
             v-divider
@@ -236,7 +250,7 @@ div(style="position: relative")
                                     thead
                                         tr
                                             th(style="width: 80px") Pt.
-                                            th Kort
+                                            th(style="width: 150px") Kort
                                             th Lang
                                             th Leerdoel
                                             th(width="55px")
@@ -254,9 +268,13 @@ div(style="position: relative")
                                                     
                                                 )
                                             td.pa-0
-                                                v-text-field(
+                                                v-textarea(
                                                     v-model="test.questions[index].points[point_index].point_name"
                                                     density="compact"
+                                                    multi-line
+                                                    auto-grow
+                                                    :rows="1"
+
                                                 )
                                             td.pa-0
                                                 v-textarea(
@@ -699,9 +717,9 @@ div(style="position: relative")
                         v-for="student in test.students"
                     )
                         td(style="height: fit-content") {{ student.student_id }}
-                        td(style="height: fit-content")(v-for="question in test.questions") {{ student.question_results[question.id].received_points }} / {{ student.question_results[question.id].total_points }}
+                        td(style="height: fit-content" v-for="question in test.questions") {{ student.question_results[question.id].received_points }} / {{ student.question_results[question.id].total_points }}
                         td(style="height: fit-content") {{ student.received_points }} / {{ test.total_points }}
-                        td(style="height: fit-content")(:style="{'background-color': getGradeColor(student.received_points / test.total_points)}") {{ (student.received_points / test.total_points * 100).toFixed(1) }}%
+                        td(style="height: fit-content" :style="{'background-color': getGradeColor(student.received_points / test.total_points)}") {{ (student.received_points / test.total_points * 100).toFixed(1) }}%
                     tr
                         th Totaal
                         th(v-for="question in test.questions") {{ average(test.students.map(e => e.question_results[question.id].received_points)).toFixed(2) }}

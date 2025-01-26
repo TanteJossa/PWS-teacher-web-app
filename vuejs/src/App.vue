@@ -79,4 +79,10 @@ h1, h2, h3, h4, p{
 
 .v-btn__content { width: 100%; white-space: normal; }
 
+.truncate { 
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 </style>

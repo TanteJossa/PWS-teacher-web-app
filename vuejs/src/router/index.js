@@ -3,7 +3,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import AnalisisView from '@/views/AnalisisView'
 import ScanView from '@/views/ScanView'
-import FullView from '../views/FullView.vue'
+import FullView from '@/views/FullView.vue'
+import PdfView from '@/views/PdfView.vue'
+
 const routes = [
     {
         path: '/scan',
@@ -14,6 +16,13 @@ const routes = [
         path: '/analyze',
         name: 'analisis',
         component: AnalisisView
+    },
+
+    {
+      path: '/pdf',
+      name: 'pdf',
+      component: PdfView,
+      props: true
     },
     {
         path: '/',

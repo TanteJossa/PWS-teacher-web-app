@@ -6,6 +6,7 @@ import { globals } from '@/main'
 
 
 var temp_saved_grade_data = {}
+var temp_section_data = []
 
 
 
@@ -155,6 +156,7 @@ class ScanPage {
         response?.sections?.forEach(e => {
             const section = new ScanSection({
                 full: e.section_image,
+                question_selector: e.question_selector_image,
                 answer: e.section_image,
                 question_number: e.data,
                 is_qr_section: true
@@ -249,13 +251,41 @@ class ScanPage {
     // Extract text from sections, turning them into Question objects if they match the criteria
     async extractQuestions() {
         this.loading.create_question = true
-        await Promise.all(this.sections.map(section => section.extractQuestion()))
+        const base64_sections = this.sections.map(section => section.question_selector || "")
+
+        const response = await apiRequest('/question_selector_info', {
+            "base64Images": JSON.stringify(base64_sections),
+            "checkbox_count": "7"
+        })
+
+        if (response.length != base64_sections.length){
+            console.log('Page: ExtractQuestionLengthError: response: ', response.length, '- sections:', this.sections.length, response)
+            this.loading.create_question = false
+            return
+        } else {
+            console.log('Page: Extract question number result: ', response)
+
+        }
+
+        response.forEach((response_item, index) => {
+            if (!!response_item.selected_checkbox && response_item.selected_checkbox > 0) {
+                this.sections[index].question_number = response_item.selected_checkbox
+                return
+            }
+            this.sections[index].question_number = 0
+        })
+        
+
         this.loading.create_question = false
     }
-    async loadSections(){
+    async loadSections(extract_question=true){
         await this.detectSquares()
         await this.createSections()
-        await this.extractQuestions()
+        if (extract_question){
+
+            await this.extractQuestions()
+        }
+        
     }
 
     // Link with other answer sections
@@ -351,13 +381,40 @@ class ScanQuestion {
             questionText: context.getQuestion(this.question_number.toString()),
             rubricText: context.getQuestion(this.question_number.toString()),
             contextText: context.getContext(this.question_number.toString()),
-
         });
         console.log('extractText: ', response)
         this.text = response.result?.correctly_spelled_text || "";
         this.data = response
         this.is_loading = false
         return { text: this.text };
+    }
+    async extractQuestion(){
+        const base64_sections = [this.question_selector]
+
+        const response = await apiRequest('/question_selector_info', {
+            "base64Images": JSON.stringify(base64_sections),
+            "checkbox_count": "7"
+        })
+
+        if (response.length != base64_sections.length){
+            console.log('Section: ExtractQuestionLengthError: response: ', response.length, '- sections:', this.sections.length, response)
+            this.loading.create_question = false
+            return
+        } else {
+            console.log('Section: Extract question number result: ', response)
+
+        }
+
+        if (response.length > 0){
+            if (!!response[0].selected_checkbox && response[0].selected_checkbox > 0){
+
+                this.question_number =  response[0].selected_checkbox
+            } else {
+                this.question_number = 0
+            }
+        }
+        
+
     }
 
 }
@@ -543,6 +600,9 @@ class Test {
         gpt_test=new GptTestSettings({}),
         gpt_question=new GptQuestionSettings({}),
         test_settings=new TestPdfSettings({}),
+
+        gpt_provider="google",
+        gpt_model="gemini-2.0-flash-exp",
     }){
         this.id = id
         this.files = files
@@ -577,6 +637,19 @@ class Test {
             test_pdf: false
 
         }
+        this.gpt_provider = gpt_provider
+        this.gpt_model = gpt_model
+    }
+    get gpt_models(){
+        if (this.gpt_provider == "google"){
+            return ["gemini-2.0-flash-exp", "gemini-1.5-pro", "learnlm-1.5-pro-experimental", "gemini-exp-1206"]
+        } else if (this.gpt_provider == "openai"){
+            return ["gpt-4o-mini", "gpt-4o"]
+        } else if (this.gpt_provider == "deepseek"){
+            return ["deepseek-chat"]
+        } else {
+            return []
+        }
     }
     get is_loading(){
         return Object.values(this.loading).some(e => e)
@@ -594,11 +667,12 @@ class Test {
     }
     async loadDataFromPdf(field_type){
         this.loading.pdf_data = true
+        console.log(field_type)
         if (["rubric", "test"].includes(field_type)) {
             this.files[field_type].data = await globals.$extractTextAndImages(this.files[field_type].raw)
 
-        } else if (["students"].includes(field_type)){
-            this.students.data = await globals.$pdfToBase64Images(this.files[field_type].raw)
+        } else if (["load_pages", "students"].includes(field_type)){
+            this.students.data = await globals.$pdfToBase64Images(this.files["students"].raw)
 
             this.students.data.forEach(page => {
                 this.addPage(page)
@@ -611,10 +685,18 @@ class Test {
         const request_text = this.gpt_test.request_text
 
         
-
-        var result = await apiRequest('/gpt-test', {
-            requestText: request_text,
-        })
+        try {
+            
+            var result = await apiRequest('/gpt-test', {
+                requestText: request_text,
+                model: this.gpt_model,
+                provider: this.gpt_provider
+            })
+            console.log(result)
+        } catch (error) {
+            console.log(error)
+            return 
+        }
 
         // var result = {result: {
         //     "questions": [
@@ -727,9 +809,9 @@ class Test {
         //     ]
         // }}
 
-        // if(!result.result){
-        //     return
-        // } 
+        if(!result.result){
+            return
+        } 
         
 
         this.test_data_result = result.result
@@ -742,10 +824,19 @@ class Test {
         const request_text = this.gpt_question.request_text
 
         
+        try {
 
-        var result = await apiRequest('/gpt-test-question', {
-            requestText: request_text,
-        })
+            var result = await apiRequest('/gpt-test-question', {
+                requestText: request_text,
+                model: this.gpt_model,
+                provider: this.gpt_provider
+            })
+            console.log(result)
+
+        } catch (error) {
+            console.log(error)
+            return 
+        }
 
     //     var result = {result: {
     // "questions": [
@@ -1040,10 +1131,59 @@ class Test {
         // TODO: fix the ScanPage
         this.pages.push(new ScanPage(base64Image, this.test_context))
     }
+    async loadStudentIds(){
+        await Promise.all(this.pages.map(async (page, index) => {
+            return this.pages[index].detectStudentId()
+        }))
+    }
+    async loadSections(){
+        await Promise.all(this.pages.map(async (page, index) => {
+            return this.pages[index].loadSections(false)
+        }))
+
+
+        const base64_sections = this.pages.map(page => page.sections.map(section => section.question_selector || "")).flat(Infinity)
+
+        const response = await apiRequest('/question_selector_info', {
+            "base64Images": JSON.stringify(base64_sections),
+            "checkbox_count": "7"
+        })
+
+        if (response.length != base64_sections.length){
+            console.log('Page: ExtractQuestionLengthError: response: ', response.length, '- sections:', this.sections.length, response)
+            this.loading.create_question = false
+            return
+        } else {
+            console.log('Page: Extract question number result: ', response)
+
+        }
+        var image_index = -1
+        for (let index = 0; index < this.pages.length;index++){
+            for (let section_index = 0; section_index < this.pages[index].sections.length; section_index++){
+                image_index += 1
+                if (!!response[image_index].selected_checkbox && response[image_index].selected_checkbox > 0) {
+                    this.pages[index].sections[section_index].question_number = response[image_index].selected_checkbox
+                    return
+                }
+                this.pages[index].sections[section_index].question_number = 0
+                
+            }
+        }
+
+        
+    }
+    
     async scanStudentIdsAndSections(use_preloaded = false){
         this.loading.sections = true
         // const preload = []
         // await Promise.all(this.pages.map(async (page, index) => {
+        if (!use_preloaded){
+
+            await this.loadStudentIds()
+            
+
+            await this.loadSections()
+        }
         for (let index = 0; index < this.pages.length;index++){
 
                 
@@ -1058,20 +1198,17 @@ class Test {
                     })
                 })
             } else {
-                await this.pages[index].detectStudentId()
-                await this.pages[index].loadSections()
-                preload.push({
-                    student_id: this.pages[index].student_id,
-                    sections: this.pages[index].sections
-                })
-                console.log('preload: ', preload)
+                // temp_section_data.push({
+                //     student_id: this.pages[index].student_id,
+                //     sections: this.pages[index].sections
+                // })
+                // console.log('preload: ', temp_section_data)
             }
         }
         // }))
 
 
         this.loading.sections = false
-
 
     }
     async loadStudents(use_preload = false){
@@ -1504,18 +1641,20 @@ class StudentQuestionResult {
                 var response =  this.student.test.saved_grade_data[this.student.student_id]?.[this.question.question_number]
             }
         } else {
-            if (this.question.is_draw_question){
-                var model = "gemini-2.0-flash-exp"
-                var provider = "google"
-            }
+            // if (this.question.is_draw_question){
+            //     var model = "gemini-2.0-flash-exp"
+            //     var provider = "google"
+            // }
+
+            
 
             var response = await apiRequest('/grade', {
                 rubric: context.getRubric(this.question.question_number),
                 question: context.getQuestion(this.question.question_number),
                 answer: this.question.is_draw_question ? "" : this.scan.text,
                 studentImage: this.question.is_draw_question ? this.scan.base64Image : undefined,
-                model: model,
-                provider: provider,
+                model: this.gpt_model,
+                provider: this.gpt_provider,
             })
             if (this.question.is_draw_question){
 
