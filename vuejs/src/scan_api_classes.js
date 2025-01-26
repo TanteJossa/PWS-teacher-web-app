@@ -646,7 +646,7 @@ class Test {
         } else if (this.gpt_provider == "openai"){
             return ["gpt-4o-mini", "gpt-4o"]
         } else if (this.gpt_provider == "deepseek"){
-            return ["deepseek-chat"]
+            return ["deepseek-chat", "deepseek-reasoner"]
         } else {
             return []
         }
@@ -695,6 +695,8 @@ class Test {
             console.log(result)
         } catch (error) {
             console.log(error)
+            this.loading.structure = false
+
             return 
         }
 
@@ -810,6 +812,8 @@ class Test {
         // }}
 
         if(!result.result){
+            this.loading.structure = false
+
             return
         } 
         
@@ -835,6 +839,8 @@ class Test {
 
         } catch (error) {
             console.log(error)
+            this.loading.structure = false
+
             return 
         }
 
@@ -962,6 +968,8 @@ class Test {
     //     }}
 
         if(!result.result){
+            this.loading.structure = false
+
             return
         } 
         
