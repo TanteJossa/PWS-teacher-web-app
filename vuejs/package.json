@@ -23,6 +23,7 @@
     "pdfjs-dist": "^4.9.155",
     "pdfobject-vue": "^0.0.4",
     "pinia": "^2.2.5",
+    "pretty-ms": "^9.2.0",
     "pug": "^3.0.3",
     "register-service-worker": "^1.7.2",
     "roboto-fontface": "*",

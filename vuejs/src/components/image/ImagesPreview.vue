@@ -26,7 +26,7 @@ v-card.pa-2.w-100.d-flex(
                 div(v-if="hasDeleteButton" style="position: absolute; top: 0px; left: 0px")
                     v-icon(color="red" icon="mdi-delete" @click="$emit('delete', item.id)") 
     v-divider.px-1(vertical color="white")
-    div.h-100(style="width: calc(100% - 126px); overflow-y: scroll")
+    div.h-100(style="width: calc(100% - 126px); overflow-y: scroll; position: relative")
         slot(
             v-if="selected_item"
             name="selected" 

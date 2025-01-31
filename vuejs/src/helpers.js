@@ -11,6 +11,7 @@ import axios from 'axios'
 import {
     ref
 } from 'vue'
+import prettyMilliseconds from 'pretty-ms';
 
 
 // import sharp from 'sharp';
@@ -164,13 +165,54 @@ var total_requests = ref(0)
 const use_localhost = true
 
 var endpoint = (use_localhost&&(location.hostname === "localhost" || location.hostname === "127.0.0.1")) ? 'http://localhost:8080' : 'https://toetspws-function-771520566941.europe-west4.run.app'
-axios.defaults.timeout = 120_000;
+axios.defaults.timeout = 360_000;
+
+var active_requests = ref([])
 
 const apiRequest = async (route, data) => {
 
     total_requests.value += 1
     try{
-        var response = await axios.post(endpoint+route, data);
+        const source = axios.CancelToken.source();
+        var id = getRandomID()
+
+        const removeRequest = () => {
+                const index = active_requests.value.findIndex(e => e.id == id)    
+                if (index != -1){
+                    active_requests.value.splice(index, 1)
+                }
+        }
+
+        var request = axios.post(
+            endpoint+route, 
+            data, 
+            {
+                cancelToken: source.token,
+            }
+        ).then( e => {
+            removeRequest()
+            return e
+        }).catch(e => {
+            removeRequest()
+            return e
+        });
+        const request_datetime = new Date().getTime()
+        active_requests.value.push({
+            id: id,
+            route: route,
+            params: data,
+            request: request,
+            request_timestamp: request_datetime,
+            source: source,
+            prettyDuration: () => {return prettyMilliseconds(new Date().getTime() - request_datetime)} ,
+            abort: () => {
+                source.cancel("Request aborted")
+                removeRequest()
+            }
+
+        })
+        
+        var response = await request
 
     } catch (e) {
         var response = {
@@ -198,6 +240,7 @@ function downloadFileFromBase64(base64String, filename = 'downloaded', datatype=
     *   base64String: The base64 encoded string of the PDF.
     *   filename: The desired filename for the downloaded PDF (optional, default: 'downloaded.pdf').
     */
+
     filename += '.' + datatype
     if (datatype == 'pdf'){
         var dataPrefix = 'data:application/pdf;base64,';
@@ -266,5 +309,6 @@ export {
   downloadFileFromBase64,
   downloadTest,
   total_requests,
-  blobToBase64
+  blobToBase64,
+  active_requests
 }

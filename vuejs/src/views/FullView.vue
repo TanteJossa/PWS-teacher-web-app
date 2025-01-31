@@ -1,10 +1,7 @@
 <template lang="pug">
-div(style="position: relative")
-    RequestLoader(
-        style="position: fixed"
-        v-if="is_loading"
-        :current_request_status="currently_loading"
-    )
+div(style="position: relative; height: 100vh")
+    v-progress-linear(v-if="is_loading" indeterminate style="position: fixed; top: 0; left: 0; z-index: 5")
+
     v-navigation-drawer(
         permanent
         nav
@@ -48,6 +45,34 @@ div(style="position: relative")
 
             p {{test.loading}}
             p total: {{ total_requests }}
+            v-dialog(max-width="500")
+                template(v-slot:activator="{ props: activatorProps }")
+                    v-btn(v-bind="activatorProps") Requests ({{ active_requests.length }})
+                template(v-slot:default="{ isActive }")
+                    v-card(title="Requests")
+                        v-btn(@click="active_requests.forEach((e,index) => {active_requests[index].abort()})") Abort all
+                        v-card-text
+                            v-table
+                                thead
+                                    tr
+                                        th route
+                                        th params
+                                        th(style="width: 100px") tijd
+                                        th abort
+                                tbody
+                                    tr(v-for="(request, index) in active_requests")
+                                        td {{ request.route }}
+                                        td 
+                                            v-btn(density="compact" @click="log(request.params)") params
+                                        td {{ request.prettyDuration() }} {{ rerender_timer ? '' : ''}}
+                                        td
+                                            v-icon(icon="mdi-close" @click="active_requests[index].abort()" color="red")
+            //- pre {{active_requests}}
+
+
+
+                    
+
     v-navigation-drawer(
         permanent
         nav
@@ -67,7 +92,7 @@ div(style="position: relative")
     
 
 
-    div(v-if="selected_section_id == 'test'")
+    div.h-100(v-if="selected_section_id == 'test'")
         div(v-if="selected_subsection.id == 'test' || selected_subsection.id == 'rubric'")
             v-row(style="height: 100vh")
                 v-col
@@ -104,9 +129,10 @@ div(style="position: relative")
                                         v-textarea(v-model="test.files[selected_subsection.id].data[index].data")
                                     div(v-if="item.type == 'image'")
                                         img(style="height: 300px" :src="item.data")
-        div(v-if="selected_subsection.id == 'structure'" style="overflow-y: scroll; position: relative; ")
+        div.h-100.w-100(v-if="selected_subsection.id == 'structure'" style="overflow-y: scroll; position: relative; ")
 
-            RequestLoader(v-if="test.loading.structure")
+            //- RequestLoader(v-if="test.loading.structure")
+            v-progress-linear(v-if="test.loading.structure" indeterminate style="position: fixed; top: 0; left: 0; z-index: 5")
             v-card()
                 v-tabs(v-model="selected_test_source")
                     v-tab(
@@ -362,6 +388,7 @@ div(style="position: relative")
                     :items="['pdf', 'docx']"
                     label="Output"
                 )
+                p(style="color: red" v-if="test.test_settings.output_type == 'docx'") !Pas op! vragen worden door page-breaks gebroken
                 v-btn(
                     @click="test.downloadTest()"
                     :loading="test.loading.test_pdf"
@@ -407,7 +434,7 @@ div(style="position: relative")
                             style="position: relative; width: 50%"
                             v-for="(page, index) in test.pages"
                         )
-                            RequestLoader(v-if="page.is_loading")
+                            v-progress-linear(v-if="page.is_loading" indeterminate style="position: fixed; top: 0; left: 0; z-index: 5")
                             div.d-flex.flex-row.flex-wrap
                                 v-btn.mr-1(
                                     text="Crop" 
@@ -456,7 +483,8 @@ div(style="position: relative")
                 v-model="selected_page_id"
             )
                 template(v-slot:selected="{ item }" )
-                    RequestLoader( v-if="test.loading.sections")
+                    v-progress-linear(v-if="test.loading.sections" indeterminate style="position: fixed; top: 0; left: 0; z-index: 5")
+
                     v-btn(
                         text="laad deze pagina"
                         @click="async () => {this.test.loading.sections = true; await test.pages[item.index].detectStudentId(); await test.pages[item.index].loadSections();this.test.loading.sections = false}"
@@ -566,7 +594,7 @@ div(style="position: relative")
                         :loading="selected_student.is_grading"
 
                     )
-                    RequestLoader(v-if="selected_student.is_grading")
+                    v-progress-linear(v-if="selected_student.is_grading" indeterminate style="position: fixed; top: 0; left: 0; z-index: 5")
 
                     v-expansion-panels()
                         v-expansion-panel(
@@ -656,7 +684,8 @@ div(style="position: relative")
                             @click="downloadSelectedResult()"
                             text="Download Selected Leerling Resultaten"
                         )
-                    RequestLoader.w-100.h-100(v-if="is_generating_pdf" :current_request_status="'Generating PDF '" style="color: black")
+                    v-progress-linear(v-if="is_generating_pdf" indeterminate style="position: fixed; top: 0; left: 0; z-index: 5")
+
                     div.individualStudentResult(
                         v-for="student in test.students.filter(student => student?.id == selected_student?.id || is_generating_pdf)"
                         :class="student?.id == selected_student?.id ? 'selectedStudentResult' : ''"
@@ -756,7 +785,7 @@ div(style="position: relative")
 
 <script>
 // Data 
-import { imageToPngBase64, rotateImage180, average, total_requests, downloadFileFromBase64, blobToBase64 } from '@/helpers'
+import { imageToPngBase64, rotateImage180, average, total_requests, downloadFileFromBase64, blobToBase64, active_requests } from '@/helpers'
 import { Test } from '@/scan_api_classes'
 import test_example from '@/assets/test_example.pdf'
 import rubric_example from '@/assets/rubric_example.pdf'
@@ -779,7 +808,8 @@ export default {
         return {
             total_requests,
             rotateImage180,
-            average
+            average,
+            active_requests
         }
     },
     data() {
@@ -862,6 +892,7 @@ export default {
             is_generating_pdf: false,
             self_feedback_field: false,
             selected_test_source: 'gpt',
+            rerender_timer: true
 
         }
     },
@@ -1116,7 +1147,9 @@ export default {
 
     // },
     async mounted() {
-        
+        setInterval(() => {
+            this.rerender_timer = !this.rerender_timer
+        }, 100);
 
 
 

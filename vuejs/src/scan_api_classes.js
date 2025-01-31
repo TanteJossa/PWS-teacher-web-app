@@ -562,7 +562,7 @@ class TestPdfSettings {
         test_name="",
         show_targets=true,
         show_answers=false,
-        output_type='pdf'
+        output_type='docx'
     }){
         this.test_name = test_name
         this.show_targets = show_targets
@@ -603,8 +603,8 @@ class Test {
         gpt_question=new GptQuestionSettings({}),
         test_settings=new TestPdfSettings({}),
 
-        gpt_provider="google",
-        gpt_model="gemini-2.0-flash-exp",
+        gpt_provider="alibaba",
+        gpt_model="qwen-turbo",
     }){
         this.id = id
         this.files = files
@@ -639,10 +639,10 @@ class Test {
             test_pdf: false
 
         }
-        this.output_type = output_type
 
         this.gpt_provider = gpt_provider
         this.gpt_model = gpt_model
+
     }
     get providerModels(){
         return  {
