@@ -1,4 +1,4 @@
-import { getRandomID, delay, sum, apiRequest, downloadResultPdf, downloadTestPdf } from '@/helpers';
+import { getRandomID, delay, sum, apiRequest, downloadResultPdf, downloadTest } from '@/helpers';
 import { globals } from '@/main'
 
 
@@ -562,10 +562,12 @@ class TestPdfSettings {
         test_name="",
         show_targets=true,
         show_answers=false,
+        output_type='pdf'
     }){
         this.test_name = test_name
         this.show_targets = show_targets
         this.show_answers = show_answers
+        this.output_type = output_type
     }
 
 }
@@ -637,8 +639,21 @@ class Test {
             test_pdf: false
 
         }
+        this.output_type = output_type
+
         this.gpt_provider = gpt_provider
         this.gpt_model = gpt_model
+    }
+    get providerModels(){
+        return  {
+            "google": ["gemini-2.0-flash-exp", "gemini-1.5-pro", "learnlm-1.5-pro-experimental", "gemini-exp-1206"],
+            "openai": ["gpt-4o-mini", "gpt-4o"],
+            "deepseek": ["deepseek-chat", "deepseek-reasoner"],
+            "alibaba": ["qwen-turbo", "qwen-plus", "qwen-max-2025-01-25", "qwen-max"]
+        }
+    }
+    get total_model_count(){
+        return sum(Object.values(this.providerModels).map(e => e.length))
     }
     get gpt_models(){
         if (this.gpt_provider == "google"){
@@ -647,7 +662,9 @@ class Test {
             return ["gpt-4o-mini", "gpt-4o"]
         } else if (this.gpt_provider == "deepseek"){
             return ["deepseek-chat", "deepseek-reasoner"]
-        } else {
+        } else if (this.gpt_provider == "alibaba") {
+            return ["qwen-turbo", "qwen-plus", "qwen-max-2025-01-25", "qwen-max", ]
+        }else {
             return []
         }
     }
@@ -1042,7 +1059,7 @@ class Test {
         this.loadTestData()
         this.loading.structure = false
     }
-    async downloadTestPdf(){
+    async downloadTest(){
         this.loading.test_pdf = true
 
         const test_data = {
@@ -1075,7 +1092,7 @@ class Test {
             })
         })
 
-        await downloadTestPdf(test_data)
+        await downloadTest(test_data)
         console.log(test_data)
         this.loading.test_pdf = false
 

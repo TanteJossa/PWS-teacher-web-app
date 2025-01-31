@@ -190,7 +190,7 @@ const apiRequest = async (route, data) => {
     return response
 }
 
-function downloadPdfFromBase64(base64String, filename = 'downloaded') {
+function downloadFileFromBase64(base64String, filename = 'downloaded', datatype="pdf") {
     /**
     * Downloads a PDF file from a base64 encoded string.
     *
@@ -198,8 +198,12 @@ function downloadPdfFromBase64(base64String, filename = 'downloaded') {
     *   base64String: The base64 encoded string of the PDF.
     *   filename: The desired filename for the downloaded PDF (optional, default: 'downloaded.pdf').
     */
-    filename += '.pdf'
-    const dataPrefix = 'data:application/pdf;base64,';
+    filename += '.' + datatype
+    if (datatype == 'pdf'){
+        var dataPrefix = 'data:application/pdf;base64,';
+    } else if (datatype == 'docx'){
+        var dataPrefix = 'data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,'
+    }
     const linkSource = base64String.startsWith(dataPrefix) ? base64String : `${dataPrefix}${base64String}`;
     const downloadLink = document.createElement("a");
     downloadLink.href = linkSource;
@@ -215,13 +219,13 @@ function blobToBase64(blob) {
   });
 }
 
-async function downloadTestPdf(test_data, feedback_field=false, filename="Toets"){
+async function downloadTest(test_data, feedback_field=false, filename="Toets"){
     const result = await apiRequest('/test-pdf', {
         testData: test_data,
     })
     if (typeof result == 'string'){
 
-        downloadPdfFromBase64(result, filename)
+        downloadFileFromBase64(result, filename, test_data["settings"]["output_type"])
     } else {
         console.log('error: ', result)
     }
@@ -235,7 +239,7 @@ async function downloadResultPdf(results, feedback_field=false, filename="Studen
     })
     if (typeof result == 'string'){
 
-        downloadPdfFromBase64(result, filename)
+        downloadFileFromBase64(result, filename)
     } else {
         console.log('error: ', result)
     }
@@ -259,8 +263,8 @@ export {
   delay,
   apiRequest,
   downloadResultPdf,
-  downloadPdfFromBase64,
-  downloadTestPdf,
+  downloadFileFromBase64,
+  downloadTest,
   total_requests,
   blobToBase64
 }

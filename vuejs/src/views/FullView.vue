@@ -27,8 +27,9 @@ div(style="position: relative")
                 text="Bekijk PWS"
                 href="/pdf"
             )
+            p Aantal modellen: {{ test.total_model_count }}
             v-select(
-                :items='["google", "openai", "deepseek"]'
+                :items='["google", "openai", "deepseek", "alibaba"]'
                 v-model="test.gpt_provider"
                 @update:modelValue="test.gpt_model = test.gpt_models[0]"
             )
@@ -180,9 +181,11 @@ div(style="position: relative")
                             v-for="(target, index) in test.targets"
                         )
                             td.pa-0
-                                v-text-field(
+                                v-textarea(
                                     v-model="test.targets[index].target_name"
                                     density="compact"
+                                    auto-grow
+                                    :rows="1"
                                 )
                             td.pa-0
                                 v-textarea(
@@ -354,8 +357,13 @@ div(style="position: relative")
                     v-model="test.test_settings.show_answers"
                     label="Toon antwoorden"
                 )
+                v-select(
+                    v-model="test.test_settings.output_type"
+                    :items="['pdf', 'docx']"
+                    label="Output"
+                )
                 v-btn(
-                    @click="test.downloadTestPdf()"
+                    @click="test.downloadTest()"
                     :loading="test.loading.test_pdf"
                     
                 ) Download Toets Pdf
@@ -748,7 +756,7 @@ div(style="position: relative")
 
 <script>
 // Data 
-import { imageToPngBase64, rotateImage180, average, total_requests, downloadPdfFromBase64, blobToBase64 } from '@/helpers'
+import { imageToPngBase64, rotateImage180, average, total_requests, downloadFileFromBase64, blobToBase64 } from '@/helpers'
 import { Test } from '@/scan_api_classes'
 import test_example from '@/assets/test_example.pdf'
 import rubric_example from '@/assets/rubric_example.pdf'
@@ -1031,7 +1039,7 @@ export default {
         async downloadAnswerSheet(){
             const pdf_blob = await this.loadBlob(answer_print)
             const base64_pdf = await blobToBase64(pdf_blob)
-            downloadPdfFromBase64(base64_pdf, 'AnswerSheetToetsPWS')
+            downloadFileFromBase64(base64_pdf, 'AnswerSheetToetsPWS')
         },
 
         async loadPreload(){
