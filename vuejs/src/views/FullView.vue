@@ -28,12 +28,12 @@ div(style="position: relative; height: 100vh")
             v-select(
                 :items='["google", "openai", "deepseek", "alibaba"]'
                 v-model="test.gpt_provider"
-                @update:modelValue="test.gpt_model = test.gpt_models[0]"
+                @update:modelValue="test.gpt_model = test.gpt_models(action)?.[0]?.value"
             )
             v-select(
-                :items="test.gpt_models"
+                :items="test.gpt_models(action)"
                 v-model="test.gpt_model"
-                multi-line
+                mandatory
             )
             v-list-item Onderdelen
             v-divider
@@ -44,8 +44,12 @@ div(style="position: relative; height: 100vh")
             ) {{ section.name }}
 
             p {{test.loading}}
+            v-btn.mt-1.w-100(
+                text="start/ping server"
+                @click="async () => await apiRequest('/')"
+            )
             p total: {{ total_requests }}
-            v-dialog(max-width="500")
+            v-dialog(max-width="700")
                 template(v-slot:activator="{ props: activatorProps }")
                     v-btn(v-bind="activatorProps") Requests ({{ active_requests.length }})
                 template(v-slot:default="{ isActive }")
@@ -57,6 +61,7 @@ div(style="position: relative; height: 100vh")
                                     tr
                                         th route
                                         th params
+                                        th Model?
                                         th(style="width: 100px") tijd
                                         th abort
                                 tbody
@@ -64,6 +69,7 @@ div(style="position: relative; height: 100vh")
                                         td {{ request.route }}
                                         td 
                                             v-btn(density="compact" @click="log(request.params)") params
+                                        td {{ request.params?.provider }} - {{ request.params?.model }}
                                         td {{ request.prettyDuration() }} {{ rerender_timer ? '' : ''}}
                                         td
                                             v-icon(icon="mdi-close" @click="active_requests[index].abort()" color="red")
@@ -785,7 +791,7 @@ div(style="position: relative; height: 100vh")
 
 <script>
 // Data 
-import { imageToPngBase64, rotateImage180, average, total_requests, downloadFileFromBase64, blobToBase64, active_requests } from '@/helpers'
+import { imageToPngBase64, rotateImage180, average, total_requests, downloadFileFromBase64, blobToBase64, active_requests, apiRequest } from '@/helpers'
 import { Test } from '@/scan_api_classes'
 import test_example from '@/assets/test_example.pdf'
 import rubric_example from '@/assets/rubric_example.pdf'
@@ -809,7 +815,8 @@ export default {
             total_requests,
             rotateImage180,
             average,
-            active_requests
+            active_requests,
+            apiRequest
         }
     },
     data() {
@@ -832,7 +839,10 @@ export default {
                         },
                         {
                             name: "ordenen",
-                            id: "structure"
+                            id: "structure",
+                            action: () => {
+                                return this.selected_test_source =='pdf'? 'test_recognition' : 'test_generation'
+                            }
                         },
                     ]
                 },
@@ -851,7 +861,10 @@ export default {
                         },
                         {
                             name: "Leerlingen",
-                            id: "generate_students"
+                            id: "generate_students",
+                            action: () => {
+                                return 'text_recognition'
+                            }
                         },
                     ]
                 },
@@ -863,7 +876,11 @@ export default {
                     subsections: [
                         {
                             name: "Nakijken",
-                            id: "grade_students"
+                            id: "grade_students",
+                            action: () => {
+                                return 'grading'
+                            }
+
                         }
                     ]
                 },
@@ -932,6 +949,10 @@ export default {
                     this.selected_section.subsections[index] = val
                 }
             }
+        },
+        action(){
+            return this.selected_subsection?.action?.()
+        
         }
     },
     methods: {

@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import AnalisisView from '@/views/AnalisisView'
 import ScanView from '@/views/ScanView'
 import FullView from '@/views/FullView.vue'
+import HomeView from '@/views/HomeView.vue'
 import PdfView from '@/views/PdfView.vue'
 
 const routes = [
@@ -28,6 +29,11 @@ const routes = [
         path: '/',
         name: 'full',
         component: FullView
+    },
+    {
+        path: '/home',
+        name: 'home',
+        component: HomeView
     },
     {
         path: '/:pathMatch(.*)*',
