@@ -374,7 +374,8 @@ class ScanQuestion {
         question_number = "",
         text = "",
         data = {},
-        page = new ScanPage({})
+        page = new ScanPage({}),
+        is_loading=false
     }) {
         this.id = getRandomID()
 
@@ -383,12 +384,13 @@ class ScanQuestion {
         this.text = text
         this.data = data
         this.page = page
+        this.is_loading = is_loading
     }
 
 
     // Extract text from the section based on the bounding box
-    async extractText(context = null) {
-        this.is_loading = false
+    async extractText(context = null, provider=null, model=null) {
+        this.is_loading = true
 
         if (!context) {
             context = this.page.context_data
@@ -399,6 +401,8 @@ class ScanQuestion {
             questionText: context.getQuestion(this.question_number.toString()),
             rubricText: context.getQuestion(this.question_number.toString()),
             contextText: context.getContext(this.question_number.toString()),
+            provider: provider,
+            model: model,
         });
         console.log('extractText: ', response)
         this.text = response.result?.correctly_spelled_text || "";
@@ -473,9 +477,10 @@ class GptQuestionSettings {
                 School Type: ${this.test.gpt_test.school_type}
                 School Jaar: ${this.test.gpt_test.school_year}
                 Vak: ${this.test.gpt_test.school_subject}
-                Onderwerp(en): ${this.test.gpt_test.subject}
-                Geleerde stof: ${this.test.gpt_test.learned}
-                Door de docent aangevraagde onderwerpen die op de toets komen: ${this.test.gpt_test.requested_topics}
+                ${this.test.gpt_test.subject?.length > 0 ? 'Onderwerp(en):  '+this.test.gpt_test.subject : 'Bedenk zelf de onderwerpen'}
+                ${this.test.gpt_test.learned?.length > 0 ? 'Geleerde stof:  '+this.test.gpt_test.learned : ''}
+                ${this.test.gpt_test.requested_topics?.length > 0 ? 'Door de docent aangevraagde informatie over de toets: '+this.test.gpt_test.requested_topics : ''}
+                
 
                 de vraag moet het volgdende rtti (de R staat voor Reproductie, de eerste T voor Training, de tweede T voor Transfer en de I voor Inzicht) hebben: 
                 ${this.rtti}
@@ -623,8 +628,8 @@ class Test {
         gpt_question = new GptQuestionSettings({}),
         test_settings = new TestPdfSettings({}),
 
-        gpt_provider = "alibaba",
-        gpt_model = "qwen-turbo",
+        gpt_provider = "google",
+        gpt_model = "gemini-2.0-pro-exp-02-05",
     }) {
         this.id = id
         this.files = files
@@ -673,25 +678,20 @@ class Test {
         this.gpt_model = gpt_model
 
     }
-    get providerModels() {
+    get modelConfig (){
         return {
-            "google": ["gemini-2.0-flash-exp", "gemini-1.5-pro", "learnlm-1.5-pro-experimental", "gemini-exp-1206"],
-            "openai": ["gpt-4o-mini", "gpt-4o"],
-            "deepseek": ["deepseek-chat", "deepseek-reasoner"],
-            "alibaba": ["qwen-turbo", "qwen-plus", "qwen-max-2025-01-25", "qwen-max"]
-        }
-    }
-    get total_model_count() {
-        return sum(Object.values(this.providerModels).map(e => e.length))
-    }
-    gpt_models(action) {
-        const modelConfig = {
             google: {
-                "gemini-2.0-flash-exp": {
-                    test_recognition: "snel, maar te slecht",
-                    test_generation: "snel, maar te slecht",
-                    text_recognition: "snel, maar te slecht",
-                    grading: "snel, maar te slecht"
+                "gemini-2.0-pro-exp-02-05": {
+                    test_recognition: "nieuw, zeer langzaam en werkt soms",
+                    test_generation: "nieuw, zeer langzaam en werkt soms",
+                    text_recognition: "nieuw, zeer langzaam en werkt soms",
+                    grading: "nieuw, zeer langzaam en werkt soms",
+                },
+                "gemini-2.0-flash": {
+                    test_recognition: "snel, nieuw en geeft soms error",
+                    test_generation: "snel, nieuw en geeft soms error",
+                    text_recognition: "snel, nieuw en geeft soms error",
+                    grading: "snel, nieuw en geeft soms error",
                 },
                 "gemini-1.5-pro": {
                     test_recognition: "prima, maar oud",
@@ -724,7 +724,13 @@ class Test {
                     test_generation: "duur",
                     text_recognition: "duur",
                     grading: "duur",
-                }
+                },
+                "gpt-o3-mini": {
+                    test_recognition: "nieuw o3 model",
+                    test_generation: "nieuw o3 model",
+                    text_recognition: "nieuw o3 model",
+                    grading: "nieuw o3 model",
+                },
             },
             deepseek: {
                 "deepseek-chat": {
@@ -767,14 +773,26 @@ class Test {
                 }
             }
         };
+    }
+    get providerModels() {
+        return Object.keys(this.modelConfig).reduce((data, model) => {
+            data[model] = Object.keys(this.modelConfig[model])
+            return data
+        }, {})
+        
+    }
+    get total_model_count() {
+        return sum(Object.values(this.providerModels).map(e => e.length))
+    }
+    gpt_models(action) {
 
 
 
-        if (modelConfig[this.gpt_provider]) {
-            return Object.keys(modelConfig[this.gpt_provider]).map(model => {
+        if (this.modelConfig[this.gpt_provider]) {
+            return Object.keys(this.modelConfig[this.gpt_provider]).map(model => {
                 return {
                     value: model,
-                    title: model + '(' + (modelConfig[this.gpt_provider][model]?. [action] || '') + ')'
+                    title: model + '(' + (this.modelConfig[this.gpt_provider][model]?. [action] || '') + ')'
                 }
             })
         }
@@ -1427,7 +1445,7 @@ class Test {
                     question_number: question.question_number
                 })
 
-                await scan_question.extractText(test_context)
+                await scan_question.extractText(test_context, this.gpt_provider, this.gpt_model)
 
                 return {
                     success: true,
@@ -1804,8 +1822,8 @@ class StudentQuestionResult {
                 question: context.getQuestion(this.question.question_number),
                 answer: this.question.is_draw_question ? "" : this.scan.text,
                 studentImage: this.question.is_draw_question ? this.scan.base64Image : undefined,
-                model: this.gpt_model,
-                provider: this.gpt_provider,
+                model: this.student.test.gpt_model,
+                provider: this.student.test.gpt_provider,
             })
             if (this.question.is_draw_question) {
 

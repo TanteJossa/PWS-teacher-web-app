@@ -533,6 +533,7 @@ div(style="position: relative; height: 100vh")
                     @click="test.loadStudents()"
                     :loading="test.loading.students"
                 )
+
             div.d-flex.flex-row(style="height: calc(100vh - 72px)")
                 v-list(
                     :selected="[selected_student_id]"
@@ -549,6 +550,7 @@ div(style="position: relative; height: 100vh")
                 v-divider(vertical)
                 div.pa-2(v-if="selected_student")
                     h2 Leerling {{ selected_student.student_id}}
+                    
                     v-expansion-panels()
                         v-expansion-panel(
                             v-for="(result, index) in selected_student.results"
@@ -556,6 +558,7 @@ div(style="position: relative; height: 100vh")
                         )
                             v-expansion-panel-text
                                 b {{ result.question.question_text  }}
+                
                                 v-img(
                                     style="max-height: 700px; "
                                     :src="result.scan.base64Image"
@@ -565,6 +568,11 @@ div(style="position: relative; height: 100vh")
                                     v-model="selected_student.results[index].scan.text"
                                     auto-grow
                                     :rows="1"
+                                )
+                                v-btn(
+                                    text="Scan text"
+                                    @click="test.students[selected_student_index].results[index].scan.extractText(this.test.test_context, this.test.gpt_provider, this.test.gpt_model)"
+                                    :loading="test.students[selected_student_index].results[index].scan.is_loading"
                                 )
     div.h-100(v-if="selected_section_id == 'grade'")
         div(v-if="selected_subsection.id == 'grade_students'" style="position: relative")
@@ -596,7 +604,7 @@ div(style="position: relative; height: 100vh")
                     h2 Leerling {{ selected_student.student_id}}
                     v-btn(
                         text="Kijk leerling na"
-                        @click="selected_student.grade()"
+                        @click="test.students[selected_student_index].grade()"
                         :loading="selected_student.is_grading"
 
                     )
@@ -608,6 +616,11 @@ div(style="position: relative; height: 100vh")
                             :title="'Vraag '+result.question.question_number"
                         )
                             v-expansion-panel-text
+                                v-btn(
+                                    @click="test.students[selected_student_index].results[index].grade()"
+                                    :loading="selected_student.results[index].is_grading"
+                                ) Kijk vraag na
+                                br
                                 b Vraag:
                                 p {{ result.question.question_text  }}
                                 
@@ -931,12 +944,15 @@ export default {
                 return this.test.students.find(e => e.id == this.selected_student_id)
             },
             set(val) {
-                const index = this.test.students.findIndex(e => e.id == this.selected_student_id)
+                const index = this.selected_student_index
 
                 if (index != -1) {
                     this.test.students[index] = val
                 }
             }
+        },
+        selected_student_index() {
+            return this.test.students.findIndex(e => e.id == this.selected_student_id)
         },
         selected_subsection: {
             get() {
