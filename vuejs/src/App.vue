@@ -48,6 +48,10 @@ export default {
 </script>
     
 <style >
+html {
+    overflow-y: hidden;
+}
+
 h1, h2, h3, h4, p{
     white-space: pre-wrap;
     word-wrap: break-word;
