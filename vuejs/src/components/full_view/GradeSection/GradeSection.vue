@@ -24,8 +24,8 @@ export default {
             required: true,
         },
         selected_subsection: {
-            type: Object,
-            required: true
+            // type: Object,
+            required: false
         },
         selected_student_id: {
             type: String,

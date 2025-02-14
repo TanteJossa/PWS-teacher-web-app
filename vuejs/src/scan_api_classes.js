@@ -574,6 +574,10 @@ class GptTestSettings {
                 niewe regels ook toegestaan bij bijvoorbeeld meerkeuzevragen of een opsomming van dingen die een leerling moet beantwoorden.
                 ook zijn nieuwe regels in de context toegestaan.
 
+                De punten moeten heel duidelijk beschrijven wat een leerling precies moet hebben gedaan om het punt te verdienen. 
+                Er mag geen twijfel over mogelijk zijn.
+                Zet er zo nodig uitzonderingen bij
+
                 geeft de resultaten in de taal van de gegeven toets(vaak zal dat Nederlands zijn)
                 
                 Houd je altijd aan het gegeven schema
@@ -630,6 +634,7 @@ class Test {
 
         gpt_provider = "google",
         gpt_model = "gemini-2.0-pro-exp-02-05",
+        grade_rules = "",
     }) {
         this.id = id
         this.files = files
@@ -676,6 +681,7 @@ class Test {
 
         this.gpt_provider = gpt_provider
         this.gpt_model = gpt_model
+        this.grade_rules = grade_rules
 
     }
     get modelConfig (){
@@ -1818,6 +1824,7 @@ class StudentQuestionResult {
 
 
             var response = await apiRequest('/grade', {
+                gradeRules: this.student.test.grade_rules,
                 rubric: context.getRubric(this.question.question_number),
                 question: context.getQuestion(this.question.question_number),
                 answer: this.question.is_draw_question ? "" : this.scan.text,
@@ -1827,7 +1834,7 @@ class StudentQuestionResult {
             })
             if (this.question.is_draw_question) {
 
-                await delay(5000)
+                await delay(2000)
             }
 
 
