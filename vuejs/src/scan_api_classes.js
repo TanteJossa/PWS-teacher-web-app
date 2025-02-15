@@ -633,7 +633,7 @@ class Test {
         test_settings = new TestPdfSettings({}),
 
         gpt_provider = "google",
-        gpt_model = "gemini-2.0-pro-exp-02-05",
+        gpt_model = "gemini-2.0-flash",
         grade_rules = "",
     }) {
         this.id = id

@@ -63,15 +63,18 @@ export default {
             type: String,
             required: false
         },
-        selected_student: {
-            type: Object,
-            required: false
-        },
     },
     computed: {
         selected_student_index() {
             return this.test.students.findIndex(e => e.id == this.selected_student_id);
         },
+        selected_student(){
+            if (this.selected_student_index == -1){
+                return null;
+            } else {
+                return this.test.students[this.selected_student_index];
+            }
+        }
     },
     emits: ['update:selected_student_id']
 };

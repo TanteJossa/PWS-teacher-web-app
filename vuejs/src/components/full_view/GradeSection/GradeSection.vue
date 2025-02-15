@@ -5,7 +5,6 @@ div
     GradeStudents(
         :test="test"
         v-model:selected_student_id="_selected_student_id"
-        :selected_student="selected_student"
         @update:selected_student_id="selected_student_id = $event"
     )
 </template>
@@ -31,10 +30,7 @@ export default {
             type: String,
             required: false
         },
-        selected_student: {
-            type: Object,
-            required: false
-        },
+
     },
     emits: ['update:selected_student_id'],
     computed: {
