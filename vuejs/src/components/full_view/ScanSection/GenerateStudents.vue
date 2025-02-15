@@ -4,7 +4,7 @@ h2 Leerlingen laden
 div.d-flex.flex-row
     v-btn(text="Laad leerlingen" @click="test.loadStudents()" :loading="test.loading.students")
 
-div.d-flex.flex-row(style="height: calc(100vh - 72px)")
+div.d-flex.flex-row(style="height: calc(100dvh - 72px)")
     v-list(:selected="[selected_student_id]" mandatory style="min-width: 155px; overflow-y: scroll")
         v-list-item Leerlingen
         v-divider

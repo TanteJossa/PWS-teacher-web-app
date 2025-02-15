@@ -41,7 +41,7 @@ v-navigation-drawer(
         v-list
             slot(name="drawer2")
 v-progress-linear(
-    v-if="isDesktop && is_loading" 
+    v-if="isDesktop && (is_loading || test.is_loading)" 
     indeterminate 
     :style="{'position': 'absolute', 'top': 0, 'left': 0, 'z-index': 5}"
 )
@@ -53,18 +53,27 @@ v-toolbar(
     dark
     density="compact"
     elevation="0"
+    extension-height="0"
+    fixed
     style="position: relative"
 )
     
     template(#append)
         v-icon(icon="mdi-menu" @click.stop="drawer = !drawer") 
 
-    v-toolbar-title Toets PWS
-    v-progress-linear(
-        v-if="is_loading" 
-        indeterminate 
-        :style="{'position': 'absolute', 'top': '-2px', 'left': 0, 'z-index': 5}"
-    )
+    v-toolbar-title
+        .d-flex.flex-row.align-end
+            h3 Toets PWS 
+            p( style="font-size: 13px" v-if="Object.values(test.loading).filter(e => e).length > 0") Laden:
+                i {{ Object.keys(test.loading).filter(e => test.loading[e]).join(",") }}
+            p(v-else style="font-size: 13px" ) Site is in development
+        
+    template(#extension)
+        v-progress-linear(
+            color="white"
+            v-if="is_loading || test.is_loading" 
+            indeterminate 
+        )
 v-navigation-drawer(
     v-model="drawer"
     v-if="!isDesktop"

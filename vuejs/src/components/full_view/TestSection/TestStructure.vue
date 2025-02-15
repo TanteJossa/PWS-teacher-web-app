@@ -1,7 +1,7 @@
 
 <template lang="pug">
 div
-    v-progress-linear(v-if="test.loading.structure" indeterminate style="position: fixed; top: 0; left: 0; z-index: 5")
+    //- v-progress-linear(v-if="test.loading.structure" indeterminate style="position: fixed; top: 0; left: 0; z-index: 5")
     v-card()
         v-tabs(v-model="selected_test_source_local")
             v-tab(value="gpt") AI
@@ -35,7 +35,7 @@ div
                                     v-model="test.grade_rules"
                                     :rows="2"
                                 )
-                                i.text-warning Let op! Het selecteren van een ander van overschrijft deze waarde.
+                                i.text-warning Let op! Het selecteren van een ander vak overschrijft deze waarde.
                     v-combobox(label="Onderwerp" v-model="test.gpt_test.subject" :items="subjects")
                     v-textarea(label="geleerde stof (optioneel)" auto-grow :rows="2" v-model="test.gpt_test.learned")
                     v-textarea(label="Onderwerpen die voor moeten komen" hint="Scheiden met komma's" auto-grow :rows="2" v-model="test.gpt_test.requested_topics")

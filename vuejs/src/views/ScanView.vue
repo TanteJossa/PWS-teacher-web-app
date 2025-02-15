@@ -1,6 +1,6 @@
 <template lang="pug">
 div
-    v-stepper(v-model='selected_step_index' alt-labels :mobile="!$vuetify.display.mdAndUp" style="height: 100vh")
+    v-stepper(v-model='selected_step_index' alt-labels :mobile="!$vuetify.display.mdAndUp" style="height: 100dvh")
         template.h-100(v-slot:default='{ prev, next }')
             v-stepper-header()
                 template(

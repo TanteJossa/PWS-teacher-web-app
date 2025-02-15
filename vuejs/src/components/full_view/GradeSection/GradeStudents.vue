@@ -3,7 +3,7 @@
 h2 Leerlingen laden
 div.d-flex.flex-row
     v-btn(text="Kijk alle leerlingen na" @click="test.gradeStudents()" :loading="test.loading.grading")
-div.d-flex.flex-row.w-100(style="height: calc(100vh - 72px)")
+div.d-flex.flex-row.w-100(style="height: calc(100dvh - 72px)")
     v-list(:selected="[selected_student_id]" mandatory style="min-width: 155px; overflow-y: scroll")
         v-list-item Leerlingen
         v-divider

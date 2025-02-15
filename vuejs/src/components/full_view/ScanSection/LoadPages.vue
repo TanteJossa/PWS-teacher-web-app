@@ -1,6 +1,6 @@
 
 <template lang="pug">
-v-row(style="height: 100vh")
+v-row(style="height: 100dvh")
     v-col
         h2 PDF {{ selected_subsection.name }}
         b 1 pdf tegelijk (inladen met knop), foto's laden automatisch

@@ -10,7 +10,7 @@ div
         v-tab(value="load") Laad
         v-tab(value="analyse" v-if="is_loaded") Analyseer
         v-tab(value="edit" v-if="is_loaded") Bewerk
-    v-window(v-model='selected_tab' style="height: calc(100vh - 48px); position: relative")
+    v-window(v-model='selected_tab' style="height: calc(100dvh - 48px); position: relative")
         v-window-item(value="load") 
             v-row(style="max-height: calc(100dvh - 60px)")
                 v-col.v-col-12.v-col-sm-4

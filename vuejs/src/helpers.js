@@ -162,7 +162,7 @@ async function rotateImage180(base64Image) {
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
 var total_requests = ref(0)
-const use_localhost = true
+const use_localhost = false
 
 
 var endpoint = (use_localhost&&(location.hostname === "localhost" || location.hostname === "127.0.0.1")) ? 'http://localhost:8080' : 'https://toetspws-function-771520566941.europe-west4.run.app'

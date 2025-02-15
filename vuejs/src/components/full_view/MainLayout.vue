@@ -1,6 +1,6 @@
 
 <template lang="pug">
-div(:style="{'height': $vuetify.display.mdAndUp ? '100vh' : 'calc(100vh)', 'overflow-y': 'auto'}")
+div(:style="{'height': $vuetify.display.mdAndUp ? '100vh' : 'calc(100dvh)', 'overflow-y': 'auto'}")
 
     NavigationDrawer(
         :test="test"
@@ -255,7 +255,8 @@ export default {
         action() {
             return this.selected_subsection?.action?.()
 
-        }
+        },
+        
     },
     methods: {
         log(s) {
