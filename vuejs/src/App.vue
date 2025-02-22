@@ -1,17 +1,23 @@
 <template lang="pug">
 v-app
-    v-app-bar(app color="primary" dark)
+    v-toolbar(app color="primary" dark density="compact")
         v-toolbar-title Toets PWS
-        v-spacer
-        v-btn(text @click="navigate('tests')") Tests
-        v-btn(text v-if="user" @click="navigate('home')") Maak en Scan
-        v-btn(text  @click="navigate('pdf')") Bekijk PWS
-        v-btn(text v-if="!user" @click="signInWithGoogle") Login with Google
-        v-btn(text v-if="user" @click="navigate('account')") Account
-        v-btn(text v-if="user" @click="signOut") Logout
+        v-toolbar-items
+
+
+            v-btn(text @click="navigate('tests')") Tests
+            //- v-btn(text v-if="user_store.user" @click="navigate('home')") Maak en Scan
+            v-btn(text  @click="navigate('pdf')") Bekijk PWS
+            v-btn(
+                text="Antwoordpagina"
+                @click="navigate('answer_sheet')"
+            )
+            v-btn(text v-if="!user_store.user" @click="signInWithGoogle") Login with Google
+            v-btn(text v-if="user_store.user" @click="navigate('account')") Account
+            v-btn(text v-if="user_store.user" @click="signOut") Logout
 
     v-main
-        router-view(@update:user="setUser")
+        router-view.w-100(@update:user="setUser" style="height: calc(100% - 48px)")
 
 </template>
 
@@ -19,32 +25,16 @@ v-app
 import {
     useUserStore
 } from '@/stores/user_store';
-import {
-    onMounted,
-    computed
-} from 'vue';
-import {
-    supabase
-} from '@/supabase.js'
+
+
 
 export default {
     name: 'App',
     setup() {
-        const userStore = useUserStore();
-
-        // Use computed property for user
-        const user = computed(() => userStore.user);
-        const isAdmin = computed(() => userStore.isAdmin);
-
-        onMounted(async () => {
-            await userStore.fetchUser(); // Fetch user on mount.
-            userStore.handleAuthStateChange(); // Set up the auth state listener
-        });
+        const user_store = useUserStore();
 
         return {
-            user, // Return the computed property.
-            isAdmin,
-            userStore
+            user_store
         }
     },
     methods: {
@@ -54,18 +44,19 @@ export default {
             });
         },
         async signInWithGoogle() {
-            await this.userStore.signInWithGoogle()
+            await this.user_store.signInWithGoogle()
         },
         async signOut() {
-            await this.userStore.signOut();
+            await this.user_store.signOut();
             this.$router.push({
                 name: 'home'
             });
         },
-        setUser(updatedUser) { // Method to update user state from child components
-            this.userStore.user = updatedUser;
-        },
-    }
+    },
+    async mounted() {
+        await this.user_store.fetchUser(); // Fetch user on mount.
+        this.user_store.handleAuthStateChange(); // Set up the auth state listener
+    },
 }
 </script>
 

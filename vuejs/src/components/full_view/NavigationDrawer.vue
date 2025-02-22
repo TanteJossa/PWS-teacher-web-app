@@ -7,19 +7,21 @@ v-navigation-drawer(
     width="160"
 )
     v-list
-        v-btn(
-            text="Laad preload (200MB)"
-            @click="loadPreload()"
-            :loading="test.loading.preload"
-        )
-        v-btn.mt-1(
-            text="Download Antwoordpagina"
-            @click="downloadAnswerSheet()"
-        )
-        v-btn.mt-1.w-100(
-            text="Bekijk PWS"
-            href="/pdf"
-        )
+        //- v-btn(
+        //-     text="Laad preload (200MB)"
+        //-     @click="loadPreload()"
+        //-     :loading="test.loading.preload"
+        //- )
+        //- v-btn.mt-1(
+        //-     text="Download Antwoordpagina"
+        //-     @click="downloadAnswerSheet()"
+        //- )
+        //- v-btn.mt-1.w-100(
+        //-     text="Bekijk PWS"
+        //-     href="/pdf"
+        //- )
+
+
         p Aantal modellen: {{ test.total_model_count }}
         v-select(
             :items='["google", "openai", "deepseek", "alibaba"]'
@@ -31,6 +33,7 @@ v-navigation-drawer(
             v-model="test.gpt_model"
             mandatory
         )
+
     slot
     v-navigation-drawer(
         permanent
@@ -47,15 +50,13 @@ v-progress-linear(
 )
 v-toolbar(
     v-if="!isDesktop"
-    app
     color="primary"
     loading="true"
     dark
     density="compact"
     elevation="0"
     extension-height="0"
-    fixed
-    style="position: relative"
+    style="height: 48px"
 )
     
     template(#append)
@@ -142,6 +143,7 @@ export default {
         const hasSlot = name => !!slots[name]
         return { hasSlot }
     },
+    emits: ['save'],
     data() {
       return {
         drawer: false,
@@ -158,7 +160,6 @@ export default {
         },
         async downloadAnswerSheet() {
             await this.$parent.downloadAnswerSheet()
-
         }
     }
 };

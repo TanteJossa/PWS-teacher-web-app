@@ -7,16 +7,20 @@ import {
     downloadResultPdf,
     downloadTest
 } from '@/helpers';
-import {
-    uploadFile,
-    deleteFile
-} from '@/helpers/gcp_storage'; // Import GCP storage functions
+// import {
+//     uploadFile,
+//     deleteFile
+// } from '@/helpers/gcp_storage'; // Import GCP storage functions
 import {
     globals
 } from '@/main'
 import {
     useUserStore
 } from '@/stores/user_store'; // Import user store
+
+import {
+    supabase
+} from './supabase.js'
 
 var temp_saved_grade_data = {}
 var temp_section_data = []
@@ -85,7 +89,7 @@ class File {
             const base64Content = matches[2];
             const buffer = Buffer.from(base64Content, 'base64');
 
-            this.location = await uploadFile(filePath, buffer, contentType);
+            // this.location = await uploadFile(filePath, buffer, contentType);
             this.is_stored = true;
             this.base64Data = null; // Clear base64 data after storing
             this.test_id = test_id
@@ -110,7 +114,7 @@ class File {
             const urlParts = this.location.split('/');
             const filePath = urlParts.slice(urlParts.indexOf(config.gcp.bucketName) + 1).join('/');
 
-            await deleteFile(filePath);
+            // await deleteFile(filePath);
             this.is_stored = false;
             this.location = null;
         } catch (error) {
@@ -1475,7 +1479,7 @@ class Test {
         this.saved_grade_data = saved_grade_data
         this.saved_output = saved_output
     }
-    async saveToDatabase() {
+        async saveToDatabase() {
         this.loading.save_to_database = true;
         const userStore = useUserStore();
         if (!userStore.user) {
@@ -1485,26 +1489,51 @@ class Test {
         }
         this.user_id = userStore.user.id;
 
-        // 1. Store the main Test data
-        // store all test files and save the id
+        let testId;
+        let savedTest;
+        let testError;
 
         const testData = {
             user_id: this.user_id,
             name: this.test_settings.test_name,
-            is_public: false, // Or get from some user input/setting
+            is_public: false,
             gpt_provider: this.gpt_provider,
             gpt_model: this.gpt_model,
             grade_rules: this.grade_rules,
             test_data_result: this.test_data_result,
         };
 
-        const {
-            data: savedTest,
-            error: testError
-        } = await supabase
-            .from('tests')
-            .insert([testData])
-            .select();
+        if (this.id) {
+            // Update existing test
+            ({
+                data: savedTest,
+                error: testError
+            } = await supabase
+                .from('tests')
+                .update(testData)
+                .eq('id', this.id)
+                .select());
+            if (savedTest && savedTest.length > 0) {
+                testId = savedTest[0].id;
+            } else {
+                testId = this.id; // Keep existing id if select returns empty
+            }
+
+        } else {
+            // Insert new test
+            ({
+                data: savedTest,
+                error: testError
+            } = await supabase
+                .from('tests')
+                .insert([testData])
+                .select());
+            if (savedTest && savedTest.length > 0) {
+                testId = savedTest[0].id;
+                this.id = testId; // Set this.id for future updates
+            }
+        }
+
 
         if (testError) {
             console.error("Error saving test:", testError);
@@ -1512,29 +1541,39 @@ class Test {
             return;
         }
 
-        const testId = savedTest[0].id;
-        this.id = testId
 
         await Promise.all(Object.keys(this.files).map(async key => {
             if (this.files[key].raw) {
-
                 this.files[key].base64Data = this.files[key].raw
             }
             await this.files[key].store(this.id)
 
-            const {
-                error
-            } = await supabase
-                .from('files')
-                .insert([{
-                    test_id: this.id,
-                    location: this.files[key].location,
-                    file_type: this.files[key].file_type,
-                }])
-            if (error) {
-                console.log('File insert error: ', error)
-            }
+            const fileData = {
+                test_id: this.id,
+                location: this.files[key].location,
+                file_type: this.files[key].file_type,
+            };
 
+            if (this.files[key].id) {
+                const {
+                    error
+                } = await supabase
+                    .from('files')
+                    .update(fileData)
+                    .eq('id', this.files[key].id)
+                if (error) {
+                    console.log('File update error: ', error)
+                }
+            } else {
+                const {
+                    error
+                } = await supabase
+                    .from('files')
+                    .insert([fileData])
+                if (error) {
+                    console.log('File insert error: ', error)
+                }
+            }
         }))
 
         //store gpt test settings
@@ -1547,11 +1586,23 @@ class Test {
             learned: this.gpt_test.learned,
             requested_topics: this.gpt_test.requested_topics,
         };
-        const {
-            error: gptTestError
-        } = await supabase
-            .from('gpt_tests_settings')
-            .insert([gptTestData]);
+
+        let gptTestError;
+        if (this.gpt_test.id) {
+            ({
+                error: gptTestError
+            } = await supabase
+                .from('gpt_tests_settings')
+                .update(gptTestData)
+                .eq('id', this.gpt_test.id));
+        } else {
+            ({
+                error: gptTestError
+            } = await supabase
+                .from('gpt_tests_settings')
+                .insert([gptTestData]));
+        }
+
 
         if (gptTestError)
             console.error("Error saving GPT Test settings:", gptTestError);
@@ -1565,11 +1616,22 @@ class Test {
             point_count: this.gpt_question.point_count,
         };
 
-        const {
-            error: gptQuestionError
-        } = await supabase
-            .from('gpt_questions_settings')
-            .insert([gptQuestionData]);
+        let gptQuestionError;
+        if (this.gpt_question.id) {
+            ({
+                error: gptQuestionError
+            } = await supabase
+                .from('gpt_questions_settings')
+                .update(gptQuestionData)
+                .eq('id', this.gpt_question.id));
+        } else {
+            ({
+                error: gptQuestionError
+            } = await supabase
+                .from('gpt_questions_settings')
+                .insert([gptQuestionData]));
+        }
+
 
         if (gptQuestionError)
             console.error("Error saving GPT Question settings:", gptQuestionError);
@@ -1582,11 +1644,23 @@ class Test {
             show_answers: this.test_settings.show_answers,
             output_type: this.test_settings.output_type,
         };
-        const {
-            error: testPdfSettingsError
-        } = await supabase
-            .from('test_pdf_settings')
-            .insert([testPdfSettingsData]);
+
+        let testPdfSettingsError;
+        if (this.test_settings.pdf_settings_id) { // Assuming you have a way to track pdf_settings_id
+            ({
+                error: testPdfSettingsError
+            } = await supabase
+                .from('test_pdf_settings')
+                .update(testPdfSettingsData)
+                .eq('id', this.test_settings.pdf_settings_id));
+        } else {
+            ({
+                error: testPdfSettingsError
+            } = await supabase
+                .from('test_pdf_settings')
+                .insert([testPdfSettingsData]));
+        }
+
         if (testPdfSettingsError)
             console.error("Error saving Test PDF settings:", testPdfSettingsError);
 
@@ -1597,17 +1671,34 @@ class Test {
                 target_name: target.target_name,
                 explanation: target.explanation,
             };
-            const {
-                data: savedTarget,
-                error: targetError
-            } = await supabase
-                .from('targets')
-                .insert([targetData]).select();
+            let savedTarget;
+            let targetError;
+
+            if (target.id) {
+                ({
+                    data: savedTarget,
+                    error: targetError
+                } = await supabase
+                    .from('targets')
+                    .update(targetData)
+                    .eq('id', target.id)
+                    .select());
+            } else {
+                ({
+                    data: savedTarget,
+                    error: targetError
+                } = await supabase
+                    .from('targets')
+                    .insert([targetData]).select());
+                if (savedTarget && savedTarget.length > 0) {
+                    target.id = savedTarget[0].id; // Store the database ID
+                }
+            }
+
             if (targetError) {
                 console.error("Error saving target:", targetError);
                 continue; // Skip to the next target on error
             }
-            target.id = savedTarget[0].id; // Store the database ID
         }
 
         // 3. Store Questions and related data
@@ -1620,18 +1711,37 @@ class Test {
                 answer_text: question.base64_answer_text, // Assuming this is text, not a file
                 is_draw_question: question.is_draw_question,
             };
-            const {
-                data: savedQuestion,
-                error: questionError
-            } = await supabase
-                .from('questions')
-                .insert([questionData]).select();
+            let savedQuestion;
+            let questionError;
+
+            if (question.id) {
+                ({
+                    data: savedQuestion,
+                    error: questionError
+                } = await supabase
+                    .from('questions')
+                    .update(questionData)
+                    .eq('id', question.id)
+                    .select());
+            } else {
+                ({
+                    data: savedQuestion,
+                    error: questionError
+                } = await supabase
+                    .from('questions')
+                    .insert([questionData]).select());
+
+                if (savedQuestion && savedQuestion.length > 0) {
+                    question.id = savedQuestion[0].id;
+                }
+            }
+
 
             if (questionError) {
                 console.error("Error saving question:", questionError);
                 continue;
             }
-            question.id = savedQuestion[0].id;
+
 
             // Store Rubric Points
             for (const point of question.points) {
@@ -1643,27 +1753,50 @@ class Test {
                     point_index: point.point_index,
                     target_id: point.target.id, // Use the saved target ID
                 };
-                const {
-                    error: pointError
-                } = await supabase
-                    .from('rubric_points')
-                    .insert([pointData]);
+                let pointError;
+                if (point.id) {
+                    ({
+                        error: pointError
+                    } = await supabase
+                        .from('rubric_points')
+                        .update(pointData)
+                        .eq('id', point.id));
+                } else {
+                    ({
+                        error: pointError
+                    } = await supabase
+                        .from('rubric_points')
+                        .insert([pointData]));
+                }
+
                 if (pointError) console.error("Error saving rubric point:", pointError);
             }
         }
         //store all pages and section files
         for (const page of this.pages) {
             await page.file.store(this.id) // Store the page file
-            const {
-                error: pageFileError
-            } = await supabase.from('files').insert([{
+            const pageFileData = {
                 test_id: this.id,
                 location: page.file.location,
                 file_type: page.file.file_type
-            }])
-            if (pageFileError) {
-                console.log('Page insert error: ', pageFileError)
             }
+            if (page.file.id) {
+                const {
+                    error: pageFileError
+                } = await supabase.from('files').update(pageFileData).eq('id', page.file.id)
+                if (pageFileError) {
+                    console.log('Page file update error: ', pageFileError)
+                }
+
+            } else {
+                const {
+                    error: pageFileError
+                } = await supabase.from('files').insert([pageFileData])
+                if (pageFileError) {
+                    console.log('Page insert error: ', pageFileError)
+                }
+            }
+
 
             for (const section of page.sections) {
                 await section.file_full.store(this.id)
@@ -1677,43 +1810,69 @@ class Test {
                     is_qr_section: section.is_qr_section,
                     student_id: section.student_id,
                 };
-                const {
-                    data: savedSection,
-                    error: sectionError
-                } = await supabase.from('sections').insert([sectionData]).select();
+
+                let savedSection;
+                let sectionError;
+                if (section.id) {
+                    ({
+                        data: savedSection,
+                        error: sectionError
+                    } = await supabase.from('sections').update(sectionData).eq('id', section.id).select());
+                } else {
+                    ({
+                        data: savedSection,
+                        error: sectionError
+                    } = await supabase.from('sections').insert([sectionData]).select());
+                    if (savedSection && savedSection.length > 0) {
+                        section.id = savedSection[0].id
+                    }
+                }
+
                 if (sectionError) {
                     console.error("Error saving section:", sectionError);
                     continue
                 }
 
-                const section_id = savedSection[0].id
-
                 const files = [{
                     file: section.file_full,
-                    type: 'section_full'
+                    type: 'section_full',
+                    obj: section.file_full
                 }, {
                     file: section.file_section_finder,
-                    type: 'section_finder'
+                    type: 'section_finder',
+                    obj: section.file_section_finder
                 }, {
                     file: section.file_question_selector,
-                    type: 'section_question_selector'
+                    type: 'section_question_selector',
+                    obj: section.file_question_selector
                 }, {
                     file: section.file_answer,
-                    type: 'section_answer'
+                    type: 'section_answer',
+                    obj: section.file_answer
                 }]
 
-                files.forEach(async file => {
-                    const {
-                        error: sectionFileError
-                    } = await supabase.from('files').insert([{
+                for (const fileDetail of files) {
+                    const sectionFileData = {
                         test_id: this.id,
-                        location: file.file.location,
-                        file_type: file.type
-                    }])
-                    if (sectionFileError) {
-                        console.log('Section File insert error: ', sectionFileError)
+                        location: fileDetail.file.location,
+                        file_type: fileDetail.type
                     }
-                })
+                    if (fileDetail.obj.id) {
+                        const {
+                            error: sectionFileError
+                        } = await supabase.from('files').update(sectionFileData).eq('id', fileDetail.obj.id)
+                        if (sectionFileError) {
+                            console.log('Section File update error: ', sectionFileError)
+                        }
+                    } else {
+                        const {
+                            error: sectionFileError
+                        } = await supabase.from('files').insert([sectionFileData])
+                        if (sectionFileError) {
+                            console.log('Section File insert error: ', sectionFileError)
+                        }
+                    }
+                }
             }
         }
         // 4. Store Students and Results
@@ -1722,17 +1881,36 @@ class Test {
                 test_id: testId,
                 student_id: student.student_id,
             };
-            const {
-                data: savedStudent,
-                error: studentError
-            } = await supabase
-                .from('students')
-                .insert([studentData]).select();
+            let savedStudent;
+            let studentError;
+
+            if (student.id) {
+                ({
+                    data: savedStudent,
+                    error: studentError
+                } = await supabase
+                    .from('students')
+                    .update(studentData)
+                    .eq('id', student.id)
+                    .select());
+            } else {
+                ({
+                    data: savedStudent,
+                    error: studentError
+                } = await supabase
+                    .from('students')
+                    .insert([studentData]).select());
+                if (savedStudent && savedStudent.length > 0) {
+                    student.id = savedStudent[0].id;
+                }
+            }
+
+
             if (studentError) {
                 console.error("Error saving student:", studentError);
                 continue;
             }
-            student.id = savedStudent[0].id;
+
 
             // Store StudentQuestionResults
             for (const result of student.results) {
@@ -1742,35 +1920,67 @@ class Test {
                     feedback: result.feedback,
                     student_handwriting_percent: result.student_handwriting_percent
                 };
-                const {
-                    data: savedResult,
-                    error: resultError
-                } = await supabase
-                    .from('students_question_results')
-                    .insert([resultData]).select();
+                let savedResult;
+                let resultError;
+                if (result.id) {
+                    ({
+                        data: savedResult,
+                        error: resultError
+                    } = await supabase
+                        .from('students_question_results')
+                        .update(resultData)
+                        .eq('id', result.id)
+                        .select());
+                } else {
+                    ({
+                        data: savedResult,
+                        error: resultError
+                    } = await supabase
+                        .from('students_question_results')
+                        .insert([resultData]).select());
+
+                    if (savedResult && savedResult.length > 0) {
+                        result.id = savedResult[0].id;
+                    }
+                }
+
 
                 if (resultError) {
                     console.error("Error saving student question result:", resultError);
                     continue;
                 }
-                result.id = savedResult[0].id;
+
 
                 //store the result file
                 if (result.scan.file) {
 
                     await result.scan.file.store(null, result.id)
-                    const {
-                        error
-                    } = await supabase
-                        .from('files')
-                        .insert([{
-                            student_question_result_id: result.id,
-                            location: result.scan.file.location,
-                            file_type: result.scan.file.file_type,
-                        }])
-                    if (error) {
-                        console.log('result File insert error: ', error)
+                    const resultFileData = {
+                        student_question_result_id: result.id,
+                        location: result.scan.file.location,
+                        file_type: result.scan.file.file_type,
                     }
+                    if (result.scan.file.id) {
+                        const {
+                            error
+                        } = await supabase
+                            .from('files')
+                            .update(resultFileData)
+                            .eq('id', result.scan.file.id)
+                        if (error) {
+                            console.log('result File update error: ', error)
+                        }
+                    } else {
+                        const {
+                            error
+                        } = await supabase
+                            .from('files')
+                            .insert([resultFileData])
+                        if (error) {
+                            console.log('result File insert error: ', error)
+                        }
+                    }
+
                 }
                 // Store StudentPointResults (linking to RubricPoint)
                 for (const pointIndex in result.point_results) {
@@ -1781,11 +1991,22 @@ class Test {
                         has_point: pointResult.has_point,
                         feedback: pointResult.feedback,
                     };
-                    const {
-                        error: pointResultError
-                    } = await supabase
-                        .from('students_points_results')
-                        .insert([pointResultData]);
+                    let pointResultError;
+                    if (pointResult.id) {
+                        ({
+                            error: pointResultError
+                        } = await supabase
+                            .from('students_points_results')
+                            .update(pointResultData)
+                            .eq('id', pointResult.id));
+                    } else {
+                        ({
+                            error: pointResultError
+                        } = await supabase
+                            .from('students_points_results')
+                            .insert([pointResultData]));
+                    }
+
                     if (pointResultError)
                         console.error("Error saving student point result:", pointResultError);
                 }
@@ -1796,9 +2017,17 @@ class Test {
                     model: result.grade_instance.model,
                     provider: result.grade_instance.provider
                 }
-                const {
-                    error: gradeError
-                } = await supabase.from('grade_instances').insert([gradeInstanceData])
+                let gradeError;
+                if (result.grade_instance.id) {
+                    ({
+                        error: gradeError
+                    } = await supabase.from('grade_instances').update(gradeInstanceData).eq('id', result.grade_instance.id))
+                } else {
+                    ({
+                        error: gradeError
+                    } = await supabase.from('grade_instances').insert([gradeInstanceData]))
+                }
+
                 if (gradeError) {
                     console.log('Grade error: ', gradeError)
                 }
@@ -2232,7 +2461,7 @@ class TestManager {
         this.loading = false
         if (error) {
             console.error("Error fetching test:", error);
-            throw error; // Re-throw so calling component can handle
+            // throw error; // Re-throw so calling component can handle
         }
         if (data) {
           return this.loadTestFromData(data)

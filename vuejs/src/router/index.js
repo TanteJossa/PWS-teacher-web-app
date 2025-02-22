@@ -6,18 +6,23 @@ import ScanView from '@/views/ScanView'
 import FullView from '@/views/FullView.vue'
 import HomeView from '@/views/HomeView.vue'
 import PdfView from '@/views/PdfView.vue'
+import AccountView from '@/views/AccountView.vue'
+import TestBrowser from '@/views/TestBrowser.vue'
+import NewTestView from '@/views/NewTestView.vue'
+import TestView from '@/views/TestView.vue'
+import AnswerSheetView from '@/views/AnswerSheetView.vue'
 
 const routes = [
-    {
-        path: '/scan',
-        name: 'scan',
-        component: ScanView
-    },
-    {
-        path: '/analyze',
-        name: 'analisis',
-        component: AnalisisView
-    },
+    // {
+    //     path: '/scan',
+    //     name: 'scan',
+    //     component: ScanView
+    // },
+    // {
+    //     path: '/analyze',
+    //     name: 'analisis',
+    //     component: AnalisisView
+    // },
 
     {
       path: '/pdf',
@@ -26,15 +31,40 @@ const routes = [
       props: true
     },
     {
+      path: '/answer_sheet',
+      name: 'answer_sheet',
+      component: AnswerSheetView,
+    },
+    {
         path: '/',
         name: 'full',
         component: FullView
     },
     {
-        path: '/home',
-        name: 'home',
-        component: HomeView
+        path: '/account',
+        name: 'account',
+        component: AccountView
     },
+    {
+        path: '/tests',
+        name: 'tests',
+        component: TestBrowser
+    },
+    {
+        path: '/new_test',
+        name: 'new_test',
+        component: NewTestView
+    },
+    {
+        path: '/test/:id',
+        name: 'test',
+        component: TestView
+    },
+    // {
+    //     path: '/home',
+    //     name: 'home',
+    //     component: HomeView
+    // },
     {
         path: '/:pathMatch(.*)*',
         name: 'not-found',

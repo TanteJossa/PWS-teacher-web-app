@@ -46,6 +46,32 @@ export const useUserStore = defineStore('user', {
                 console.log('auth change:', event, session)
                 this.user = session?.user || null;
             });
+        },
+        async deleteAccount() {
+            if(confirm("Are you sure you want to delete your account? This will delete all your tests as well.")) {
+                try {
+                    try {
+                        const { data, error } = await supabaseAdmin.auth.admin.deleteUser(this.user.uid);
+
+                        if (error) {
+                        console.error("Error deleting user:", error);
+                        // return { error };
+                        }
+
+                        console.log("User deleted successfully:", data);
+                        // return { data };
+
+                    } catch (error) {
+                        console.error("Unexpected error during user deletion:", error);
+                        // return { error: { message: "Unexpected error", details: error.message } };
+                    }
+                    // await this.$axios.delete('/api/account', { data: { user_id: this.user.id }});
+                    await this.signOut()
+                    this.$router.push({ name: 'home' });
+                } catch(e) {
+                    console.error("Error deleting account", e);
+                }
+            }
         }
     },
 });

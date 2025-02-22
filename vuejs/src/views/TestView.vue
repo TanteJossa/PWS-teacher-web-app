@@ -1,25 +1,29 @@
 <template lang="pug">
-v-container
-    v-card(v-if="test")
-        v-card-title
-            span(v-if="!isEditing") {{ test.name }}
+div.h-100
+    div.h-100(v-if="test")
+        div
+            v-btn(text @click="goBack") Back
+            span(v-if="!is_editing") {{ test.name }}
             v-text-field(v-else v-model="test.name" label="Test Name")
             v-spacer
-            v-btn(v-if="isEditing" color="primary" @click="saveTest" :loading="isSaving") Save
-            v-btn(v-if="isEditing" color="error" @click="deleteTest") Delete Test
-        v-card-text
-            div(v-if="!isEditing")
-                p Display Mode
-                MainLayout(
-                    :test="test"
-                )
-                v-btn(v-if="canEdit" color="warning" @click="isEditing = true") Edit
-            div(v-else)
-                MainLayout(
-                    :test="test"
-                )
-        v-card-actions
-            v-btn(text @click="goBack") Back
+            
+            v-btn(v-if="is_editing" color="primary" @click="saveTest" :loading="is_saving") Save
+            v-btn(v-if="is_editing" color="error" @click="deleteTest") Delete Test
+            v-btn(v-else color="primary" @click="is_editing = true") Edit
+
+        div.h-100(v-if="!is_editing")
+            p Display Mode
+            MainLayout.h-100(
+                :test="test"
+
+            )
+            v-btn(v-if="canEdit" color="warning" @click="is_editing = true") Edit
+        div.h-100(v-else)
+            MainLayout.h-100(
+                :test="test"
+                @save="saveTest"
+                @delete="deleteTest"
+            )
     v-progress-circular(v-else indeterminate)
 </template>
 
@@ -31,12 +35,6 @@ import {
 import {
     useUserStore
 } from '@/stores/user_store';
-import {
-    onMounted,
-    ref,
-    computed,
-    watch
-} from 'vue';
 import MainLayout from '@/components/full_view/MainLayout.vue';
 
 export default {
@@ -44,85 +42,82 @@ export default {
     components: {
         MainLayout
     },
-    setup(props, context) { // Use setup for Composition API
-        const testManager = new TestManager();
-        const userStore = useUserStore();
-        const test = ref(null); // Use ref for reactivity
-        const isEditing = ref(false);
-        const isSaving = ref(false);
-
-        // Computed property to check if the current user can edit the test
-        const canEdit = computed(() => {
-            return userStore.user && (userStore.user.id === test.value?.user_id || userStore.isAdmin);
-        });
-
-        const route = context.root.$route
-
-        const loadTest = async () => {
+    data() {
+        return {
+            test_manager: new TestManager(),
+            user_store: useUserStore(),
+            test: null,
+            is_editing: false,
+            is_saving: false,
+        };
+    },
+    computed: {
+        canEdit() {
+            return this.user_store.user && (this.user_store.user.id === this.test?.user_id || this.user_store.isAdmin);
+        }
+    },
+    watch: {
+        '$route.params': {
+            handler: 'loadTest',
+            immediate: true // Load on component creation as well
+        }
+    },
+    mounted() {
+        this.loadTest();
+    },
+    methods: {
+        async loadTest() {
             try {
-                const testId = route.params.id
-                console.log(testId)
-                if (testId) {
-                    test.value = await testManager.fetchTest(testId); // Use TestManager
-                    if (!test.value) {
-                        console.warn('test not found')
-                    }
+                var testId = this.$route.params.id;
+                if (testId = 'null'){
+                    testId = null;
                 }
-
+                console.log(testId);
+                // if (testId) {
+                this.test = await this.test_manager.fetchTest(testId);
+                if (!this.test) {
+                    console.warn('test not found');
+                    this.test = new Test({})
+                }
+                // }
             } catch (error) {
                 console.error("Failed to load test:", error);
             }
-        }
-
-        onMounted(async () => {
-            await loadTest()
-        });
-
-        watch(() => route.params, async () => { //watch for url change
-            await loadTest()
-        })
-
-        const saveTest = async () => {
-            isSaving.value = true;
+        },
+        async saveTest() {
+            this.is_saving = true;
             try {
-                await test.value.saveToDatabase(); // Use Test class method
-                isEditing.value = false; // Exit edit mode on successful save
+                await this.test.saveToDatabase();
+                this.$router.push({
+                    name: 'test',
+                    params: {
+                        id: this.test.id
+                    }
+                });
+                this.is_editing = false;
             } catch (error) {
                 console.error("Error saving test:", error);
             } finally {
-                isSaving.value = false;
+                this.is_saving = false;
             }
-        };
-
-        const deleteTest = async () => {
+        },
+        async deleteTest() {
             if (confirm("Are you sure you want to delete this test?  This is irreversible.")) {
                 try {
-                    await testManager.deleteTest(test.value.id);
-                    context.root.$router.push({
+                    await this.test_manager.deleteTest(this.test.id);
+                    this.$router.push({
                         name: 'tests'
-                    }); // Navigate back to test list
+                    });
                 } catch (error) {
                     console.error("Error deleting test:", error);
                 }
             }
-        };
-
-        const goBack = () => {
-            context.root.$router.push({
+        },
+        goBack() {
+            this.$router.push({
                 name: 'tests'
             });
         }
-
-
-        return {
-            test,
-            isEditing,
-            isSaving,
-            canEdit, // Expose computed property
-            saveTest,
-            deleteTest,
-            goBack
-        };
     },
 };
 </script>

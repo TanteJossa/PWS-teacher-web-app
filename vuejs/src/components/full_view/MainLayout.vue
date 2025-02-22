@@ -1,9 +1,10 @@
 <template lang="pug">
-div(:style="{'height': $vuetify.display.mdAndUp ? '100vh' : 'calc(100dvh)', 'overflow-y': 'auto'}")
+component(:is="$vuetify.display.mdAndUp ? 'v-layout' : 'div'")
 
     NavigationDrawer(
         :test="test"
         :is_loading="is_loading"
+        @save="$emit('save')"
     )
         SectionList(
             :selected_section_id="selected_section_id"
@@ -20,8 +21,8 @@ div(:style="{'height': $vuetify.display.mdAndUp ? '100vh' : 'calc(100dvh)', 'ove
                 @update:selected_subsection_id="selected_section.selected_subsection_id = $event"
             )
         template(v-slot:extension)
-            UserProfile(:user="user" @user-updated="$emit('setUser', $event)")
-    div.h-100
+            //- UserProfile(:user="user" @user-updated="$emit('setUser', $event)")
+    v-main.h-100
         RequestDialog(
             :active_requests="active_requests"
 
@@ -65,8 +66,8 @@ div(:style="{'height': $vuetify.display.mdAndUp ? '100vh' : 'calc(100dvh)', 'ove
                 @download-student-results="downloadStudentResults"
                 @download-selected-result="downloadSelectedResult"
             )
-        TestDashboard(:user="user") 
-        GoogleLoginButton(v-if="!user")
+        //- TestDashboard(:user="user") 
+        //- GoogleLoginButton(v-if="!user")
 </template>
 
 <script>
@@ -133,6 +134,9 @@ export default {
             default: null
         },
     },
+    emits: [
+        'save'
+    ],
     data() {
         return {
             is_loading: false,
@@ -484,7 +488,8 @@ export default {
                 }, 2000);
 
             }
-        }
+        },
+        
 
     },
     watch: {

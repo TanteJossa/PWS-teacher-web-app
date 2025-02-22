@@ -5,7 +5,7 @@
 
 </template>
 <script>
-import pws_pdf from '@/assets/PWS-NakijkenMetAi-JoostKoch-JonathanWijker.pdf'
+import answer_print from '@/assets/answer_print.pdf'
 
 export default {
   props: {
@@ -16,7 +16,7 @@ export default {
   },
   computed: {
     pdfSrc(){
-       return pws_pdf //this.pdfPath;
+       return answer_print //this.pdfPath;
     }
   }
 }
