@@ -125,9 +125,9 @@ div
                                         img(
                                             style=" max-width: 100%; max-height: 100%"
                                             
-                                            v-if="item.page.croppedImage"
+                                            v-if="item.page.base64_cropped_image"
                                             v-fullscreen-img="{scaleOnHover: true}"
-                                            :src="item.page.croppedImage"
+                                            :src="item.page.base64_cropped_image"
                                         )
                         v-btn(@click="cropImages") Crop Images
                     div.h-100(v-if="step == 'apply color correction'")
@@ -145,9 +145,9 @@ div
                                         h2 Before
                                         img(
                                             style=" max-width: 100%; max-height: 100%"
-                                            v-if="item.page.croppedImage"
+                                            v-if="item.page.base64_cropped_image"
                                             v-fullscreen-img="{scaleOnHover: true}"
-                                            :src="item.page.croppedImage"
+                                            :src="item.page.base64_cropped_image"
                                         )
 
                                     v-divider(vertical)
@@ -157,9 +157,9 @@ div
 
                                         img(
                                             style=" max-width: 100%; max-height: 100%"
-                                            v-if="item.page.colorCorrected"
+                                            v-if="item.page.base64_color_corrected"
                                             v-fullscreen-img="{scaleOnHover: true}"
-                                            :src="item.page.colorCorrected" 
+                                            :src="item.page.base64_color_corrected" 
                                         )
                         v-btn(@click="applyColorCorrection") Apply Color Correction
                     div.h-100(v-if="step == 'extract qr sections and student id'")
@@ -180,9 +180,9 @@ div
                                         h2 Before
                                         img(
                                             style=" max-width: 100%; max-height: 100%"
-                                            v-if="item.page.colorCorrected"
+                                            v-if="item.page.base64_color_corrected"
                                             v-fullscreen-img="{scaleOnHover: true}"
-                                            :src="item.page.colorCorrected" 
+                                            :src="item.page.base64_color_corrected" 
                                         )
 
                                     v-divider(vertical)
@@ -192,9 +192,9 @@ div
 
                                         img(
                                             style=" max-width: 100%; max-height: 100%"
-                                            v-if="item.page.squareImage"
+                                            v-if="item.page.base64_square_image"
                                             v-fullscreen-img="{scaleOnHover: true}"
-                                            :src="item.page.squareImage"
+                                            :src="item.page.base64_square_image"
                                         )
 
                         v-btn(@click="extractQrSections") extract qr sections
@@ -219,9 +219,9 @@ div
                                         h2 Before
                                         img(
                                             style=" max-width: 100%; max-height: 100%"
-                                            v-if="item.page.colorCorrected"
+                                            v-if="item.page.base64_color_corrected"
                                             v-fullscreen-img="{scaleOnHover: true}"
-                                            :src="item.page.colorCorrected" 
+                                            :src="item.page.base64_color_corrected" 
                                         )
 
                                     v-divider(vertical)
@@ -231,9 +231,9 @@ div
 
                                         img(
                                             style=" max-width: 100%; max-height: 100%"
-                                            v-if="item.page.squareImage"
+                                            v-if="item.page.base64_square_image"
                                             v-fullscreen-img="{scaleOnHover: true}"
-                                            :src="item.page.squareImage"
+                                            :src="item.page.base64_square_image"
                                         )
                         v-btn(@click="detectSquares") Detect Squares
                         v-btn(@click="extractStudentId") extract student id
@@ -249,40 +249,40 @@ div
                         )
                             template(v-slot:selected="{ item }")
                                 ImagesPreview(
-                                    :items="item.page.sections.map(section => {return {section, id: section.id, image: section.full, title: section.id}})"
+                                    :items="item.page.sections.map(section => {return {section, id: section.id, image: section.base64_full, title: section.id}})"
                                 )
                                     template(v-slot:selected="{ item }")
                                         div.w-100.h-100.pa-3(style="overflow-y: scroll")
-                                            div(v-if="item.section.full")
+                                            div(v-if="item.section.base64_full")
                                                 h2 full
                                                 img(
-                                                    :src="item.section.full"
+                                                    :src="item.section.base64_full"
                                                     v-fullscreen-img="{scaleOnHover: true}"
                                                     style="max-height: 200px; max-width: 90%"
                                                 )
                                                 v-divider
-                                            div(v-if="item.section.section_finder")
+                                            div(v-if="item.section.base64_section_finder")
                                                 h2 section_finder and studet id
                                                 img(
-                                                    :src="item.section.section_finder"
+                                                    :src="item.section.base64_section_finder"
                                                     v-fullscreen-img="{scaleOnHover: true}"
                                                     style="max-height: 200px; max-width: 90%"
 
                                                 )
                                                 v-divider
 
-                                            div(v-if="item.section.question_selector")
+                                            div(v-if="item.section.base64_question_selector")
                                                 h2 question_selector
                                                 img(
-                                                    :src="item.section.question_selector"
+                                                    :src="item.section.base64_question_selector"
                                                     v-fullscreen-img="{scaleOnHover: true}"
                                                     style="max-height: 200px; max-width: 90%"
                                                 )
                                                 v-divider
-                                            div(v-if="item.section.answer")
+                                            div(v-if="item.section.base64_answer")
                                                 h2 answer
                                                 img(
-                                                    :src="item.section.answer"
+                                                    :src="item.section.base64_answer"
                                                     v-fullscreen-img="{scaleOnHover: true}"
                                                     style="max-height: 200px; max-width: 90%"
 
@@ -316,7 +316,7 @@ div
                             template(v-slot:selected="{ item }")
 
                                 ImagesPreview(
-                                    :items="item.page.questions.map(question => {return {question, id: question.id, image: question.full, title: question.id}})"
+                                    :items="item.page.questions.map(question => {return {question, id: question.id, image: question.base64_full, title: question.id}})"
                                 )
                                     template(v-slot:selected="{ item }")
                                         div.w-100.h-100.pa-3(style="overflow-y: scroll")

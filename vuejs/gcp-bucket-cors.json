@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["toetspws.web.app", "localhost:3000"], 
+    "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
+    "responseHeader": ["*"],
+    "maxAgeSeconds": 3600
+  }
+]

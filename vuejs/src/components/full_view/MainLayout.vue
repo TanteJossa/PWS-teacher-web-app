@@ -1,4 +1,3 @@
-
 <template lang="pug">
 div(:style="{'height': $vuetify.display.mdAndUp ? '100vh' : 'calc(100dvh)', 'overflow-y': 'auto'}")
 
@@ -20,7 +19,8 @@ div(:style="{'height': $vuetify.display.mdAndUp ? '100vh' : 'calc(100dvh)', 'ove
                 :subsections="selected_section.subsections"
                 @update:selected_subsection_id="selected_section.selected_subsection_id = $event"
             )
-
+        template(v-slot:extension)
+            UserProfile(:user="user" @user-updated="$emit('setUser', $event)")
     div.h-100
         RequestDialog(
             :active_requests="active_requests"
@@ -65,6 +65,8 @@ div(:style="{'height': $vuetify.display.mdAndUp ? '100vh' : 'calc(100dvh)', 'ove
                 @download-student-results="downloadStudentResults"
                 @download-selected-result="downloadSelectedResult"
             )
+        TestDashboard(:user="user") 
+        GoogleLoginButton(v-if="!user")
 </template>
 
 <script>
@@ -79,6 +81,10 @@ import ScanSection from '@/components/full_view/ScanSection/ScanSection.vue';
 import GradeSection from '@/components/full_view/GradeSection/GradeSection.vue';
 import AnalyzeSection from '@/components/full_view/AnalyzeSection/AnalyzeSection.vue';
 import RequestDialog from '@/components/full_view/RequestDialog.vue';
+import GoogleLoginButton from '@/components/auth/GoogleLoginButton.vue'; // IMPORT GoogleLoginButton
+import UserProfile from '@/components/auth/UserProfile.vue'; // IMPORT UserProfile
+import TestDashboard from '@/components/auth/TestDashboard.vue'; // IMPORT TestDashboard
+
 import {
     total_requests,
     rotateImage180,
@@ -107,7 +113,10 @@ export default {
         ScanSection,
         GradeSection,
         AnalyzeSection,
-        RequestDialog
+        RequestDialog,
+        GoogleLoginButton,
+        UserProfile,
+        TestDashboard,
     },
     setup() {
         return {
@@ -117,6 +126,12 @@ export default {
             active_requests,
             apiRequest
         }
+    },
+    props: {
+        user: {
+            type: Object,
+            default: null
+        },
     },
     data() {
         return {
@@ -208,10 +223,13 @@ export default {
             is_generating_pdf: false,
             self_feedback_field: false,
             selected_test_source: 'gpt',
-            rerender_timer: true
+            rerender_timer: true,
 
         }
     },
+    emits: [
+        'setUser'
+    ],
     computed: {
         selected_section: {
             get() {
@@ -259,6 +277,7 @@ export default {
         
     },
     methods: {
+
         log(s) {
             console.log(s)
         },
@@ -475,6 +494,8 @@ export default {
 
     // },
     async mounted() {
+
+        
         setInterval(() => {
             this.rerender_timer = !this.rerender_timer
         }, 100);

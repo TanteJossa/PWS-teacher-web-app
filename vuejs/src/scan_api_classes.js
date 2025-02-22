@@ -1,3 +1,4 @@
+// --- START OF FILE scan_api_classes.js ---
 import {
     getRandomID,
     delay,
@@ -7,15 +8,117 @@ import {
     downloadTest
 } from '@/helpers';
 import {
+    uploadFile,
+    deleteFile
+} from '@/helpers/gcp_storage'; // Import GCP storage functions
+import {
     globals
 } from '@/main'
-
-
-
-
+import {
+    useUserStore
+} from '@/stores/user_store'; // Import user store
 
 var temp_saved_grade_data = {}
 var temp_section_data = []
+
+class File {
+    constructor({
+        id = getRandomID(),
+        test_id = null,
+        student_question_result_id = null,
+        location = null,
+        file_type = null,
+        base64Data = null, // Only used temporarily
+        is_stored = false
+    }) {
+        this.id = id;
+        this.test_id = test_id
+        this.student_question_result_id = student_question_result_id
+        this.location = location;
+        this.file_type = file_type;
+        this.base64Data = base64Data;
+        this.is_stored = is_stored
+    }
+
+    get url() {
+        // Return base64 data URL if not stored, otherwise return cloud storage URL
+        return this.is_stored ?
+            this.location :
+            this.base64Data;
+    }
+
+    async store(test_id = null, student_question_result_id = null) {
+        if (this.is_stored) {
+            console.warn("File already stored.");
+            return;
+        }
+        if (!this.base64Data) {
+            console.error("No base64 data to store.");
+            return;
+        }
+
+        try {
+            // Determine file path based on whether it's test-level or student-level
+            const timestamp = new Date().toISOString().replace(/[-:.]/g, '');
+            const baseFileName = `${this.id}_${timestamp}`;
+            let filePath = '';
+
+            if (student_question_result_id) {
+                // Student-specific file (e.g., answer image)
+                filePath = `student_answers/${student_question_result_id}/${baseFileName}.${this.file_type}`;
+
+            } else if (test_id) {
+                // Test-level file (e.g., test PDF, rubric PDF)
+                filePath = `tests/${test_id}/${baseFileName}.${this.file_type}`;
+            } else {
+                console.error("test_id or student_question_result_id must be provided for file storage.");
+                return;
+            }
+
+
+            // Extract base64 content type and data
+            const matches = this.base64Data.match(/^data:(.+);base64,(.+)$/);
+            if (!matches || matches.length !== 3) {
+                throw new Error("Invalid base64 data format.");
+            }
+            const contentType = matches[1];
+            const base64Content = matches[2];
+            const buffer = Buffer.from(base64Content, 'base64');
+
+            this.location = await uploadFile(filePath, buffer, contentType);
+            this.is_stored = true;
+            this.base64Data = null; // Clear base64 data after storing
+            this.test_id = test_id
+            this.student_question_result_id = student_question_result_id
+            //insert this file into supabase
+            console.log('STORED: ', filePath, '   location: ', this.location)
+
+        } catch (error) {
+            console.error("Failed to store file:", error);
+            throw error; // Re-throw for handling in calling function.
+        }
+    }
+    async deleteFromStorage() {
+        if (!this.is_stored || !this.location) {
+            console.warn("File not stored or no location specified.");
+            return;
+        }
+
+        try {
+            // Extract the file path from the full URL.  This assumes the URL format
+            // is consistent with what `uploadFile` returns.
+            const urlParts = this.location.split('/');
+            const filePath = urlParts.slice(urlParts.indexOf(config.gcp.bucketName) + 1).join('/');
+
+            await deleteFile(filePath);
+            this.is_stored = false;
+            this.location = null;
+        } catch (error) {
+            console.error("Failed to delete file:", error);
+            throw error;
+        }
+    }
+}
 
 
 
@@ -42,15 +145,18 @@ class ContextData {
 
 
 class ScanPage {
-    constructor(base64Image, context_data = new ContextData({})) {
-        this.base64Image = base64Image;
+    constructor(file, context_data = new ContextData({})) {
+        this.file = new File({
+            ...file,
+            file_type: 'jpeg'
+        });
         this.id = getRandomID()
 
         this.student_id = null;
-        this.colorCorrected = null;
-        this.redPenExtracted = null;
-        this.croppedImage = null;
-        this.squareImage = null;
+        this.base64_color_corrected = null;
+        this.base64_red_pen_extracted = null;
+        this.base64_cropped_image = null;
+        this.base64_square_image = null;
         this.squareData = [];
         this.sections = [];
         this.questions = [];
@@ -82,13 +188,13 @@ class ScanPage {
     get image() {
         switch (this.selected_image_type) {
             case "raw":
-                return this.base64Image
+                return this.file.base64Data
                 break;
             case "cropped":
-                return this.croppedImage
+                return this.base64_cropped_image
                 break;
             case "colcor":
-                return this.colorCorrected
+                return this.base64_color_corrected
                 break;
             default:
                 break;
@@ -98,13 +204,13 @@ class ScanPage {
     set image(val) {
         switch (this.selected_image_type) {
             case "raw":
-                this.base64Image = val
+                this.file.base64Data = val
                 break;
             case "cropped":
-                this.croppedImage = val
+                this.base64_cropped_image = val
                 break;
             case "colcor":
-                this.colorCorrected = val
+                this.base64_color_corrected = val
                 break;
             default:
                 break;
@@ -113,10 +219,10 @@ class ScanPage {
     }
     get image_options() {
         const options = ['raw']
-        if (this.croppedImage) {
+        if (this.base64_cropped_image) {
             options.push('cropped')
         }
-        if (this.colorCorrected) {
+        if (this.base64_color_corrected) {
             options.push('colcor')
         }
         return options
@@ -129,11 +235,11 @@ class ScanPage {
         try {
             this.loading.crop = true
             const response = await apiRequest('/crop', {
-                Base64Image: this.base64Image
+                Base64Image: this.file.base64Data
             });
             if (response) {
                 this.selected_image_type = 'cropped'
-                this.croppedImage = response;
+                this.base64_cropped_image = response;
             } else {
                 console.error('Error cropping image:', response.data);
             }
@@ -150,10 +256,10 @@ class ScanPage {
             Base64Image: this.image,
         });
         console.log('colorCorrect: ', response)
-        this.colorCorrected = response.clean;
+        this.base64_color_corrected = response.clean;
         this.loading.col_cor = false
         this.selected_image_type = 'colcor'
-        return this.colorCorrected;
+        return this.base64_color_corrected;
     }
 
     async detectQrSections() {
@@ -161,12 +267,18 @@ class ScanPage {
         const response = await apiRequest('/get_qr_sections', {
             Base64Image: this.image,
         });
-        this.squareImage = response?.image || null
+        this.base64_square_image = response?.image || null
         response?.sections?.forEach(e => {
             const section = new ScanSection({
-                full: e.section_image,
-                question_selector: e.question_selector_image,
-                answer: e.section_image,
+                full: {
+                    base64Data: e.section_image
+                },
+                question_selector: {
+                    base64Data: e.base64_question_selector_image
+                },
+                answer: {
+                    base64Data: e.section_image
+                },
                 question_number: e.data,
                 is_qr_section: true
             })
@@ -176,7 +288,7 @@ class ScanPage {
         console.log('detectQrSections: ', response)
 
         this.loading.detect_qr = false
-        return this.colorCorrected;
+        return this.base64_color_corrected;
     }
     async detectStudentId() {
         this.loading.student_id = true
@@ -196,7 +308,7 @@ class ScanPage {
             Base64Image: this.image,
         });
         this.squareData = response?.data || [];
-        this.squareImage = response?.image || ""
+        this.base64_square_image = response?.image || ""
         this.loading.detect_squares = false
         return this.squareData;
     }
@@ -224,13 +336,15 @@ class ScanPage {
         }
 
         this.student_id = total.student_id_data?.result.text || ""
-        this.redPenExtracted = total.red_pen_base64 || ""
-        this.croppedImage = total.cropped_base64 || ""
+        this.base64_red_pen_extracted = total.red_pen_base64 || ""
+        this.base64_cropped_image = total.cropped_base64 || ""
         total.questions.forEach(q => {
             const question = new ScanQuestion({
-                base64Image: q.image
+                file: {
+                    base64Data: q.image
+                }
             })
-            question.base64Image = q.image
+            question.file.base64Data = q.image
             question.question_number = q.question_id.toString()
             question.text = q.text_result?.result?.correctly_spelled_text || ""
             question.student_handwriting_percent = q.text_result?.result?.student_handwriting_percent || ""
@@ -249,10 +363,18 @@ class ScanPage {
         if (response?.sections) {
 
             this.sections = response.sections.map(section => new ScanSection({
-                full: section.full,
-                section_finder: section.section_finder,
-                question_selector: section.question_selector,
-                answer: section.answer,
+                full: {
+                    base64Data: section.base64_full
+                },
+                section_finder: {
+                    base64Data: section.base64_section_finder
+                },
+                question_selector: {
+                    base64Data: section.base64_question_selector
+                },
+                answer: {
+                    base64Data: section.base64_answer
+                },
                 student_id: this.student_id
             }));
         }
@@ -262,7 +384,7 @@ class ScanPage {
     // Extract text from sections, turning them into Question objects if they match the criteria
     async extractQuestions() {
         this.loading.create_question = true
-        const base64_sections = this.sections.map(section => section.question_selector || "")
+        const base64_sections = this.sections.map(section => section.file_question_selector.base64Data || "")
 
         const response = await apiRequest('/question_selector_info', {
             "base64Images": JSON.stringify(base64_sections),
@@ -274,7 +396,7 @@ class ScanPage {
             this.loading.create_question = false
             return
         } else {
-            console.log('Page: Extract question number result: ', response)
+        console.log('Page: Extract question number result: ', response)
 
         }
 
@@ -306,7 +428,7 @@ class ScanPage {
         console.log('unique_questions: ', unique_questions)
         const response = await Promise.all(unique_questions.map(async question_number => {
             const response = await apiRequest('/link_answer_sections', {
-                sections: this.sections.filter(e => e.question_number == question_number).map(section => section.answer),
+                sections: this.sections.filter(e => e.question_number == question_number).map(section => section.file_answer.base64Data),
             })
             console.log('link answer: ', response)
             return {
@@ -315,7 +437,9 @@ class ScanPage {
             }
         }))
         this.questions = response.map(e => new ScanQuestion({
-            base64Image: e.response,
+            file: {
+                base64Data: e.response
+            },
             question_number: e.question_number,
             page: this
         }))
@@ -333,10 +457,18 @@ class ScanPage {
 
 class ScanSection {
     constructor({
-        full = null,
-        section_finder = null,
-        question_selector = null,
-        answer = null,
+        full = {
+            base64Data: null
+        },
+        section_finder = {
+            base64Data: null
+        },
+        question_selector = {
+            base64Data: null
+        },
+        answer = {
+            base64Data: null
+        },
         question_number = null,
         question_number_data = null,
         is_qr_section = false,
@@ -344,10 +476,24 @@ class ScanSection {
     }) {
         this.id = getRandomID()
         this.is_loading = false
-        this.full = full
-        this.section_finder = section_finder
-        this.question_selector = question_selector
-        this.answer = answer
+
+        this.file_full = new File({
+            ...full,
+            file_type: 'jpeg'
+        });
+        this.file_section_finder = new File({
+            ...section_finder,
+            file_type: 'jpeg'
+        });
+        this.file_question_selector = new File({
+            ...question_selector,
+            file_type: 'jpeg'
+        });
+        this.file_answer = new File({
+            ...answer,
+            file_type: 'jpeg'
+        });
+
         this.is_qr_section = is_qr_section
         this.student_id = student_id
         this.question_number = question_number
@@ -357,7 +503,7 @@ class ScanSection {
     async extractQuestion() {
         this.is_loading = true
         const response = await apiRequest('/question_selector_info', {
-            Base64Image: this.question_selector,
+            Base64Image: this.file_question_selector.base64Data,
         });
         console.log('extractQuestion: ', response)
         this.question_number = response.most_certain_checked_number || 0;
@@ -370,16 +516,25 @@ class ScanSection {
 }
 class ScanQuestion {
     constructor({
-        base64Image = "",
+        file = {
+            base64Data: ""
+        },
         question_number = "",
         text = "",
         data = {},
-        page = new ScanPage({}),
-        is_loading=false
+        page = new ScanPage({
+            file: {
+                base64Data: ""
+            }
+        }),
+        is_loading = false
     }) {
         this.id = getRandomID()
 
-        this.base64Image = base64Image
+        this.file = new File({
+            ...file,
+            file_type: 'jpeg'
+        });
         this.question_number = question_number
         this.text = text
         this.data = data
@@ -389,7 +544,7 @@ class ScanQuestion {
 
 
     // Extract text from the section based on the bounding box
-    async extractText(context = null, provider=null, model=null) {
+    async extractText(context = null, provider = null, model = null) {
         this.is_loading = true
 
         if (!context) {
@@ -397,7 +552,7 @@ class ScanQuestion {
         }
 
         const response = await apiRequest('/extract_text', {
-            Base64Image: this.base64Image,
+            Base64Image: this.file.base64Data,
             questionText: context.getQuestion(this.question_number.toString()),
             rubricText: context.getQuestion(this.question_number.toString()),
             contextText: context.getContext(this.question_number.toString()),
@@ -413,7 +568,7 @@ class ScanQuestion {
         };
     }
     async extractQuestion() {
-        const base64_sections = [this.question_selector]
+        const base64_sections = [this.file_question_selector.base64Data]
 
         const response = await apiRequest('/question_selector_info', {
             "base64Images": JSON.stringify(base64_sections),
@@ -604,21 +759,18 @@ class TestPdfSettings {
 class Test {
     constructor({
         id = getRandomID(),
-
+        user_id = null,
         files = {
             test: {
                 raw: null,
-                blob: null,
                 data: [],
             },
             rubric: {
                 raw: null,
-                blob: null,
                 data: [],
             },
             students: {
                 raw: null,
-                blob: null,
                 data: [],
             },
         },
@@ -637,7 +789,21 @@ class Test {
         grade_rules = "",
     }) {
         this.id = id
-        this.files = files
+        this.user_id = user_id;
+        this.files = {
+            test: new File({
+                ...files.test,
+                file_type: 'pdf'
+            }), // Use File class
+            rubric: new File({
+                ...files.rubric,
+                file_type: 'pdf'
+            }), // Use File class
+            students: new File({
+                ...files.students,
+                file_type: 'pdf'
+            }), // Use File class
+        }
 
         this.pages = pages
 
@@ -675,7 +841,8 @@ class Test {
             sections: false,
             students: false,
             grading: false,
-            test_pdf: false
+            test_pdf: false,
+            save_to_database: false
 
         }
 
@@ -684,7 +851,7 @@ class Test {
         this.grade_rules = grade_rules
 
     }
-    get modelConfig (){
+    get modelConfig() {
         return {
             google: {
                 "gemini-2.0-pro-exp-02-05": {
@@ -785,7 +952,7 @@ class Test {
             data[model] = Object.keys(this.modelConfig[model])
             return data
         }, {})
-        
+
     }
     get total_model_count() {
         return sum(Object.values(this.providerModels).map(e => e.length))
@@ -853,118 +1020,6 @@ class Test {
 
             return
         }
-
-        // var result = {result: {
-        //         "questions": [
-        //                 {
-        //                         "is_draw_question": false,
-        //                         "points": [
-        //                                 {
-        //                                         "has_point": true,
-        //                                         "point_index": 0,
-        //                                         "point_name": "Formule opstellen",
-        //                                         "point_text": "De leerling kan de juiste formule opstellen.",
-        //                                         "point_weight": 1,
-        //                                         "target_name": "Formulegebruik"
-        //                                 },
-        //                                 {
-        //                                         "has_point": true,
-        //                                         "point_index": 1,
-        //                                         "point_name": "Sinus toepassen",
-        //                                         "point_text": "De leerling past de sinus correct toe in de formule.",
-        //                                         "point_weight": 1,
-        //                                         "target_name": "Wiskundige vaardigheden"
-        //                                 },
-        //                                 {
-        //                                         "has_point": true,
-        //                                         "point_index": 2,
-        //                                         "point_name": "Eenheden",
-        //                                         "point_text": "De leerling gebruikt de juiste eenheden.",
-        //                                         "point_weight": 1,
-        //                                         "target_name": "Eenheden"
-        //                                 }
-        //                         ],
-        //                         "question_context": "Een massa hangt aan een veer. De uitwijking $u$ van de massa ten opzichte van de evenwichtsstand wordt gegeven door de formule: $u = A \\cdot \\sin(2\\pi ft)$",
-        //                         "question_number": "1",
-        //                         "question_text": "De amplitude $A$ is 0,1 m, de frequentie $f$ is 2 Hz en de tijd $t$ is 0,5 s. Bereken de uitwijking $u$."
-        //                 },
-        //                 {
-        //                         "is_draw_question": false,
-        //                         "points": [
-        //                                 {
-        //                                         "has_point": true,
-        //                                         "point_index": 0,
-        //                                         "point_name": "Formule opstellen",
-        //                                         "point_text": "De leerling kan de juiste formule opstellen.",
-        //                                         "point_weight": 1,
-        //                                         "target_name": "Formulegebruik"
-        //                                 },
-        //                                 {
-        //                                         "has_point": true,
-        //                                         "point_index": 1,
-        //                                         "point_name": "Wortel toepassen",
-        //                                         "point_text": "De leerling past de wortel correct toe in de formule.",
-        //                                         "point_weight": 1,
-        //                                         "target_name": "Wiskundige vaardigheden"
-        //                                 },
-        //                                 {
-        //                                         "has_point": true,
-        //                                         "point_index": 2,
-        //                                         "point_name": "Eenheden",
-        //                                         "point_text": "De leerling gebruikt de juiste eenheden.",
-        //                                         "point_weight": 1,
-        //                                         "target_name": "Eenheden"
-        //                                 }
-        //                         ],
-        //                         "question_context": "De snelheid $v$ van een golf in een snaar wordt gegeven door de formule: $v = \\sqrt{\\frac{F}{\\mu}}$",
-        //                         "question_number": "2",
-        //                         "question_text": "De spankracht $F$ in de snaar is 100 N en de massa per lengte-eenheid $\\mu$ is 0,1 kg/m. Bereken de snelheid $v$ van de golf."
-        //                 },
-        //                 {
-        //                         "is_draw_question": false,
-        //                         "points": [
-        //                                 {
-        //                                         "has_point": true,
-        //                                         "point_index": 0,
-        //                                         "point_name": "Tabel lezen",
-        //                                         "point_text": "De leerling kan de juiste waarden uit de tabel aflezen.",
-        //                                         "point_weight": 1,
-        //                                         "target_name": "Tabellen"
-        //                                 },
-        //                                 {
-        //                                         "has_point": true,
-        //                                         "point_index": 1,
-        //                                         "point_name": "Formule toepassen",
-        //                                         "point_text": "De leerling past de formule correct toe.",
-        //                                         "point_weight": 1,
-        //                                         "target_name": "Formulegebruik"
-        //                                 }
-        //                         ],
-        //                         "question_context": "In de tabel hieronder staan de waarden voor de sinus van een aantal hoeken.\n\n| Hoek (graden) | sin(hoek) |\n|---|---|\n| 0 | 0 |\n| 30 | 0,5 |\n| 45 | 0,71 |\n| 60 | 0,87 |\n| 90 | 1 |\n\nDe uitwijking $u$ van een trillend voorwerp wordt gegeven door de formule $u = A \\cdot \\sin(\\alpha)$, waarbij $A$ de amplitude is en $\\alpha$ de hoek in graden.",
-        //                         "question_number": "3",
-        //                         "question_text": "De amplitude $A$ is 5 cm. Wat is de uitwijking $u$ bij een hoek van 30 graden?"
-        //                 }
-        //         ],
-        //         "targets": [
-        //                 {
-        //                         "explanation": "De leerling kan formules met sinussen en wortels toepassen in verschillende contexten.",
-        //                         "target_name": "Formulegebruik"
-        //                 },
-        //                 {
-        //                         "explanation": "De leerling kan wiskundige bewerkingen zoals het berekenen van een sinus en een wortel correct uitvoeren.",
-        //                         "target_name": "Wiskundige vaardigheden"
-        //                 },
-        //                 {
-        //                         "explanation": "De leerling kan de juiste eenheden gebruiken bij het toepassen van formules.",
-        //                         "target_name": "Eenheden"
-        //                 },
-        //                 {
-        //                         "explanation": "De leerling kan informatie uit tabellen aflezen en gebruiken in berekeningen.",
-        //                         "target_name": "Tabellen"
-        //                 }
-        //         ]
-        // }}
-
         if (!result.result) {
             this.loading.structure = false
 
@@ -997,129 +1052,6 @@ class Test {
 
             return
         }
-
-        //         var result = {result: {
-        // "questions": [
-        //         {
-        //                 "is_draw_question": false,
-        //                 "points": [
-        //                         {
-        //                                 "has_point": true,
-        //                                 "point_index": 0,
-        //                                 "point_name": "Reactanten",
-        //                                 "point_text": "Methaan en zuurstof staan voor de pijl",
-        //                                 "point_weight": 1,
-        //                                 "target_name": "Reactievergelijkingen"
-        //                         },
-        //                         {
-        //                                 "has_point": true,
-        //                                 "point_index": 1,
-        //                                 "point_name": "Producten",
-        //                                 "point_text": "Koolstofdioxide en water staan na de pijl",
-        //                                 "point_weight": 1,
-        //                                 "target_name": "Reactievergelijkingen"
-        //                         },
-        //                         {
-        //                                 "has_point": true,
-        //                                 "point_index": 2,
-        //                                 "point_name": "Kloppend",
-        //                                 "point_text": "De reactievergelijking is kloppend gemaakt",
-        //                                 "point_weight": 1,
-        //                                 "target_name": "Reactievergelijkingen"
-        //                         }
-        //                 ],
-        //                 "question_context": "Bij een volledige verbranding van een brandstof reageert de brandstof met zuurstof. Hierbij ontstaan een of meerdere verbrandingsproducten.",
-        //                 "question_number": "1",
-        //                 "question_text": "Wat is de reactievergelijking van de volledige verbranding van methaan (CH4)?"
-        //         },
-        //         {
-        //                 "is_draw_question": false,
-        //                 "points": [
-        //                         {
-        //                                 "has_point": true,
-        //                                 "point_index": 0,
-        //                                 "point_name": "Antwoord",
-        //                                 "point_text": "Koolstofmono-oxide of roet",
-        //                                 "point_weight": 1,
-        //                                 "target_name": "Volledige en onvolledige verbranding"
-        //                         }
-        //                 ],
-        //                 "question_context": "Bij een onvolledige verbranding is er te weinig zuurstof aanwezig voor een volledige verbranding.",
-        //                 "question_number": "2",
-        //                 "question_text": "Welke stof kan er ontstaan bij een onvolledige verbranding die niet ontstaat bij een volledige verbranding?"
-        //         },
-        //         {
-        //                 "is_draw_question": false,
-        //                 "points": [
-        //                         {
-        //                                 "has_point": true,
-        //                                 "point_index": 0,
-        //                                 "point_name": "Nadeel 1",
-        //                                 "point_text": "Bij verbranding komt CO2 vrij, wat bijdraagt aan het versterkte broeikaseffect",
-        //                                 "point_weight": 1,
-        //                                 "target_name": "Fossiele brandstoffen"
-        //                         },
-        //                         {
-        //                                 "has_point": true,
-        //                                 "point_index": 1,
-        //                                 "point_name": "Nadeel 2",
-        //                                 "point_text": "Fossiele brandstoffen raken op",
-        //                                 "point_weight": 1,
-        //                                 "target_name": "Fossiele brandstoffen"
-        //                         }
-        //                 ],
-        //                 "question_context": "Aardgas is een fossiele brandstof die veel gebruikt wordt in huishoudens.",
-        //                 "question_number": "3",
-        //                 "question_text": "Noem twee nadelen van het gebruik van fossiele brandstoffen."
-        //         },
-        //         {
-        //                 "is_draw_question": false,
-        //                 "points": [
-        //                         {
-        //                                 "has_point": true,
-        //                                 "point_index": 0,
-        //                                 "point_name": "Zuurstof",
-        //                                 "point_text": "De hoeveelheid zuurstof in de ruimte neemt af",
-        //                                 "point_weight": 1,
-        //                                 "target_name": "Volledige en onvolledige verbranding"
-        //                         },
-        //                         {
-        //                                 "has_point": true,
-        //                                 "point_index": 1,
-        //                                 "point_name": "Verbranding",
-        //                                 "point_text": "De verbranding wordt onvollediger",
-        //                                 "point_weight": 1,
-        //                                 "target_name": "Volledige en onvolledige verbranding"
-        //                         },
-        //                         {
-        //                                 "has_point": true,
-        //                                 "point_index": 2,
-        //                                 "point_name": "Vlam",
-        //                                 "point_text": "De vlam wordt kleiner en zal uiteindelijk doven",
-        //                                 "point_weight": 1,
-        //                                 "target_name": "Volledige en onvolledige verbranding"
-        //                         }
-        //                 ],
-        //                 "question_context": "Een kaars brandt in een afgesloten ruimte.",
-        //                 "question_number": "4",
-        //                 "question_text": "Leg uit wat er gebeurt met de vlam van de kaars naarmate de tijd verstrijkt."
-        //         }
-        // ],
-        // "targets": [
-        //         {
-        //                 "explanation": "De leerling kan reactievergelijkingen van verbrandingsreacties opstellen en kloppend maken.",
-        //                 "target_name": "Reactievergelijkingen"
-        //         },
-        //         {
-        //                 "explanation": "De leerling begrijpt het verschil tussen volledige en onvolledige verbranding en kan de reactieproducten benoemen.",
-        //                 "target_name": "Volledige en onvolledige verbranding"
-        //         },
-        //         {
-        //                 "explanation": "De leerling kent de nadelen van het gebruik van fossiele brandstoffen.",
-        //                 "target_name": "Fossiele brandstoffen"
-        //         }
-        // ]
-        //         }}
 
         if (!result.result) {
             this.loading.structure = false
@@ -1212,7 +1144,7 @@ class Test {
                 question_number: question.question_number,
                 question_text: question.question_text,
                 question_context: question.question_context,
-                answer_text: question.answer_text,
+                answer_text: question.base64_answer_text,
                 points: question.points.map(point => {
                     return {
                         point_name: point.point_name,
@@ -1290,10 +1222,9 @@ class Test {
     }
 
     addPage(base64Image) {
-
-
-        // TODO: fix the ScanPage
-        this.pages.push(new ScanPage(base64Image, this.test_context))
+        this.pages.push(new ScanPage({
+            base64Data: base64Image
+        }, this.test_context))
     }
     async loadStudentIds() {
         await Promise.all(this.pages.map(async (page, index) => {
@@ -1306,7 +1237,7 @@ class Test {
         }))
 
 
-        const base64_sections = this.pages.map(page => page.sections.map(section => section.question_selector || "")).flat(Infinity)
+        const base64_sections = this.pages.map(page => page.sections.map(section => section.file_question_selector.base64Data || "")).flat(Infinity)
 
         const response = await apiRequest('/question_selector_info', {
             "base64Images": JSON.stringify(base64_sections),
@@ -1391,7 +1322,9 @@ class Test {
                         student: student,
                         question_id: question.id,
                         // conversion mistake
-                        scan: result?.scan?.base64Image,
+                        scan: {
+                            base64Data: result?.scan?.base64Image
+                        },
                         student_handwriting_percent: result?.student_handwriting_percent
 
                     })
@@ -1436,7 +1369,7 @@ class Test {
 
                 }
                 const response = await apiRequest('/link_answer_sections', {
-                    sections: question_sections.map(section => section.answer),
+                    sections: question_sections.map(section => section.file_answer.base64Data),
                 })
 
                 if (!response || response.error) {
@@ -1447,7 +1380,9 @@ class Test {
                 }
 
                 const scan_question = new ScanQuestion({
-                    base64Image: response,
+                    file: {
+                        base64Data: response
+                    },
                     question_number: question.question_number
                 })
 
@@ -1499,7 +1434,7 @@ class Test {
                     return {
                         question_number: result.question_number,
                         scan: {
-                            base64Image: result.scan,
+                            base64Data: result.scan.file.base64Data,
                             text: result.scan.text,
                             question_number: result.scan.question_number,
                         },
@@ -1540,7 +1475,338 @@ class Test {
         this.saved_grade_data = saved_grade_data
         this.saved_output = saved_output
     }
+    async saveToDatabase() {
+        this.loading.save_to_database = true;
+        const userStore = useUserStore();
+        if (!userStore.user) {
+            console.error("No user logged in.");
+            this.loading.save_to_database = false;
+            return;
+        }
+        this.user_id = userStore.user.id;
 
+        // 1. Store the main Test data
+        // store all test files and save the id
+
+        const testData = {
+            user_id: this.user_id,
+            name: this.test_settings.test_name,
+            is_public: false, // Or get from some user input/setting
+            gpt_provider: this.gpt_provider,
+            gpt_model: this.gpt_model,
+            grade_rules: this.grade_rules,
+            test_data_result: this.test_data_result,
+        };
+
+        const {
+            data: savedTest,
+            error: testError
+        } = await supabase
+            .from('tests')
+            .insert([testData])
+            .select();
+
+        if (testError) {
+            console.error("Error saving test:", testError);
+            this.loading.save_to_database = false;
+            return;
+        }
+
+        const testId = savedTest[0].id;
+        this.id = testId
+
+        await Promise.all(Object.keys(this.files).map(async key => {
+            if (this.files[key].raw) {
+
+                this.files[key].base64Data = this.files[key].raw
+            }
+            await this.files[key].store(this.id)
+
+            const {
+                error
+            } = await supabase
+                .from('files')
+                .insert([{
+                    test_id: this.id,
+                    location: this.files[key].location,
+                    file_type: this.files[key].file_type,
+                }])
+            if (error) {
+                console.log('File insert error: ', error)
+            }
+
+        }))
+
+        //store gpt test settings
+        const gptTestData = {
+            test_id: testId,
+            school_type: this.gpt_test.school_type,
+            school_year: this.gpt_test.school_year,
+            school_subject: this.gpt_test.school_subject,
+            subject: this.gpt_test.subject,
+            learned: this.gpt_test.learned,
+            requested_topics: this.gpt_test.requested_topics,
+        };
+        const {
+            error: gptTestError
+        } = await supabase
+            .from('gpt_tests_settings')
+            .insert([gptTestData]);
+
+        if (gptTestError)
+            console.error("Error saving GPT Test settings:", gptTestError);
+
+        // Store GPT Question settings
+        const gptQuestionData = {
+            test_id: testId,
+            rtti: this.gpt_question.rtti,
+            subject: this.gpt_question.subject,
+            targets: this.gpt_question.targets,
+            point_count: this.gpt_question.point_count,
+        };
+
+        const {
+            error: gptQuestionError
+        } = await supabase
+            .from('gpt_questions_settings')
+            .insert([gptQuestionData]);
+
+        if (gptQuestionError)
+            console.error("Error saving GPT Question settings:", gptQuestionError);
+
+        // Store Test PDF settings
+        const testPdfSettingsData = {
+            test_id: testId,
+            test_name: this.test_settings.test_name,
+            show_targets: this.test_settings.show_targets,
+            show_answers: this.test_settings.show_answers,
+            output_type: this.test_settings.output_type,
+        };
+        const {
+            error: testPdfSettingsError
+        } = await supabase
+            .from('test_pdf_settings')
+            .insert([testPdfSettingsData]);
+        if (testPdfSettingsError)
+            console.error("Error saving Test PDF settings:", testPdfSettingsError);
+
+        // 2. Store Targets
+        for (const target of this.targets) {
+            const targetData = {
+                test_id: testId,
+                target_name: target.target_name,
+                explanation: target.explanation,
+            };
+            const {
+                data: savedTarget,
+                error: targetError
+            } = await supabase
+                .from('targets')
+                .insert([targetData]).select();
+            if (targetError) {
+                console.error("Error saving target:", targetError);
+                continue; // Skip to the next target on error
+            }
+            target.id = savedTarget[0].id; // Store the database ID
+        }
+
+        // 3. Store Questions and related data
+        for (const question of this.questions) {
+            const questionData = {
+                test_id: testId,
+                question_number: question.question_number,
+                question_text: question.question_text,
+                question_context: question.question_context,
+                answer_text: question.base64_answer_text, // Assuming this is text, not a file
+                is_draw_question: question.is_draw_question,
+            };
+            const {
+                data: savedQuestion,
+                error: questionError
+            } = await supabase
+                .from('questions')
+                .insert([questionData]).select();
+
+            if (questionError) {
+                console.error("Error saving question:", questionError);
+                continue;
+            }
+            question.id = savedQuestion[0].id;
+
+            // Store Rubric Points
+            for (const point of question.points) {
+                const pointData = {
+                    question_id: question.id,
+                    point_text: point.point_text,
+                    point_name: point.point_name,
+                    point_weight: point.point_weight,
+                    point_index: point.point_index,
+                    target_id: point.target.id, // Use the saved target ID
+                };
+                const {
+                    error: pointError
+                } = await supabase
+                    .from('rubric_points')
+                    .insert([pointData]);
+                if (pointError) console.error("Error saving rubric point:", pointError);
+            }
+        }
+        //store all pages and section files
+        for (const page of this.pages) {
+            await page.file.store(this.id) // Store the page file
+            const {
+                error: pageFileError
+            } = await supabase.from('files').insert([{
+                test_id: this.id,
+                location: page.file.location,
+                file_type: page.file.file_type
+            }])
+            if (pageFileError) {
+                console.log('Page insert error: ', pageFileError)
+            }
+
+            for (const section of page.sections) {
+                await section.file_full.store(this.id)
+                await section.file_section_finder.store(this.id)
+                await section.file_question_selector.store(this.id)
+                await section.file_answer.store(this.id)
+                // Store section details
+                const sectionData = {
+                    test_id: this.id,
+                    question_number: section.question_number,
+                    is_qr_section: section.is_qr_section,
+                    student_id: section.student_id,
+                };
+                const {
+                    data: savedSection,
+                    error: sectionError
+                } = await supabase.from('sections').insert([sectionData]).select();
+                if (sectionError) {
+                    console.error("Error saving section:", sectionError);
+                    continue
+                }
+
+                const section_id = savedSection[0].id
+
+                const files = [{
+                    file: section.file_full,
+                    type: 'section_full'
+                }, {
+                    file: section.file_section_finder,
+                    type: 'section_finder'
+                }, {
+                    file: section.file_question_selector,
+                    type: 'section_question_selector'
+                }, {
+                    file: section.file_answer,
+                    type: 'section_answer'
+                }]
+
+                files.forEach(async file => {
+                    const {
+                        error: sectionFileError
+                    } = await supabase.from('files').insert([{
+                        test_id: this.id,
+                        location: file.file.location,
+                        file_type: file.type
+                    }])
+                    if (sectionFileError) {
+                        console.log('Section File insert error: ', sectionFileError)
+                    }
+                })
+            }
+        }
+        // 4. Store Students and Results
+        for (const student of this.students) {
+            const studentData = {
+                test_id: testId,
+                student_id: student.student_id,
+            };
+            const {
+                data: savedStudent,
+                error: studentError
+            } = await supabase
+                .from('students')
+                .insert([studentData]).select();
+            if (studentError) {
+                console.error("Error saving student:", studentError);
+                continue;
+            }
+            student.id = savedStudent[0].id;
+
+            // Store StudentQuestionResults
+            for (const result of student.results) {
+                const resultData = {
+                    student_id: student.id,
+                    question_id: result.question.id,
+                    feedback: result.feedback,
+                    student_handwriting_percent: result.student_handwriting_percent
+                };
+                const {
+                    data: savedResult,
+                    error: resultError
+                } = await supabase
+                    .from('students_question_results')
+                    .insert([resultData]).select();
+
+                if (resultError) {
+                    console.error("Error saving student question result:", resultError);
+                    continue;
+                }
+                result.id = savedResult[0].id;
+
+                //store the result file
+                if (result.scan.file) {
+
+                    await result.scan.file.store(null, result.id)
+                    const {
+                        error
+                    } = await supabase
+                        .from('files')
+                        .insert([{
+                            student_question_result_id: result.id,
+                            location: result.scan.file.location,
+                            file_type: result.scan.file.file_type,
+                        }])
+                    if (error) {
+                        console.log('result File insert error: ', error)
+                    }
+                }
+                // Store StudentPointResults (linking to RubricPoint)
+                for (const pointIndex in result.point_results) {
+                    const pointResult = result.point_results[pointIndex];
+                    const pointResultData = {
+                        student_question_result_id: result.id,
+                        point_index: pointResult.point_index,
+                        has_point: pointResult.has_point,
+                        feedback: pointResult.feedback,
+                    };
+                    const {
+                        error: pointResultError
+                    } = await supabase
+                        .from('students_points_results')
+                        .insert([pointResultData]);
+                    if (pointResultError)
+                        console.error("Error saving student point result:", pointResultError);
+                }
+                //store grade instance
+                const gradeInstanceData = {
+                    student_question_result_id: result.id,
+                    is_gpt: result.grade_instance.is_gpt,
+                    model: result.grade_instance.model,
+                    provider: result.grade_instance.provider
+                }
+                const {
+                    error: gradeError
+                } = await supabase.from('grade_instances').insert([gradeInstanceData])
+                if (gradeError) {
+                    console.log('Grade error: ', gradeError)
+                }
+            }
+        }
+
+        this.loading.save_to_database = false;
+    }
 
 
 }
@@ -1563,7 +1829,7 @@ class Question {
         this.question_number = question_number
         this.question_context = question_context
         this.question_text = question_text
-        this.answer_text = answer_text
+        this.base64_answer_text = answer_text
         this.points = []
 
         points.forEach(e => this.addRubricPoint(e))
@@ -1766,23 +2032,42 @@ class Student {
 
 }
 
+class GradeInstance {
+    constructor({
+        is_gpt = false,
+        model = null,
+        provider = null,
+    }) {
+        this.is_gpt = is_gpt
+        this.model = model
+        this.provider = provider
+    }
+}
+
 class StudentQuestionResult {
     constructor({
         id = getRandomID(),
         student = new Student({}),
+        grade_instance = new GradeInstance({}),
         question_id = "",
         feedback = "",
         point_results = {},
-        scan = new ScanQuestion({}),
+        scan = new ScanQuestion({
+            file: {}
+        }),
         is_grading = false,
         student_handwriting_percent = 0
     }) {
         this.id = id
         this.student = student
+        this.grade_instance = grade_instance
         this.question_id = question_id
         this.feedback = feedback
         this.point_results = point_results
-        this.scan = new ScanQuestion(scan)
+        this.scan = new ScanQuestion({
+            ...scan,
+            file: scan.file
+        })
         this.is_grading = is_grading
         this.student_handwriting_percent = student_handwriting_percent
 
@@ -1803,7 +2088,7 @@ class StudentQuestionResult {
         this.is_grading = true
 
         if ((!this.question.is_draw_question && this.scan.text.length == 0) ||
-            (this.question.is_draw_question && this.scan.base64Image.length == 0)
+            (this.question.is_draw_question && this.scan.file.base64Data.length == 0)
         ) {
             console.log('No answer found for: student ', this.student.student_id, ' question: ', this.question.question_number)
             return
@@ -1828,7 +2113,7 @@ class StudentQuestionResult {
                 rubric: context.getRubric(this.question.question_number),
                 question: context.getQuestion(this.question.question_number),
                 answer: this.question.is_draw_question ? "" : this.scan.text,
-                studentImage: this.question.is_draw_question ? this.scan.base64Image : undefined,
+                studentImage: this.question.is_draw_question ? this.scan.file.base64Data : undefined,
                 model: this.student.test.gpt_model,
                 provider: this.student.test.gpt_provider,
             })
@@ -1863,6 +2148,11 @@ class StudentQuestionResult {
                     this.point_results[response_point.point_index - lowest_point_index].feedback = response_point.feedback
                 }
             })
+            this.grade_instance = new GradeInstance({
+                is_gpt: true,
+                model: response.model,
+                provider: response.provider
+            })
         }
 
         this.is_grading = false
@@ -1887,12 +2177,272 @@ class StudentPointResult {
         return this.student_result.question.points.find(e => e.point_index == this.point_index) || new RubricPoint({})
     }
 }
+class TestManager {
+    constructor() {
+        this.tests = [];
+        this.loading = false;
+        this.searchQuery = '';
+    }
+
+    async fetchTests() {
+        this.loading = true;
+        const userStore = useUserStore();
+
+        if (!userStore.user) {
+            console.error("No user logged in.");
+            this.loading = false;
+            return;
+        }
+
+      let query = supabase
+      .from('tests')
+      .select('*, gpt_tests_settings(*), gpt_questions_settings(*), test_pdf_settings(*), targets(*), questions(*, rubric_points(*)), students(*, students_question_results(*, grade_instances(*), students_points_results(*))), files(*)',
+      { count: 'exact' }) // Fetch row count
+
+        // Apply filters based on user role and test visibility.
+        if (userStore.isAdmin) {
+            // Admins can see all tests.
+        } else {
+            // Regular users see their own tests and public tests.
+            query = query.or(`user_id.eq.${userStore.user.id},is_public.eq.true`);
+        }
+
+      const { data, error, count } = await query;
+
+      if (error) {
+            console.error("Error fetching tests:", error);
+            this.loading = false;
+            return;
+        }
+      this.tests = data.map(testData => this.loadTestFromData(testData))
+
+      this.loading = false;
+      console.log('Test count: ', count)
+    }
+
+    // Add method to load a single test (used by TestView)
+    async fetchTest(testId) {
+        this.loading = true
+        const { data, error } = await supabase
+            .from('tests')
+            .select('*, gpt_tests_settings(*), gpt_questions_settings(*), test_pdf_settings(*), targets(*), questions(*, rubric_points(*)), students(*, students_question_results(*, grade_instances(*), students_points_results(*))), files(*)')
+            .eq('id', testId)
+            .single(); // Important: Use .single() for fetching one test.
+
+        this.loading = false
+        if (error) {
+            console.error("Error fetching test:", error);
+            throw error; // Re-throw so calling component can handle
+        }
+        if (data) {
+          return this.loadTestFromData(data)
+        }
+        return null
+    }
+    loadTestFromData(testData){
+      const test = new Test({
+          id: testData.id,
+          user_id: testData.user_id,
+          name: testData.name, // Add test name loading.
+          is_public: testData.is_public, // Load is_public
+          gpt_provider: testData.gpt_provider,
+          gpt_model: testData.gpt_model,
+          grade_rules: testData.grade_rules,
+          test_data_result: testData.test_data_result,
+
+      });
+
+      // Load related data (similar to your existing TestManager, but simplified)
+      testData.files.forEach(fileData => {
+          const file = new File({
+              id: fileData.id,
+              test_id: fileData.test_id,
+              student_question_result_id: fileData.student_question_result_id,
+              location: fileData.location,
+              file_type: fileData.file_type,
+              is_stored: true, // Since it's loaded from DB, it's stored.
+          });
+
+          //put them into the right test file fields
+          const file_type = file.file_type.split('.')[0]
+          if (Object.keys(test.files).includes(file_type)) {
+            test.files[file_type] = file
+          }
+      });
 
 
+      if (testData.gpt_tests_settings) {
+          test.gpt_test = new GptTestSettings({
+            ...testData.gpt_tests_settings,
+            test: test, // Pass the test instance. VERY IMPORTANT.
+            id: testData.gpt_tests_settings.id
+        });
+
+      }
+      if (testData.gpt_questions_settings) {
+          test.gpt_question = new GptQuestionSettings({
+            ...testData.gpt_questions_settings,
+            test: test,
+            id: testData.gpt_questions_settings.id
+
+        });
+      }
+
+      if (testData.test_pdf_settings) {
+          test.test_settings = new TestPdfSettings({
+              ...testData.test_pdf_settings,
+              id: testData.test_pdf_settings.id
+          });
+      }
+      if (testData.targets){
+          test.targets = testData.targets.map(targetData => new Target({
+              test: test,
+              ...targetData
+          }));
+      }
+      if (testData.questions){
+          test.questions = testData.questions.map(questionData => {
+            const question = new Question({
+              test: test,
+              ...questionData
+            })
+            question.points = questionData.rubric_points.map(pointData => new RubricPoint({
+                question: question,
+                ...pointData,
+                target: test.targets.find(e => e.id == pointData.target_id) || new Target({})
+            }))
+            return question
+          })
+      }
+      if(testData.students){
+          test.students = testData.students.map(studentData => {
+            const student = new Student({
+                test: test,
+                ...studentData
+            });
+            //load results
+            student.results = studentData.students_question_results.map(resultData => {
+              const question_result = new StudentQuestionResult({
+                  student: student,
+                  ...resultData
+              })
+
+              //get files
+              const resultFile = testData.files.find(e => e.student_question_result_id == question_result.id)
+              if (resultFile) {
+                  question_result.scan.file = new File({
+                      id: resultFile.id,
+                      location: resultFile.location,
+                      file_type: resultFile.file_type,
+                      is_stored: true
+                  })
+              }
+              //get points
+              resultData.students_points_results.forEach(pointResultData => {
+                  question_result.point_results[pointResultData.point_index] = new StudentPointResult({
+                      student_result: question_result,
+                      ...pointResultData
+                  });
+              });
+              //get grade
+              question_result.grade_instance = new GradeInstance({
+                  ...resultData.grade_instances
+              })
+
+              return question_result
+          })
+
+          return student;
+          })
+      }
+        return test;
+
+    }
 
 
+    async deleteTest(testId) {
+        const testIndex = this.tests.findIndex(test => test.id === testId);
+        if (testIndex === -1) {
+            console.error("Test not found in TestManager.");
+            return;
+        }
+
+        const test = this.tests[testIndex];
+
+        // Delete files from Google Cloud Storage
+        try {
+            // Delete test-level files
+            for (const fileKey in test.files) {
+                if (test.files[fileKey]?.is_stored) {
+                    await test.files[fileKey].deleteFromStorage();
+                }
+            }
+            // Delete student answer files, sections and pages
+            test.students.forEach(student => {
+                student.results.forEach(async result => {
+                    if (result.scan.file?.is_stored) {
+                        await result.scan.file.deleteFromStorage()
+                    }
+                })
+            })
+
+            test.pages.forEach(page => {
+                if (page.file?.is_stored) {
+                    page.file.deleteFromStorage()
+                }
+                page.sections.forEach(section => {
+                    if (section.file_full?.is_stored) {
+                        section.file_full.deleteFromStorage()
+                    }
+                    if (section.file_section_finder?.is_stored) {
+                        section.file_section_finder.deleteFromStorage()
+                    }
+                    if (section.file_question_selector?.is_stored) {
+                        section.file_question_selector.deleteFromStorage()
+                    }
+                    if (section.file_answer?.is_stored) {
+                        section.file_answer.deleteFromStorage()
+                    }
+                })
+            })
 
 
+        } catch (error) {
+            console.error("Error deleting files from storage:", error);
+            // Even if file deletion fails, proceed with deleting from the database
+        }
+
+        // Delete from Supabase
+        const {
+            error
+        } = await supabase.from('tests').delete().eq('id', testId);
+
+        if (error) {
+            console.error("Error deleting test from Supabase:", error);
+            return; // Don't remove from local array if database deletion fails
+        }
+        //delete files from supabase
+        const {
+            error: fileError
+        } = await supabase.from('files').delete().eq('test_id', testId)
+        if (fileError) {
+            console.log('File delete error', fileError)
+        }
+
+
+        // Remove from the local array *only* if database deletion is successful
+        this.tests.splice(testIndex, 1);
+    }
+    get filteredTests() {
+        if (!this.searchQuery) {
+            return this.tests;
+        }
+        const query = this.searchQuery.toLowerCase();
+        return this.tests.filter(test =>
+            test.test_settings.test_name.toLowerCase().includes(query)
+        );
+    }
+}
 
 
 
@@ -1910,5 +2460,8 @@ export {
     Student,
     StudentQuestionResult,
     StudentPointResult,
+    File,
+    TestManager,
 
 }
+// --- END OF FILE scan_api_classes.js ---

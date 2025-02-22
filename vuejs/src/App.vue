@@ -1,92 +1,74 @@
 <template lang="pug">
 v-app
+    v-app-bar(app color="primary" dark)
+        v-toolbar-title Toets PWS
+        v-spacer
+        v-btn(text @click="navigate('tests')") Tests
+        v-btn(text v-if="user" @click="navigate('home')") Maak en Scan
+        v-btn(text  @click="navigate('pdf')") Bekijk PWS
+        v-btn(text v-if="!user" @click="signInWithGoogle") Login with Google
+        v-btn(text v-if="user" @click="navigate('account')") Account
+        v-btn(text v-if="user" @click="signOut") Logout
+
     v-main
-        router-view
+        router-view(@update:user="setUser")
+
 </template>
 
 <script>
-// Data 
-
-
-// Components
-
+import {
+    useUserStore
+} from '@/stores/user_store';
+import {
+    onMounted,
+    computed
+} from 'vue';
+import {
+    supabase
+} from '@/supabase.js'
 
 export default {
     name: 'App',
-    components: {
-    
-    },
-    props: {
-    
-    },
-    emits: [],
     setup() {
-        
-    },
-    data(){
+        const userStore = useUserStore();
+
+        // Use computed property for user
+        const user = computed(() => userStore.user);
+        const isAdmin = computed(() => userStore.isAdmin);
+
+        onMounted(async () => {
+            await userStore.fetchUser(); // Fetch user on mount.
+            userStore.handleAuthStateChange(); // Set up the auth state listener
+        });
+
         return {
-             
+            user, // Return the computed property.
+            isAdmin,
+            userStore
         }
     },
-    computed: {
-    
-    },
     methods: {
-    
-    },
-    watch: {
-    
-    },
-    // created() {
-    
-    // },
-    mounted() {
-    },
-    
-    
+        navigate(route) {
+            this.$router.push({
+                name: route
+            });
+        },
+        async signInWithGoogle() {
+            await this.userStore.signInWithGoogle()
+        },
+        async signOut() {
+            await this.userStore.signOut();
+            this.$router.push({
+                name: 'home'
+            });
+        },
+        setUser(updatedUser) { // Method to update user state from child components
+            this.userStore.user = updatedUser;
+        },
+    }
 }
 </script>
-    
-<style >
-html {
-    overflow-y: hidden;
-}
 
-h1, h2, h3, h4, p{
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    -webkit-hyphens: auto;
-    -moz-hyphens: auto;
-    -ms-hyphens: auto;
-    hyphens: auto;
-}
-
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-    border-radius: 6px;
-    background: #5a5a5a47;
-
-}
- 
-/* Track */
-/* ::-webkit-scrollbar-track {
-} */
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-    opacity: 0.6;
-    /* border: solid 1px #13163b; */
-    background: #646464;
-    border-radius: 6px;
-}
-
-.v-btn__content { width: 100%; white-space: normal; }
-
-.truncate { 
-  width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+<style scoped>
+/* Add additional styling as needed */
 </style>
