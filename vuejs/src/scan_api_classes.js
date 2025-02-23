@@ -747,12 +747,12 @@ class GptTestSettings {
 
 class TestPdfSettings {
     constructor({
-        test_name = "",
+        name = "",
         show_targets = true,
         show_answers = false,
         output_type = 'docx'
     }) {
-        this.test_name = test_name
+        this.name = name
         this.show_targets = show_targets
         this.show_answers = show_answers
         this.output_type = output_type
@@ -791,9 +791,13 @@ class Test {
         gpt_provider = "google",
         gpt_model = "gemini-2.0-flash",
         grade_rules = "",
+        name="",
+        is_public=false
+
     }) {
         this.id = id
         this.user_id = user_id;
+        this.name = name
         this.files = {
             test: new File({
                 ...files.test,
@@ -853,6 +857,8 @@ class Test {
         this.gpt_provider = gpt_provider
         this.gpt_model = gpt_model
         this.grade_rules = grade_rules
+
+        this.is_public = is_public
 
     }
     get modelConfig() {
@@ -1479,564 +1485,983 @@ class Test {
         this.saved_grade_data = saved_grade_data
         this.saved_output = saved_output
     }
-        async saveToDatabase() {
+    // async saveToDatabase() {
+    //     this.loading.save_to_database = true;
+    //     const userStore = useUserStore();
+    //     if (!userStore.user) {
+    //         console.error("No user logged in.");
+    //         this.loading.save_to_database = false;
+    //         return;
+    //     }
+    //     this.user_id = userStore.user.id;
+
+    //     let testId;
+    //     let savedTest;
+    //     let testError;
+
+    //     const testData = {
+    //         user_id: this.user_id,
+    //         name: this.test_settings.name,
+    //         is_public: false,
+    //         gpt_provider: this.gpt_provider,
+    //         gpt_model: this.gpt_model,
+    //         grade_rules: this.grade_rules,
+    //         test_data_result: this.test_data_result,
+    //     };
+        
+
+    //     if (this.id) {
+    //         // Update existing test
+    //         ({
+    //             data: savedTest,
+    //             error: testError
+    //         } = await supabase
+    //             .from('tests')
+    //             .update(testData)
+    //             .eq('id', this.id)
+    //             .select());
+    //         if (savedTest && savedTest.length > 0) {
+    //             testId = savedTest[0].id;
+    //         } else {
+    //             testId = this.id; // Keep existing id if select returns empty
+    //         }
+
+    //     } else {
+    //         // Insert new test
+    //         ({
+    //             data: savedTest,
+    //             error: testError
+    //         } = await supabase
+    //             .from('tests')
+    //             .insert([testData])
+    //             .select());
+    //         if (savedTest && savedTest.length > 0) {
+    //             testId = savedTest[0].id;
+    //             this.id = testId; // Set this.id for future updates
+    //         }
+    //     }
+
+
+    //     if (testError) {
+    //         console.error("Error saving test:", testError);
+    //         this.loading.save_to_database = false;
+    //         return;
+    //     }
+
+
+    //     await Promise.all(Object.keys(this.files).map(async key => {
+    //         if (this.files[key].raw) {
+    //             this.files[key].base64Data = this.files[key].raw
+    //         }
+    //         await this.files[key].store(this.id)
+
+    //         const fileData = {
+    //             test_id: this.id,
+    //             location: this.files[key].location,
+    //             file_type: this.files[key].file_type,
+    //         };
+
+    //         if (this.files[key].id) {
+    //             const {
+    //                 error
+    //             } = await supabase
+    //                 .from('files')
+    //                 .update(fileData)
+    //                 .eq('id', this.files[key].id)
+    //             if (error) {
+    //                 console.log('File update error: ', error)
+    //             }
+    //         } else {
+    //             const {
+    //                 error
+    //             } = await supabase
+    //                 .from('files')
+    //                 .insert([fileData])
+    //             if (error) {
+    //                 console.log('File insert error: ', error)
+    //             }
+    //         }
+    //     }))
+
+    //     //store gpt test settings
+    //     const gptTestData = {
+    //         test_id: testId,
+    //         school_type: this.gpt_test.school_type,
+    //         school_year: this.gpt_test.school_year,
+    //         school_subject: this.gpt_test.school_subject,
+    //         subject: this.gpt_test.subject,
+    //         learned: this.gpt_test.learned,
+    //         requested_topics: this.gpt_test.requested_topics,
+    //     };
+
+    //     let gptTestError;
+    //     if (this.gpt_test.id) {
+    //         ({
+    //             error: gptTestError
+    //         } = await supabase
+    //             .from('gpt_tests_settings')
+    //             .update(gptTestData)
+    //             .eq('id', this.gpt_test.id));
+    //     } else {
+    //         ({
+    //             error: gptTestError
+    //         } = await supabase
+    //             .from('gpt_tests_settings')
+    //             .insert([gptTestData]));
+    //     }
+
+
+    //     if (gptTestError)
+    //         console.error("Error saving GPT Test settings:", gptTestError);
+
+    //     // Store GPT Question settings
+    //     const gptQuestionData = {
+    //         test_id: testId,
+    //         rtti: this.gpt_question.rtti,
+    //         subject: this.gpt_question.subject,
+    //         targets: this.gpt_question.targets,
+    //         point_count: this.gpt_question.point_count,
+    //     };
+
+    //     let gptQuestionError;
+    //     if (this.gpt_question.id) {
+    //         ({
+    //             error: gptQuestionError
+    //         } = await supabase
+    //             .from('gpt_questions_settings')
+    //             .update(gptQuestionData)
+    //             .eq('id', this.gpt_question.id));
+    //     } else {
+    //         ({
+    //             error: gptQuestionError
+    //         } = await supabase
+    //             .from('gpt_questions_settings')
+    //             .insert([gptQuestionData]));
+    //     }
+
+
+    //     if (gptQuestionError)
+    //         console.error("Error saving GPT Question settings:", gptQuestionError);
+
+    //     // Store Test PDF settings
+    //     const testPdfSettingsData = {
+    //         test_id: testId,
+    //         name: this.test_settings.name,
+    //         show_targets: this.test_settings.show_targets,
+    //         show_answers: this.test_settings.show_answers,
+    //         output_type: this.test_settings.output_type,
+    //     };
+
+    //     let testPdfSettingsError;
+    //     if (this.test_settings.pdf_settings_id) { // Assuming you have a way to track pdf_settings_id
+    //         ({
+    //             error: testPdfSettingsError
+    //         } = await supabase
+    //             .from('test_pdf_settings')
+    //             .update(testPdfSettingsData)
+    //             .eq('id', this.test_settings.pdf_settings_id));
+    //     } else {
+    //         ({
+    //             error: testPdfSettingsError
+    //         } = await supabase
+    //             .from('test_pdf_settings')
+    //             .insert([testPdfSettingsData]));
+    //     }
+
+    //     if (testPdfSettingsError)
+    //         console.error("Error saving Test PDF settings:", testPdfSettingsError);
+
+    //     // 2. Store Targets
+    //     for (const target of this.targets) {
+    //         const targetData = {
+    //             test_id: testId,
+    //             target_name: target.target_name,
+    //             explanation: target.explanation,
+    //         };
+    //         let savedTarget;
+    //         let targetError;
+
+    //         if (target.id) {
+    //             ({
+    //                 data: savedTarget,
+    //                 error: targetError
+    //             } = await supabase
+    //                 .from('targets')
+    //                 .update(targetData)
+    //                 .eq('id', target.id)
+    //                 .select());
+    //         } else {
+    //             ({
+    //                 data: savedTarget,
+    //                 error: targetError
+    //             } = await supabase
+    //                 .from('targets')
+    //                 .insert([targetData]).select());
+    //             if (savedTarget && savedTarget.length > 0) {
+    //                 target.id = savedTarget[0].id; // Store the database ID
+    //             }
+    //         }
+
+    //         if (targetError) {
+    //             console.error("Error saving target:", targetError);
+    //             continue; // Skip to the next target on error
+    //         }
+    //     }
+
+    //     // 3. Store Questions and related data
+    //     for (const question of this.questions) {
+    //         const questionData = {
+    //             test_id: testId,
+    //             question_number: question.question_number,
+    //             question_text: question.question_text,
+    //             question_context: question.question_context,
+    //             answer_text: question.base64_answer_text, // Assuming this is text, not a file
+    //             is_draw_question: question.is_draw_question,
+    //         };
+    //         let savedQuestion;
+    //         let questionError;
+
+    //         if (question.id) {
+    //             ({
+    //                 data: savedQuestion,
+    //                 error: questionError
+    //             } = await supabase
+    //                 .from('questions')
+    //                 .update(questionData)
+    //                 .eq('id', question.id)
+    //                 .select());
+    //         } else {
+    //             ({
+    //                 data: savedQuestion,
+    //                 error: questionError
+    //             } = await supabase
+    //                 .from('questions')
+    //                 .insert([questionData]).select());
+
+    //             if (savedQuestion && savedQuestion.length > 0) {
+    //                 question.id = savedQuestion[0].id;
+    //             }
+    //         }
+
+
+    //         if (questionError) {
+    //             console.error("Error saving question:", questionError);
+    //             continue;
+    //         }
+
+
+    //         // Store Rubric Points
+    //         for (const point of question.points) {
+    //             const pointData = {
+    //                 question_id: question.id,
+    //                 point_text: point.point_text,
+    //                 point_name: point.point_name,
+    //                 point_weight: point.point_weight,
+    //                 point_index: point.point_index,
+    //                 target_id: point.target.id, // Use the saved target ID
+    //             };
+    //             let pointError;
+    //             if (point.id) {
+    //                 ({
+    //                     error: pointError
+    //                 } = await supabase
+    //                     .from('rubric_points')
+    //                     .update(pointData)
+    //                     .eq('id', point.id));
+    //             } else {
+    //                 ({
+    //                     error: pointError
+    //                 } = await supabase
+    //                     .from('rubric_points')
+    //                     .insert([pointData]));
+    //             }
+
+    //             if (pointError) console.error("Error saving rubric point:", pointError);
+    //         }
+    //     }
+    //     //store all pages and section files
+    //     for (const page of this.pages) {
+    //         await page.file.store(this.id) // Store the page file
+    //         const pageFileData = {
+    //             test_id: this.id,
+    //             location: page.file.location,
+    //             file_type: page.file.file_type
+    //         }
+    //         if (page.file.id) {
+    //             const {
+    //                 error: pageFileError
+    //             } = await supabase.from('files').update(pageFileData).eq('id', page.file.id)
+    //             if (pageFileError) {
+    //                 console.log('Page file update error: ', pageFileError)
+    //             }
+
+    //         } else {
+    //             const {
+    //                 error: pageFileError
+    //             } = await supabase.from('files').insert([pageFileData])
+    //             if (pageFileError) {
+    //                 console.log('Page insert error: ', pageFileError)
+    //             }
+    //         }
+
+
+    //         for (const section of page.sections) {
+    //             await section.file_full.store(this.id)
+    //             await section.file_section_finder.store(this.id)
+    //             await section.file_question_selector.store(this.id)
+    //             await section.file_answer.store(this.id)
+    //             // Store section details
+    //             const sectionData = {
+    //                 test_id: this.id,
+    //                 question_number: section.question_number,
+    //                 is_qr_section: section.is_qr_section,
+    //                 student_id: section.student_id,
+    //             };
+
+    //             let savedSection;
+    //             let sectionError;
+    //             if (section.id) {
+    //                 ({
+    //                     data: savedSection,
+    //                     error: sectionError
+    //                 } = await supabase.from('sections').update(sectionData).eq('id', section.id).select());
+    //             } else {
+    //                 ({
+    //                     data: savedSection,
+    //                     error: sectionError
+    //                 } = await supabase.from('sections').insert([sectionData]).select());
+    //                 if (savedSection && savedSection.length > 0) {
+    //                     section.id = savedSection[0].id
+    //                 }
+    //             }
+
+    //             if (sectionError) {
+    //                 console.error("Error saving section:", sectionError);
+    //                 continue
+    //             }
+
+    //             const files = [{
+    //                 file: section.file_full,
+    //                 type: 'section_full',
+    //                 obj: section.file_full
+    //             }, {
+    //                 file: section.file_section_finder,
+    //                 type: 'section_finder',
+    //                 obj: section.file_section_finder
+    //             }, {
+    //                 file: section.file_question_selector,
+    //                 type: 'section_question_selector',
+    //                 obj: section.file_question_selector
+    //             }, {
+    //                 file: section.file_answer,
+    //                 type: 'section_answer',
+    //                 obj: section.file_answer
+    //             }]
+
+    //             for (const fileDetail of files) {
+    //                 const sectionFileData = {
+    //                     test_id: this.id,
+    //                     location: fileDetail.file.location,
+    //                     file_type: fileDetail.type
+    //                 }
+    //                 if (fileDetail.obj.id) {
+    //                     const {
+    //                         error: sectionFileError
+    //                     } = await supabase.from('files').update(sectionFileData).eq('id', fileDetail.obj.id)
+    //                     if (sectionFileError) {
+    //                         console.log('Section File update error: ', sectionFileError)
+    //                     }
+    //                 } else {
+    //                     const {
+    //                         error: sectionFileError
+    //                     } = await supabase.from('files').insert([sectionFileData])
+    //                     if (sectionFileError) {
+    //                         console.log('Section File insert error: ', sectionFileError)
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     // 4. Store Students and Results
+    //     for (const student of this.students) {
+    //         const studentData = {
+    //             test_id: testId,
+    //             student_id: student.student_id,
+    //         };
+    //         let savedStudent;
+    //         let studentError;
+
+    //         if (student.id) {
+    //             ({
+    //                 data: savedStudent,
+    //                 error: studentError
+    //             } = await supabase
+    //                 .from('students')
+    //                 .update(studentData)
+    //                 .eq('id', student.id)
+    //                 .select());
+    //         } else {
+    //             ({
+    //                 data: savedStudent,
+    //                 error: studentError
+    //             } = await supabase
+    //                 .from('students')
+    //                 .insert([studentData]).select());
+    //             if (savedStudent && savedStudent.length > 0) {
+    //                 student.id = savedStudent[0].id;
+    //             }
+    //         }
+
+
+    //         if (studentError) {
+    //             console.error("Error saving student:", studentError);
+    //             continue;
+    //         }
+
+
+    //         // Store StudentQuestionResults
+    //         for (const result of student.results) {
+    //             const resultData = {
+    //                 student_id: student.id,
+    //                 question_id: result.question.id,
+    //                 feedback: result.feedback,
+    //                 student_handwriting_percent: result.student_handwriting_percent
+    //             };
+    //             let savedResult;
+    //             let resultError;
+    //             if (result.id) {
+    //                 ({
+    //                     data: savedResult,
+    //                     error: resultError
+    //                 } = await supabase
+    //                     .from('students_question_results')
+    //                     .update(resultData)
+    //                     .eq('id', result.id)
+    //                     .select());
+    //             } else {
+    //                 ({
+    //                     data: savedResult,
+    //                     error: resultError
+    //                 } = await supabase
+    //                     .from('students_question_results')
+    //                     .insert([resultData]).select());
+
+    //                 if (savedResult && savedResult.length > 0) {
+    //                     result.id = savedResult[0].id;
+    //                 }
+    //             }
+
+
+    //             if (resultError) {
+    //                 console.error("Error saving student question result:", resultError);
+    //                 continue;
+    //             }
+
+
+    //             //store the result file
+    //             if (result.scan.file) {
+
+    //                 await result.scan.file.store(null, result.id)
+    //                 const resultFileData = {
+    //                     student_question_result_id: result.id,
+    //                     location: result.scan.file.location,
+    //                     file_type: result.scan.file.file_type,
+    //                 }
+    //                 if (result.scan.file.id) {
+    //                     const {
+    //                         error
+    //                     } = await supabase
+    //                         .from('files')
+    //                         .update(resultFileData)
+    //                         .eq('id', result.scan.file.id)
+    //                     if (error) {
+    //                         console.log('result File update error: ', error)
+    //                     }
+    //                 } else {
+    //                     const {
+    //                         error
+    //                     } = await supabase
+    //                         .from('files')
+    //                         .insert([resultFileData])
+    //                     if (error) {
+    //                         console.log('result File insert error: ', error)
+    //                     }
+    //                 }
+
+    //             }
+    //             // Store StudentPointResults (linking to RubricPoint)
+    //             for (const pointIndex in result.point_results) {
+    //                 const pointResult = result.point_results[pointIndex];
+    //                 const pointResultData = {
+    //                     student_question_result_id: result.id,
+    //                     point_index: pointResult.point_index,
+    //                     has_point: pointResult.has_point,
+    //                     feedback: pointResult.feedback,
+    //                 };
+    //                 let pointResultError;
+    //                 if (pointResult.id) {
+    //                     ({
+    //                         error: pointResultError
+    //                     } = await supabase
+    //                         .from('students_points_results')
+    //                         .update(pointResultData)
+    //                         .eq('id', pointResult.id));
+    //                 } else {
+    //                     ({
+    //                         error: pointResultError
+    //                     } = await supabase
+    //                         .from('students_points_results')
+    //                         .insert([pointResultData]));
+    //                 }
+
+    //                 if (pointResultError)
+    //                     console.error("Error saving student point result:", pointResultError);
+    //             }
+    //             //store grade instance
+    //             const gradeInstanceData = {
+    //                 student_question_result_id: result.id,
+    //                 is_gpt: result.grade_instance.is_gpt,
+    //                 model: result.grade_instance.model,
+    //                 provider: result.grade_instance.provider
+    //             }
+    //             let gradeError;
+    //             if (result.grade_instance.id) {
+    //                 ({
+    //                     error: gradeError
+    //                 } = await supabase.from('grade_instances').update(gradeInstanceData).eq('id', result.grade_instance.id))
+    //             } else {
+    //                 ({
+    //                     error: gradeError
+    //                 } = await supabase.from('grade_instances').insert([gradeInstanceData]))
+    //             }
+
+    //             if (gradeError) {
+    //                 console.log('Grade error: ', gradeError)
+    //             }
+    //         }
+    //     }
+
+    //     this.loading.save_to_database = false;
+    // }
+
+
+    async uploadTestMetadataFunction() {
         this.loading.save_to_database = true;
+        console.log("Test: Starting Test Metadata Upsert (Create or Update)...");
+
         const userStore = useUserStore();
         if (!userStore.user) {
-            console.error("No user logged in.");
+            console.error("Test: No user logged in.");
             this.loading.save_to_database = false;
-            return;
+            return false;
         }
         this.user_id = userStore.user.id;
 
-        let testId;
-        let savedTest;
-        let testError;
-
         const testData = {
+            id: this.id || undefined, // Include ID, use undefined if this.id is not set for new insert
             user_id: this.user_id,
-            name: this.test_settings.test_name,
-            is_public: false,
+            name: this.name,
+            is_public: this.is_public,
             gpt_provider: this.gpt_provider,
             gpt_model: this.gpt_model,
-            grade_rules: this.grade_rules,
-            test_data_result: this.test_data_result,
+            grade_rules: this.grade_rules || "",
+            test_data_result: this.test_data_result ? { ...this.test_data_result, questions: [], targets: [] } : null, // Minimal data for now
         };
 
-        if (this.id) {
-            // Update existing test
-            ({
-                data: savedTest,
-                error: testError
-            } = await supabase
+        try {
+            const { data: savedTest, error: testError } = await supabase
                 .from('tests')
-                .update(testData)
-                .eq('id', this.id)
-                .select());
+                .upsert([testData], { onConflict: ['id'] }) // Use upsert, specify 'id' for onConflict
+                .select();
+
+            if (testError) {
+                console.error("Test: Error during Test Metadata Upsert:", testError);
+                this.loading.save_to_database = false;
+                return false;
+            }
+
             if (savedTest && savedTest.length > 0) {
-                testId = savedTest[0].id;
+                if (!this.id) {
+                    this.id = savedTest[0].id; // If it was a new insert, get the new ID
+                }
+                console.log(`Test: Test Metadata Upserted Successfully. Test ID: ${this.id} (Created or Updated)`);
+                this.loading.save_to_database = false;
+                return true;
             } else {
-                testId = this.id; // Keep existing id if select returns empty
+                console.warn("Test: Test Metadata Upserted, but no data returned (check logs).");
+                this.loading.save_to_database = false;
+                return false; // Technically upserted, but no data back is unexpected
             }
 
-        } else {
-            // Insert new test
-            ({
-                data: savedTest,
-                error: testError
-            } = await supabase
-                .from('tests')
-                .insert([testData])
-                .select());
-            if (savedTest && savedTest.length > 0) {
-                testId = savedTest[0].id;
-                this.id = testId; // Set this.id for future updates
-            }
-        }
-
-
-        if (testError) {
-            console.error("Error saving test:", testError);
+        } catch (e) {
+            console.error("Test: Exception during Test Metadata Upsert:", e);
             this.loading.save_to_database = false;
-            return;
+            return false;
         }
-
-
-        await Promise.all(Object.keys(this.files).map(async key => {
-            if (this.files[key].raw) {
-                this.files[key].base64Data = this.files[key].raw
-            }
-            await this.files[key].store(this.id)
-
-            const fileData = {
-                test_id: this.id,
-                location: this.files[key].location,
-                file_type: this.files[key].file_type,
-            };
-
-            if (this.files[key].id) {
-                const {
-                    error
-                } = await supabase
-                    .from('files')
-                    .update(fileData)
-                    .eq('id', this.files[key].id)
-                if (error) {
-                    console.log('File update error: ', error)
-                }
-            } else {
-                const {
-                    error
-                } = await supabase
-                    .from('files')
-                    .insert([fileData])
-                if (error) {
-                    console.log('File insert error: ', error)
-                }
-            }
-        }))
-
-        //store gpt test settings
-        const gptTestData = {
-            test_id: testId,
-            school_type: this.gpt_test.school_type,
-            school_year: this.gpt_test.school_year,
-            school_subject: this.gpt_test.school_subject,
-            subject: this.gpt_test.subject,
-            learned: this.gpt_test.learned,
-            requested_topics: this.gpt_test.requested_topics,
-        };
-
-        let gptTestError;
-        if (this.gpt_test.id) {
-            ({
-                error: gptTestError
-            } = await supabase
-                .from('gpt_tests_settings')
-                .update(gptTestData)
-                .eq('id', this.gpt_test.id));
-        } else {
-            ({
-                error: gptTestError
-            } = await supabase
-                .from('gpt_tests_settings')
-                .insert([gptTestData]));
-        }
-
-
-        if (gptTestError)
-            console.error("Error saving GPT Test settings:", gptTestError);
-
-        // Store GPT Question settings
-        const gptQuestionData = {
-            test_id: testId,
-            rtti: this.gpt_question.rtti,
-            subject: this.gpt_question.subject,
-            targets: this.gpt_question.targets,
-            point_count: this.gpt_question.point_count,
-        };
-
-        let gptQuestionError;
-        if (this.gpt_question.id) {
-            ({
-                error: gptQuestionError
-            } = await supabase
-                .from('gpt_questions_settings')
-                .update(gptQuestionData)
-                .eq('id', this.gpt_question.id));
-        } else {
-            ({
-                error: gptQuestionError
-            } = await supabase
-                .from('gpt_questions_settings')
-                .insert([gptQuestionData]));
-        }
-
-
-        if (gptQuestionError)
-            console.error("Error saving GPT Question settings:", gptQuestionError);
-
-        // Store Test PDF settings
-        const testPdfSettingsData = {
-            test_id: testId,
-            test_name: this.test_settings.test_name,
-            show_targets: this.test_settings.show_targets,
-            show_answers: this.test_settings.show_answers,
-            output_type: this.test_settings.output_type,
-        };
-
-        let testPdfSettingsError;
-        if (this.test_settings.pdf_settings_id) { // Assuming you have a way to track pdf_settings_id
-            ({
-                error: testPdfSettingsError
-            } = await supabase
-                .from('test_pdf_settings')
-                .update(testPdfSettingsData)
-                .eq('id', this.test_settings.pdf_settings_id));
-        } else {
-            ({
-                error: testPdfSettingsError
-            } = await supabase
-                .from('test_pdf_settings')
-                .insert([testPdfSettingsData]));
-        }
-
-        if (testPdfSettingsError)
-            console.error("Error saving Test PDF settings:", testPdfSettingsError);
-
-        // 2. Store Targets
-        for (const target of this.targets) {
-            const targetData = {
-                test_id: testId,
-                target_name: target.target_name,
-                explanation: target.explanation,
-            };
-            let savedTarget;
-            let targetError;
-
-            if (target.id) {
-                ({
-                    data: savedTarget,
-                    error: targetError
-                } = await supabase
-                    .from('targets')
-                    .update(targetData)
-                    .eq('id', target.id)
-                    .select());
-            } else {
-                ({
-                    data: savedTarget,
-                    error: targetError
-                } = await supabase
-                    .from('targets')
-                    .insert([targetData]).select());
-                if (savedTarget && savedTarget.length > 0) {
-                    target.id = savedTarget[0].id; // Store the database ID
-                }
-            }
-
-            if (targetError) {
-                console.error("Error saving target:", targetError);
-                continue; // Skip to the next target on error
-            }
-        }
-
-        // 3. Store Questions and related data
-        for (const question of this.questions) {
-            const questionData = {
-                test_id: testId,
-                question_number: question.question_number,
-                question_text: question.question_text,
-                question_context: question.question_context,
-                answer_text: question.base64_answer_text, // Assuming this is text, not a file
-                is_draw_question: question.is_draw_question,
-            };
-            let savedQuestion;
-            let questionError;
-
-            if (question.id) {
-                ({
-                    data: savedQuestion,
-                    error: questionError
-                } = await supabase
-                    .from('questions')
-                    .update(questionData)
-                    .eq('id', question.id)
-                    .select());
-            } else {
-                ({
-                    data: savedQuestion,
-                    error: questionError
-                } = await supabase
-                    .from('questions')
-                    .insert([questionData]).select());
-
-                if (savedQuestion && savedQuestion.length > 0) {
-                    question.id = savedQuestion[0].id;
-                }
-            }
-
-
-            if (questionError) {
-                console.error("Error saving question:", questionError);
-                continue;
-            }
-
-
-            // Store Rubric Points
-            for (const point of question.points) {
-                const pointData = {
-                    question_id: question.id,
-                    point_text: point.point_text,
-                    point_name: point.point_name,
-                    point_weight: point.point_weight,
-                    point_index: point.point_index,
-                    target_id: point.target.id, // Use the saved target ID
-                };
-                let pointError;
-                if (point.id) {
-                    ({
-                        error: pointError
-                    } = await supabase
-                        .from('rubric_points')
-                        .update(pointData)
-                        .eq('id', point.id));
-                } else {
-                    ({
-                        error: pointError
-                    } = await supabase
-                        .from('rubric_points')
-                        .insert([pointData]));
-                }
-
-                if (pointError) console.error("Error saving rubric point:", pointError);
-            }
-        }
-        //store all pages and section files
-        for (const page of this.pages) {
-            await page.file.store(this.id) // Store the page file
-            const pageFileData = {
-                test_id: this.id,
-                location: page.file.location,
-                file_type: page.file.file_type
-            }
-            if (page.file.id) {
-                const {
-                    error: pageFileError
-                } = await supabase.from('files').update(pageFileData).eq('id', page.file.id)
-                if (pageFileError) {
-                    console.log('Page file update error: ', pageFileError)
-                }
-
-            } else {
-                const {
-                    error: pageFileError
-                } = await supabase.from('files').insert([pageFileData])
-                if (pageFileError) {
-                    console.log('Page insert error: ', pageFileError)
-                }
-            }
-
-
-            for (const section of page.sections) {
-                await section.file_full.store(this.id)
-                await section.file_section_finder.store(this.id)
-                await section.file_question_selector.store(this.id)
-                await section.file_answer.store(this.id)
-                // Store section details
-                const sectionData = {
-                    test_id: this.id,
-                    question_number: section.question_number,
-                    is_qr_section: section.is_qr_section,
-                    student_id: section.student_id,
-                };
-
-                let savedSection;
-                let sectionError;
-                if (section.id) {
-                    ({
-                        data: savedSection,
-                        error: sectionError
-                    } = await supabase.from('sections').update(sectionData).eq('id', section.id).select());
-                } else {
-                    ({
-                        data: savedSection,
-                        error: sectionError
-                    } = await supabase.from('sections').insert([sectionData]).select());
-                    if (savedSection && savedSection.length > 0) {
-                        section.id = savedSection[0].id
-                    }
-                }
-
-                if (sectionError) {
-                    console.error("Error saving section:", sectionError);
-                    continue
-                }
-
-                const files = [{
-                    file: section.file_full,
-                    type: 'section_full',
-                    obj: section.file_full
-                }, {
-                    file: section.file_section_finder,
-                    type: 'section_finder',
-                    obj: section.file_section_finder
-                }, {
-                    file: section.file_question_selector,
-                    type: 'section_question_selector',
-                    obj: section.file_question_selector
-                }, {
-                    file: section.file_answer,
-                    type: 'section_answer',
-                    obj: section.file_answer
-                }]
-
-                for (const fileDetail of files) {
-                    const sectionFileData = {
-                        test_id: this.id,
-                        location: fileDetail.file.location,
-                        file_type: fileDetail.type
-                    }
-                    if (fileDetail.obj.id) {
-                        const {
-                            error: sectionFileError
-                        } = await supabase.from('files').update(sectionFileData).eq('id', fileDetail.obj.id)
-                        if (sectionFileError) {
-                            console.log('Section File update error: ', sectionFileError)
-                        }
-                    } else {
-                        const {
-                            error: sectionFileError
-                        } = await supabase.from('files').insert([sectionFileData])
-                        if (sectionFileError) {
-                            console.log('Section File insert error: ', sectionFileError)
-                        }
-                    }
-                }
-            }
-        }
-        // 4. Store Students and Results
-        for (const student of this.students) {
-            const studentData = {
-                test_id: testId,
-                student_id: student.student_id,
-            };
-            let savedStudent;
-            let studentError;
-
-            if (student.id) {
-                ({
-                    data: savedStudent,
-                    error: studentError
-                } = await supabase
-                    .from('students')
-                    .update(studentData)
-                    .eq('id', student.id)
-                    .select());
-            } else {
-                ({
-                    data: savedStudent,
-                    error: studentError
-                } = await supabase
-                    .from('students')
-                    .insert([studentData]).select());
-                if (savedStudent && savedStudent.length > 0) {
-                    student.id = savedStudent[0].id;
-                }
-            }
-
-
-            if (studentError) {
-                console.error("Error saving student:", studentError);
-                continue;
-            }
-
-
-            // Store StudentQuestionResults
-            for (const result of student.results) {
-                const resultData = {
-                    student_id: student.id,
-                    question_id: result.question.id,
-                    feedback: result.feedback,
-                    student_handwriting_percent: result.student_handwriting_percent
-                };
-                let savedResult;
-                let resultError;
-                if (result.id) {
-                    ({
-                        data: savedResult,
-                        error: resultError
-                    } = await supabase
-                        .from('students_question_results')
-                        .update(resultData)
-                        .eq('id', result.id)
-                        .select());
-                } else {
-                    ({
-                        data: savedResult,
-                        error: resultError
-                    } = await supabase
-                        .from('students_question_results')
-                        .insert([resultData]).select());
-
-                    if (savedResult && savedResult.length > 0) {
-                        result.id = savedResult[0].id;
-                    }
-                }
-
-
-                if (resultError) {
-                    console.error("Error saving student question result:", resultError);
-                    continue;
-                }
-
-
-                //store the result file
-                if (result.scan.file) {
-
-                    await result.scan.file.store(null, result.id)
-                    const resultFileData = {
-                        student_question_result_id: result.id,
-                        location: result.scan.file.location,
-                        file_type: result.scan.file.file_type,
-                    }
-                    if (result.scan.file.id) {
-                        const {
-                            error
-                        } = await supabase
-                            .from('files')
-                            .update(resultFileData)
-                            .eq('id', result.scan.file.id)
-                        if (error) {
-                            console.log('result File update error: ', error)
-                        }
-                    } else {
-                        const {
-                            error
-                        } = await supabase
-                            .from('files')
-                            .insert([resultFileData])
-                        if (error) {
-                            console.log('result File insert error: ', error)
-                        }
-                    }
-
-                }
-                // Store StudentPointResults (linking to RubricPoint)
-                for (const pointIndex in result.point_results) {
-                    const pointResult = result.point_results[pointIndex];
-                    const pointResultData = {
-                        student_question_result_id: result.id,
-                        point_index: pointResult.point_index,
-                        has_point: pointResult.has_point,
-                        feedback: pointResult.feedback,
-                    };
-                    let pointResultError;
-                    if (pointResult.id) {
-                        ({
-                            error: pointResultError
-                        } = await supabase
-                            .from('students_points_results')
-                            .update(pointResultData)
-                            .eq('id', pointResult.id));
-                    } else {
-                        ({
-                            error: pointResultError
-                        } = await supabase
-                            .from('students_points_results')
-                            .insert([pointResultData]));
-                    }
-
-                    if (pointResultError)
-                        console.error("Error saving student point result:", pointResultError);
-                }
-                //store grade instance
-                const gradeInstanceData = {
-                    student_question_result_id: result.id,
-                    is_gpt: result.grade_instance.is_gpt,
-                    model: result.grade_instance.model,
-                    provider: result.grade_instance.provider
-                }
-                let gradeError;
-                if (result.grade_instance.id) {
-                    ({
-                        error: gradeError
-                    } = await supabase.from('grade_instances').update(gradeInstanceData).eq('id', result.grade_instance.id))
-                } else {
-                    ({
-                        error: gradeError
-                    } = await supabase.from('grade_instances').insert([gradeInstanceData]))
-                }
-
-                if (gradeError) {
-                    console.log('Grade error: ', gradeError)
-                }
-            }
-        }
-
-        this.loading.save_to_database = false;
     }
 
+    async uploadGPTSettingsMetadataFunction() {
+        this.loading.save_to_database = true;
+        console.log("Test: Starting GPT Settings Metadata Upload...");
+        if (!this.id) {
+            console.error("Test: Test ID is missing. Run uploadDummyTestFunction() first.");
+            this.loading.save_to_database = false;
+            return false;
+        }
+
+        const gptTestData = {
+            test_id: this.id,
+            school_type: this.gpt_test.school_type || null, // Default values
+            school_year: this.gpt_test.school_year || null,
+            school_subject: this.gpt_test.school_subject || null,
+            subject: this.gpt_test.subject || null,
+            learned: this.gpt_test.learned || null,
+            requested_topics: this.gpt_test.requested_topics || null,
+        };
+
+        const gptQuestionData = {
+            test_id: this.id,
+            rtti: this.gpt_question.rtti || null,
+            subject: this.gpt_question.subject || null,
+            targets: this.gpt_question.targets || null,
+            point_count: this.gpt_question.point_count || 1,
+        };
+
+        const testPdfSettingsData = {
+            test_id: this.id,
+            name: this.test_settings.name || "Test Name",
+            show_targets: this.test_settings.show_targets || false,
+            show_answers: this.test_settings.show_answers || false,
+            output_type: this.test_settings.output_type || "pdf",
+        };
+
+        try {
+            let gptTestError, gptQuestionError, testPdfSettingsError;
+
+            if (this.gpt_test.id) {
+                ({ error: gptTestError } = await supabase.from('gpt_tests_settings').update(gptTestData).eq('id', this.gpt_test.id));
+            } else {
+                ({ error: gptTestError } = await supabase.from('gpt_tests_settings').insert([gptTestData]));
+            }
+            if (gptTestError) console.error("Test: Error saving GPT Test settings:", gptTestError);
+
+            if (this.gpt_question.id) {
+                ({ error: gptQuestionError } = await supabase.from('gpt_questions_settings').update(gptQuestionData).eq('id', this.gpt_question.id));
+            } else {
+                ({ error: gptQuestionError } = await supabase.from('gpt_questions_settings').insert([gptQuestionData]));
+            }
+            if (gptQuestionError) console.error("Test: Error saving GPT Question settings:", gptQuestionError);
+
+            if (this.test_settings.pdf_settings_id) {
+                ({ error: testPdfSettingsError } = await supabase.from('test_pdf_settings').update(testPdfSettingsData).eq('id', this.test_settings.pdf_settings_id));
+            } else {
+                ({ error: testPdfSettingsError } = await supabase.from('test_pdf_settings').insert([testPdfSettingsData]));
+            }
+            if (testPdfSettingsError) console.error("Test: Error saving Test PDF settings:", testPdfSettingsError);
+
+            if (gptTestError || gptQuestionError || testPdfSettingsError) {
+                this.loading.save_to_database = false;
+                return false;
+            }
+
+            console.log("Test: GPT Settings Metadata Uploaded Successfully. Test ID:", this.id);
+            this.loading.save_to_database = false;
+            return true;
+
+        } catch (e) {
+            console.error("Test: Exception uploading GPT settings metadata:", e);
+            this.loading.save_to_database = false;
+            return false;
+        }
+    }
+
+    async uploadTargetsAndQuestionsMetadataFunction() {
+        this.loading.save_to_database = true;
+        console.log("Test: Starting Targets and Questions Metadata Upload...");
+        if (!this.id) {
+            console.error("Test: Test ID is missing. Run uploadDummyTestFunction() first.");
+            this.loading.save_to_database = false;
+            return false;
+        }
+
+        try {
+            // 2. Store Targets (simplified - just names and test_id)
+            for (const target of this.targets) {
+                const targetData = {
+                    test_id: this.id,
+                    target_name: target.target_name, // Default target name
+                    explanation: target.explanation, // Default explanation
+                };
+                let savedTarget, targetError;
+
+                if (target.id) {
+                    ({ data: savedTarget, error: targetError } = await supabase.from('targets').update(targetData).eq('id', target.id).select());
+                } else {
+                    ({ data: savedTarget, error: targetError } = await supabase.from('targets').insert([targetData]).select());
+                    if (savedTarget && savedTarget.length > 0) {
+                        target.id = savedTarget[0].id; // Store the database ID
+                    }
+                }
+                if (targetError) {
+                    console.error("Test: Error saving target:", targetError);
+                    return false; // Indicate failure
+                }
+            }
+
+            // 3. Store Questions and Rubric Points (simplified - basic question data and point names)
+            for (const question of this.questions) {
+                const questionData = {
+                    test_id: this.id,
+                    question_number: question.question_number || "1", // Default question number
+                    question_text: question.question_text || "Question Text", // Default question text
+                    question_context: question.question_context || "Question Context",
+                    answer_text: question.base64_answer_text || "Answer Text",
+                    is_draw_question: question.is_draw_question || false,
+                };
+                let savedQuestion, questionError;
+
+                if (question.id) {
+                    ({ data: savedQuestion, error: questionError } = await supabase.from('questions').update(questionData).eq('id', question.id).select());
+                } else {
+                    ({ data: savedQuestion, error: questionError } = await supabase.from('questions').insert([questionData]).select());
+                    if (savedQuestion && savedQuestion.length > 0) {
+                        question.id = savedQuestion[0].id;
+                    }
+                }
+                if (questionError) {
+                    console.error("Test: Error saving question:", questionError);
+                    return false; // Indicate failure
+                }
+
+                // Store Rubric Points (simplified - just point_name and question_id)
+                for (const point of question.points) {
+                    const pointData = {
+                        question_id: question.id,
+                        point_text: point.point_text || "Point Text",
+                        point_name: point.point_name || "Point Name",
+                        point_weight: point.point_weight || 1,
+                        point_index: point.point_index || 0,
+                        target_id: point.target?.id, // Use the saved target ID
+                    };
+                    let pointError;
+                    if (point.id) {
+                        ({ error: pointError } = await supabase.from('rubric_points').update(pointData).eq('id', point.id));
+                    } else {
+                        ({ error: pointError } = await supabase.from('rubric_points').insert([pointData]));
+                    }
+                    if (pointError) {
+                        console.error("Test: Error saving rubric point:", pointError);
+                        return false; // Indicate failure
+                    }
+                }
+            }
+
+            console.log("Test: Targets and Questions Metadata Uploaded Successfully. Test ID:", this.id);
+            this.loading.save_to_database = false;
+            return true;
+
+        } catch (e) {
+            console.error("Test: Exception uploading targets and questions metadata:", e);
+            this.loading.save_to_database = false;
+            return false;
+        }
+    }
+
+    async uploadPagesAndSectionsMetadataFunction() {
+        this.loading.save_to_database = true;
+        console.log("Test: Starting Pages and Sections Metadata Upload...");
+        if (!this.id) {
+            console.error("Test: Test ID is missing. Run uploadDummyTestFunction() first.");
+            this.loading.save_to_database = false;
+            return false;
+        }
+
+        try {
+            // Store all pages and section metadata (excluding files for now)
+            for (const page of this.pages) {
+                const pageData = {
+                    test_id: this.id,
+                    // No file location for now
+                    file_type: page.file.file_type || "pdf" // Keep file_type metadata
+                }
+                let savedPage, pageError;
+                if (page.file.id) {
+                    ({ data: savedPage, error: pageError } = await supabase.from('files').update(pageData).eq('id', page.file.id)) // Assuming 'files' table for pages too
+                } else {
+                    ({ data: savedPage, error: pageError } = await supabase.from('files').insert([pageData])) // Assuming 'files' table for pages too
+                }
+                if (pageError) {
+                    console.error('Test: Page metadata save error: ', pageError);
+                    return false;
+                }
+
+
+                for (const section of page.sections) {
+                    // Store section details (no file locations for now)
+                    const sectionData = {
+                        test_id: this.id,
+                        question_number: section.question_number || 0, // Default question number
+                        is_qr_section: section.is_qr_section || false,
+                        student_id: section.student_id || "unknown_student",
+                    };
+
+                    let savedSection, sectionError;
+                    if (section.id) {
+                        ({ data: savedSection, error: sectionError } = await supabase.from('sections').update(sectionData).eq('id', section.id).select());
+                    } else {
+                        ({ data: savedSection, error: sectionError } = await supabase.from('sections').insert([sectionData]).select());
+                        if (savedSection && savedSection.length > 0) {
+                            section.id = savedSection[0].id
+                        }
+                    }
+                    if (sectionError) {
+                        console.error("Test: Error saving section:", sectionError);
+                        return false;
+                    }
+                }
+            }
+
+            console.log("Test: Pages and Sections Metadata Uploaded Successfully. Test ID:", this.id);
+            this.loading.save_to_database = false;
+            return true;
+
+        } catch (e) {
+            console.error("Test: Exception uploading pages and sections metadata:", e);
+            this.loading.save_to_database = false;
+            return false;
+        }
+    }
+
+
+    async uploadStudentsAndResultsMetadataFunction() {
+        this.loading.save_to_database = true;
+        console.log("Test: Starting Students and Results Metadata Upload...");
+        if (!this.id) {
+            console.error("Test: Test ID is missing. Run uploadDummyTestFunction() first.");
+            this.loading.save_to_database = false;
+            return false;
+        }
+
+        try {
+            // 4. Store Students and Results
+            for (const student of this.students) {
+                const studentData = {
+                    test_id: this.id,
+                    student_id: student.student_id || "unknown_student", // Default student ID
+                };
+                let savedStudent, studentError;
+
+                if (student.id) {
+                    ({ data: savedStudent, error: studentError } = await supabase.from('students').update(studentData).eq('id', student.id).select());
+                } else {
+                    ({ data: savedStudent, error: studentError } = await supabase.from('students').insert([studentData]).select());
+                    if (savedStudent && savedStudent.length > 0) {
+                        student.id = savedStudent[0].id;
+                    }
+                }
+                if (studentError) {
+                    console.error("Test: Error saving student:", studentError);
+                    return false; // Indicate failure
+                }
+
+                // Store StudentQuestionResults (simplified - feedback and student_id)
+                for (const result of student.results) {
+                    const resultData = {
+                        student_id: student.id,
+                        question_id: result.question.id,
+                        feedback: result.feedback || "No feedback", // Default feedback
+                        student_handwriting_percent: result.student_handwriting_percent || 0,
+                    };
+                    let savedResult, resultError;
+                    if (result.id) {
+                        ({ data: savedResult, error: resultError } = await supabase.from('students_question_results').update(resultData).eq('id', result.id).select());
+                    } else {
+                        ({ data: savedResult, error: resultError } = await supabase.from('students_question_results').insert([resultData]).select());
+                        if (savedResult && savedResult.length > 0) {
+                            result.id = savedResult[0].id;
+                        }
+                    }
+                    if (resultError) {
+                        console.error("Test: Error saving student question result:", resultError);
+                        return false; // Indicate failure
+                    }
+
+
+                    // Store StudentPointResults (simplified - just has_point and student_question_result_id)
+                    for (const pointIndex in result.point_results) {
+                        const pointResult = result.point_results[pointIndex];
+                        const pointResultData = {
+                            student_question_result_id: result.id,
+                            point_index: pointResult.point_index,
+                            has_point: pointResult.has_point || false, // Default has_point
+                            feedback: pointResult.feedback || "No point feedback", // Default point feedback
+                        };
+                        let pointResultError;
+                        if (pointResult.id) {
+                            ({ error: pointResultError } = await supabase.from('students_points_results').update(pointResultData).eq('id', pointResult.id));
+                        } else {
+                            ({ error: pointResultError } = await supabase.from('students_points_results').insert([pointResultData]));
+                        }
+                        if (pointResultError) {
+                            console.error("Test: Error saving student point result:", pointResultError);
+                            return false; // Indicate failure
+                        }
+                    }
+
+                    // Store Grade Instance (simplified - just is_gpt and student_question_result_id)
+                    const gradeInstanceData = {
+                        student_question_result_id: result.id,
+                        is_gpt: result.grade_instance.is_gpt || false, // Default is_gpt
+                        model: result.grade_instance.model || "default_model", // Default model
+                        provider: result.grade_instance.provider || "default_provider", // Default provider
+                    }
+                    let gradeError;
+                    if (result.grade_instance.id) {
+                        ({ error: gradeError } = await supabase.from('grade_instances').update(gradeInstanceData).eq('id', result.grade_instance.id))
+                    } else {
+                        ({ error: gradeError } = await supabase.from('grade_instances').insert([gradeInstanceData]))
+                    }
+                    if (gradeError) {
+                        console.error('Test: Grade error: ', gradeError);
+                        return false; // Indicate failure
+                    }
+                }
+            }
+
+            console.log("Test: Students and Results Metadata Uploaded Successfully. Test ID:", this.id);
+            this.loading.save_to_database = false;
+            return true;
+
+        } catch (e) {
+            console.error("Test: Exception uploading students and results metadata:", e);
+            this.loading.save_to_database = false;
+            return false;
+        }
+    }
+    async saveToDatabase(){
+        console.log("\nRunning Dummy Test Upload...");
+        await this.uploadTestMetadataFunction();
+
+        if (this.id) { // Only proceed if Dummy Test was successful and we have a test.id
+            // console.log("\nRunning Test Metadata Upload...");
+            // await this.uploadTestMetadataFunction();
+
+            console.log("\nRunning GPT Settings Metadata Upload...");
+            await this.uploadGPTSettingsMetadataFunction();
+
+            console.log("\nRunning Targets and Questions Metadata Upload...");
+            await this.uploadTargetsAndQuestionsMetadataFunction();
+
+            console.log("\nRunning Pages and Sections Metadata Upload...");
+            await this.uploadPagesAndSectionsMetadataFunction();
+
+            console.log("\nRunning Students and Results Metadata Upload...");
+            await this.uploadStudentsAndResultsMetadataFunction();
+        } else {
+            console.warn("Skipping further tests because Dummy Test Upload failed.");
+        }
+        console.log("\nDatabase Tests Completed.");
+    }    
 
 }
 
@@ -2668,7 +3093,7 @@ class TestManager {
         }
         const query = this.searchQuery.toLowerCase();
         return this.tests.filter(test =>
-            test.test_settings.test_name.toLowerCase().includes(query)
+            test.test_settings.name.toLowerCase().includes(query)
         );
     }
 }

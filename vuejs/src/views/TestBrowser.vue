@@ -17,8 +17,7 @@ v-container
                 v-card-text
                     v-progress-circular(v-if="testManager.loading" indeterminate)
                     v-list(v-else)
-                        v-list-item(v-for="test in testManager.filteredTests" :key="test.id" @click="openTest(test)")
-                            v-list-item-title {{ test.name }}
+                        v-list-item(v-for="test in testManager.filteredTests" :key="test.id" @click="openTest(test)" :title="test.name")
                             v-list-item-subtitle Created at: {{ new Date(test.created_at).toLocaleDateString() }}
                             v-list-item-action 
                     v-btn(
@@ -31,8 +30,7 @@ v-container
                 v-card-text
                     v-progress-circular(v-if="testManager.loading" indeterminate)
                     v-list(v-else)
-                        v-list-item(v-for="test in publicTests" :key="test.id" @click="openTest(test)")
-                            v-list-item-title {{ test.name }}
+                        v-list-item(v-for="test in publicTests" :key="test.id" @click="openTest(test)" :title="test.name")
                             v-list-item-subtitle Created at: {{ new Date(test.created_at).toLocaleDateString() }}
         v-tabs-window-item(value="admin" v-if="user_store.isAdmin")
             v-card
@@ -105,7 +103,7 @@ export default {
         },
         openTest(test) {
             this.$router.push({
-                name: 'home',
+                name: 'test',
                 params: {
                     id: test.id
                 }
@@ -116,11 +114,13 @@ export default {
         async 'user_store.user'(newUser){
             if (newUser) {
                 await this.testManager.fetchTests(); // Refetch when user changes
+                console.log(this.testManager.tests)
             }
         }
     },
     async mounted() {
         await this.testManager.fetchTests();
+        
 
     },
 };

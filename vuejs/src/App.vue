@@ -17,7 +17,7 @@ v-app
             v-btn(text v-if="user_store.user" @click="signOut") Logout
 
     v-main
-        router-view.w-100(@update:user="setUser" style="height: calc(100% - 48px)")
+        router-view.w-100(style="height: calc(100% - 48px)")
 
 </template>
 

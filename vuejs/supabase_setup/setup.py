@@ -168,7 +168,7 @@ def create_tables(conn):
     CREATE TABLE test_pdf_settings (
         id uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
         test_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-        test_name text,
+        name text,
         show_targets boolean,
         show_answers boolean,
         output_type text,

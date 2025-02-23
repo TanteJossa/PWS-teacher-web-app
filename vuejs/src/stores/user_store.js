@@ -51,7 +51,7 @@ export const useUserStore = defineStore('user', {
             if(confirm("Are you sure you want to delete your account? This will delete all your tests as well.")) {
                 try {
                     try {
-                        const { data, error } = await supabaseAdmin.auth.admin.deleteUser(this.user.uid);
+                        const { data, error } = await supabaseAdmin.auth.admin.deleteUser(this.user.id);
 
                         if (error) {
                         console.error("Error deleting user:", error);

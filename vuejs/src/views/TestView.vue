@@ -4,7 +4,12 @@ div.h-100
         div
             v-btn(text @click="goBack") Back
             span(v-if="!is_editing") {{ test.name }}
-            v-text-field(v-else v-model="test.name" label="Test Name")
+            div(v-else)
+                v-text-field(v-model="test.name" label="Test Name")
+                v-checkbox(
+                    label="Publiek"
+                    v-model="test.is_public"
+                )
             v-spacer
             
             v-btn(v-if="is_editing" color="primary" @click="saveTest" :loading="is_saving") Save
@@ -36,6 +41,7 @@ import {
     useUserStore
 } from '@/stores/user_store';
 import MainLayout from '@/components/full_view/MainLayout.vue';
+import { getRandomID } from '@/helpers';
 
 export default {
     name: 'TestView',
@@ -69,19 +75,29 @@ export default {
         async loadTest() {
             try {
                 var testId = this.$route.params.id;
-                if (testId = 'null'){
-                    testId = null;
-                }
-                console.log(testId);
-                // if (testId) {
-                this.test = await this.test_manager.fetchTest(testId);
-                if (!this.test) {
-                    console.warn('test not found');
-                    this.test = new Test({})
+                if (testId == 'null'){
+                    // testId = null;
+
+                    // go to test creation
+                    
+
+                } else {
+
+                    // if (testId) {
+                    this.test = await this.test_manager.fetchTest(testId);
                 }
                 // }
             } catch (error) {
                 console.error("Failed to load test:", error);
+            }
+            if (!this.test) {
+                console.warn('test not found');
+                
+                this.test = new Test({});
+                this.test.id = getRandomID();
+                this.test.user_id = this.user_store.user?.id;
+                this.test.name = 'New Test';
+                history.replaceState({}, null,'/test/'+ this.test.id);
             }
         },
         async saveTest() {

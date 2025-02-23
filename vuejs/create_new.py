@@ -1080,7 +1080,7 @@ export default {
 <template lang="pug">
 v-card.ma-2.pa-2
     h3 Download toets
-    v-text-field(v-model="test.test_settings.test_name" label="naam")
+    v-text-field(v-model="test.test_settings.name" label="naam")
     v-checkbox(v-model="test.test_settings.show_targets" label="Toon leerdoelen")
     v-checkbox(v-model="test.test_settings.show_answers" label="Toon antwoorden")
     v-select(v-model="test.test_settings.output_type" :items="['pdf', 'docx']" label="Output")
