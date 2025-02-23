@@ -66,8 +66,7 @@ component(:is="$vuetify.display.mdAndUp ? 'v-layout' : 'div'")
                 @download-student-results="downloadStudentResults"
                 @download-selected-result="downloadSelectedResult"
             )
-        //- TestDashboard(:user="user") 
-        //- GoogleLoginButton(v-if="!user")
+
 </template>
 
 <script>
@@ -83,8 +82,6 @@ import GradeSection from '@/components/full_view/GradeSection/GradeSection.vue';
 import AnalyzeSection from '@/components/full_view/AnalyzeSection/AnalyzeSection.vue';
 import RequestDialog from '@/components/full_view/RequestDialog.vue';
 import GoogleLoginButton from '@/components/auth/GoogleLoginButton.vue'; // IMPORT GoogleLoginButton
-import UserProfile from '@/components/auth/UserProfile.vue'; // IMPORT UserProfile
-import TestDashboard from '@/components/auth/TestDashboard.vue'; // IMPORT TestDashboard
 
 import {
     total_requests,
@@ -116,8 +113,7 @@ export default {
         AnalyzeSection,
         RequestDialog,
         GoogleLoginButton,
-        UserProfile,
-        TestDashboard,
+
     },
     setup() {
         return {
@@ -129,10 +125,10 @@ export default {
         }
     },
     props: {
-        user: {
+        test: {
             type: Object,
-            default: null
-        },
+            default: new Test({})
+        }
     },
     emits: [
         'save'
@@ -221,7 +217,6 @@ export default {
                 },
             ],
             selected_section_id: 'test',
-            test: new Test({}),
             selected_page_id: '',
             selected_student_id: '',
             is_generating_pdf: false,
@@ -231,9 +226,7 @@ export default {
 
         }
     },
-    emits: [
-        'setUser'
-    ],
+    emits: [],
     computed: {
         selected_section: {
             get() {

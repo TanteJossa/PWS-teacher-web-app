@@ -6,11 +6,11 @@ v-container
         append-icon="mdi-magnify"
         @input="testManager.fetchTests"
     )
-    v-tabs(v-model="active_tab" background-color="primary" dark)
+    v-tabs(v-model="activeTab" background-color="primary" dark)
         v-tab(value="mytests") My Tests
         v-tab(value="public") Public Tests
-        v-tab(value="admin" v-if="user_store.isAdmin") Admin
-    v-tabs-window(v-model="active_tab")
+        v-tab(value="admin" v-if="userStore.user && userStore.user.admin") Admin
+    v-tabs-window(v-model="activeTab")
         v-tabs-window-item(value="mytests")
             v-card
                 v-card-title My Tests
@@ -19,7 +19,7 @@ v-container
                     v-list(v-else)
                         v-list-item(v-for="test in testManager.filteredTests" :key="test.id" @click="openTest(test)" :title="test.name")
                             v-list-item-subtitle Created at: {{ new Date(test.created_at).toLocaleDateString() }}
-                            v-list-item-action 
+                            v-list-item-action
                     v-btn(
                         prepend-icon="mdi-plus"
                         @click="this.$router.push({ name: 'new_test' })"
@@ -32,12 +32,12 @@ v-container
                     v-list(v-else)
                         v-list-item(v-for="test in publicTests" :key="test.id" @click="openTest(test)" :title="test.name")
                             v-list-item-subtitle Created at: {{ new Date(test.created_at).toLocaleDateString() }}
-        v-tabs-window-item(value="admin" v-if="user_store.isAdmin")
+        v-tabs-window-item(value="admin" v-if="userStore.user && userStore.user.admin")
             v-card
                 v-card-title Admin: All Tests
                 v-card-text
                     v-text-field(
-                        v-model="admin_search_query"
+                        v-model="adminSearchQuery"
                         label="Search by Username"
                         append-icon="mdi-magnify"
                         @input="performAdminSearch"
@@ -46,7 +46,6 @@ v-container
                     v-list(v-else)
                         v-list-item(v-for="test in filteredAdminTests" :key="test.id" @click="openTest(test)")
                             v-list-item-title {{ test.name }} - {{ test.user_id }}
-                                //- Using user_id for now, in order to use user.username all the users need to be loaded
                             v-list-item-action
 </template>
 
@@ -57,8 +56,9 @@ import {
 
 import {
     useUserStore
-} from '@/stores/user_store';
-
+} from '@/stores/user_store'; // Import UserStore
+import { db } from '@/firebase.js';
+import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 
 
 export default {
@@ -66,36 +66,32 @@ export default {
     data() {
         return {
             testManager: new TestManager(),
-            active_tab: 'mytests',
-            admin_search_query: '',
+            // userStore: useUserStore(), // REMOVED, added to setup()
+            activeTab: 'mytests',
+            adminSearchQuery: '',
+
         }
     },
-    setup() {
-        const user_store = useUserStore();
-
-        return {
-            user_store
-        }
-        
+    setup() { // Using setup() for Composition API
+        const userStore = useUserStore();
+        return { userStore }
     },
     computed: {
-        publicTests (){
+        publicTests() {
             return this.testManager.tests.filter(test => test.is_public);
         },
-        filteredAdminTests (){
-            if (!this.user_store.isAdmin) {
+        filteredAdminTests() {
+            if (!this.userStore.user || !this.userStore.user.admin) {
                 return [];
             }
-            if (!this.admin_search_query) {
+            if (!this.adminSearchQuery) {
                 return this.testManager.tests;
             }
-            // You'll need to fetch the user's username for this to work.
-            // For simplicity, I'm assuming a 'username' field exists. Adapt as needed.
+
             return this.testManager.tests.filter(test =>
-                test.user_id.toLowerCase().includes(this.admin_search_query.toLowerCase()) // Placeholder for user search
+                test.user_id.toLowerCase().includes(this.adminSearchQuery.toLowerCase()) // Using user_id
             );
         }
-
     },
     methods: {
         performAdminSearch() {
@@ -109,19 +105,47 @@ export default {
                 }
             }); // Navigate to TestView with test ID
         },
+
+        async fetchTests() { // Changed method name to prevent conflict with TestManager
+            this.testManager.loading = true;
+
+            if (!this.userStore.user) {
+                console.error("No user logged in.");
+                this.testManager.loading = false;
+                return;
+            }
+            try {
+                let q;
+                if (this.userStore.user.admin) {
+                    q = query(collection(db, "tests"), orderBy("created_at", "desc"));
+                }
+                else {
+                    q = query(collection(db, "tests"), where("user_id", "==", this.userStore.user.id), orderBy("created_at", "desc"));
+                }
+                const querySnapshot = await getDocs(q);
+                this.testManager.tests = querySnapshot.docs.map(doc => this.testManager.loadTestFromData({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+            }
+            catch (e){
+                console.log(e)
+            }
+
+            this.testManager.loading = false;
+        }
+
     },
     watch: {
-        async 'user_store.user'(newUser){
-            if (newUser) {
-                await this.testManager.fetchTests(); // Refetch when user changes
-                console.log(this.testManager.tests)
-            }
-        }
+        // async 'userStore.user'(newUser){ // Watch for user changes //REMOVING WATCH
+        //     if (newUser) {
+        //         await this.fetchTests(); // Refetch when user changes.
+        //     }
+        // }
     },
     async mounted() {
-        await this.testManager.fetchTests();
-        
-
+        await this.fetchTests(); // Load initial tests
     },
 };
 </script>

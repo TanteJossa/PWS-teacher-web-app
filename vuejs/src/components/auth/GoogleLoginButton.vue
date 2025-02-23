@@ -9,7 +9,7 @@ v-btn(color="primary" @click="signInWithGoogle" :loading="loading")
 </template>
 
 <script>
-import { supabase } from '@/supabase' // Assuming you set up supabase.js
+import { useUserStore } from '@/stores/user_store'; // Import user store
 
 export default {
     data() {
@@ -20,21 +20,16 @@ export default {
     },
     methods: {
         async signInWithGoogle() {
-            this.loading = true
-            this.error = null
+            this.loading = true;
+            this.error = null;
+            const userStore = useUserStore(); // Get the store instance
             try {
-                const { error: authError } = await supabase.auth.signInWithOAuth({
-                    provider: 'google',
-                })
-                if (authError) {
-                    this.error = authError.message
-                    console.error("Google Sign-in Error:", authError)
-                }
+                await userStore.signInWithGoogle(); // Call the action
             } catch (err) {
-                this.error = err.message
-                console.error("Unexpected Google Sign-in Error:", err)
+                this.error = err.message;
+                console.error("Unexpected Google Sign-in Error:", err);
             } finally {
-                this.loading = false
+                this.loading = false;
             }
         }
     }

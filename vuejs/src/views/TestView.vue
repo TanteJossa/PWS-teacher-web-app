@@ -11,7 +11,7 @@ div.h-100
                     v-model="test.is_public"
                 )
             v-spacer
-            
+
             v-btn(v-if="is_editing" color="primary" @click="saveTest" :loading="is_saving") Save
             v-btn(v-if="is_editing" color="error" @click="deleteTest") Delete Test
             v-btn(v-else color="primary" @click="is_editing = true") Edit
@@ -51,15 +51,20 @@ export default {
     data() {
         return {
             test_manager: new TestManager(),
-            user_store: useUserStore(),
+            // user_store: useUserStore(),  <-  Removed, using setup() instead
             test: null,
             is_editing: false,
             is_saving: false,
         };
     },
+    setup() { // NEW - Use setup() for composition API
+      const user_store = useUserStore();
+      return { user_store };
+    },
     computed: {
         canEdit() {
-            return this.user_store.user && (this.user_store.user.id === this.test?.user_id || this.user_store.isAdmin);
+            // return this.user_store.user && (this.user_store.user.id === this.test?.user_id || this.user_store.isAdmin); // OLD - before custom claims
+            return this.user_store.user && (this.user_store.user.id === this.test?.user_id || this.user_store.user.admin); // NEW using admin property
         }
     },
     watch: {
@@ -75,29 +80,22 @@ export default {
         async loadTest() {
             try {
                 var testId = this.$route.params.id;
-                if (testId == 'null'){
-                    // testId = null;
-
-                    // go to test creation
-                    
+                if (testId == 'null') {
+                    this.test = new Test({}); // Create a new test, id will be null
+                    this.test.user_id = this.user_store.user?.id; // Set the user ID
+                    this.test.name = 'New Test'; // Set a default name
 
                 } else {
-
-                    // if (testId) {
                     this.test = await this.test_manager.fetchTest(testId);
+                    if (!this.test) { // if no test with id exists
+                        console.warn('test not found');
+                        this.test = new Test({});
+                        this.test.user_id = this.user_store.user?.id; // Set the user ID
+                        this.test.name = 'New Test'; // Set a default name
+                    }
                 }
-                // }
             } catch (error) {
                 console.error("Failed to load test:", error);
-            }
-            if (!this.test) {
-                console.warn('test not found');
-                
-                this.test = new Test({});
-                this.test.id = getRandomID();
-                this.test.user_id = this.user_store.user?.id;
-                this.test.name = 'New Test';
-                history.replaceState({}, null,'/test/'+ this.test.id);
             }
         },
         async saveTest() {

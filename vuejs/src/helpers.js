@@ -162,7 +162,7 @@ async function rotateImage180(base64Image) {
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
 var total_requests = ref(0)
-const use_localhost = true
+const use_localhost = false
 
 
 var endpoint = (use_localhost&&(location.hostname === "localhost" || location.hostname === "127.0.0.1")) ? 'http://localhost:8080' : 'https://toetspws-function-771520566941.europe-west4.run.app'
@@ -290,6 +290,85 @@ async function downloadResultPdf(results, feedback_field=false, filename="Studen
     
 }
 
+const objDeepEqual = (v1, v2) => {
+    if (v1 === v2) return true
+    if (v1 == null || v2 == null || typeof v1 != "object" || typeof v2 != "object") return false
+    
+    let vlkeys = Object.keys(v1)
+    let v2keys = Object.keys(v2)
+    if (vlkeys.length != v2keys.length) return false
+    
+    for (let key of vlkeys) {
+        if (!v2keys.includes(key) || !isDeepEqual(v1[key], v2[key])) {
+            return false
+        }
+    }
+    return true
+    
+}
+
+const arrDeepEqual = (arr1, arr2) => {
+    return Array.isArray(arr1) &&
+        Array.isArray(arr2) &&
+        arr1.length === arr2.length &&
+        arr1.every((val, index) => isDeepEqual(val, arr2[index]));
+}
+
+const isDeepEqual = (v1, v2) => {
+    if (v1 === v2) return true
+    if (typeof v1 != typeof v2){
+        return false
+    }
+    if (v1 instanceof Array){
+        return arrDeepEqual(v1, v2)
+    }
+    if (typeof v1 == 'object'){
+        return objDeepEqual(v1, v2)
+    }
+    return _.isEqual(v1, v2)
+}
+
+/**
+ * Assuming (nested) objects where each object contains a local_keys array that should be excluded,
+ * this function returns a filtered variant of that object
+ */
+function filterObjectRecursively(object, depth=0){
+    const max_depth = 20
+
+    let filtered_object = {}
+    let all_parent_keys = Object.keys(object)
+    let local_keys = object.local_keys
+    if(!local_keys){local_keys = []}
+    let filtered_keys = _.without(all_parent_keys, ...local_keys)
+    for(var key of filtered_keys){
+        let child = object[key]
+        if(typeof child === 'object' && !Array.isArray(child) && child !== null){
+            if (depth >= max_depth){
+                // filtered_object[key] = structuredClone(toRaw(child))
+            } else {
+                filtered_object[key] = filterObjectRecursively(child, depth+1)
+            }
+        } else if(typeof child === 'object' && Array.isArray(child) && child !== null) {
+            let filtered_array = []
+            for(var item of child){
+                if(typeof item === 'object' && !Array.isArray(item) && item !== null){
+                    if (depth >= max_depth){
+                        // filtered_array.push(structuredClone(toRaw(child)))
+                    } else {
+                        filtered_array.push(filterObjectRecursively(item, depth+1))
+                    }
+                    // filtered_array.push(filterObjectRecursively(item, depth+1))
+                } else {
+                    filtered_array.push(item)
+                }
+            }
+            filtered_object[key] = filtered_array
+        } else {
+            filtered_object[key] = child
+        }
+    }
+    return filtered_object
+}
 
 export {
   excelFileToJSON,
@@ -311,5 +390,7 @@ export {
   downloadTest,
   total_requests,
   blobToBase64,
-  active_requests
+  active_requests,
+  isDeepEqual,
+  filterObjectRecursively
 }

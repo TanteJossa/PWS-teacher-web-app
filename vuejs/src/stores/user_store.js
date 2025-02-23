@@ -1,77 +1,64 @@
 // @/stores/user_store.js
-import {
-    defineStore
-} from 'pinia';
-import {
-    supabase
-} from '@/supabase'; // Your Supabase client
+import { defineStore } from 'pinia';
+import { auth } from '@/firebase.js'; // Import from firebase.js
+import { signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "firebase/auth"; // Import firebase methods
+
 
 export const useUserStore = defineStore('user', {
     state: () => ({
-        user: null,
+        user: null, // Start with null
+        unsubscribe: null, // Store the unsubscribe function
     }),
     actions: {
-        async fetchUser() {
-            const {
-                data: {
-                    user
-                }
-            } = await supabase.auth.getUser()
-            this.user = user;
-
-        },
         async signInWithGoogle() {
-            const {
-                data,
-                error
-            } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-            });
-            if (error) {
-                console.error('Google Sign-In Error:', error);
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider); // Use Firebase sign-in method
+                // User will be automatically set by onAuthStateChanged
+            } catch (error) {
+                console.error("Google Sign-In Error:", error);
+                throw error; // Re-throw for component to handle
             }
-            // The redirect should handle setting the user
         },
         async signOut() {
-            const {
-                error
-            } = await supabase.auth.signOut();
-            if (error) {
-                console.error('Sign-Out Error:', error);
+            try {
+                await signOut(auth); // Use Firebase sign-out method
+                // User will be automatically set to null by onAuthStateChanged
+            } catch (error) {
+                console.error("Sign-Out Error:", error);
+                throw error; // Re-throw for component to handle
             }
-            this.user = null;
         },
-        async handleAuthStateChange() {
-            supabase.auth.onAuthStateChange((event, session) => {
-                console.log('auth change:', event, session)
-                this.user = session?.user || null;
+        // This is now the ONLY auth state change handler
+        initializeAuthListener() {
+          if (this.unsubscribe) {
+            // If there is a listener, stop it
+            return
+          }
+          this.unsubscribe = onAuthStateChanged(auth, async (user) => { // Directly use onAuthStateChanged
+                if (user) {
+                    // Get custom claims (admin role)
+                    const idTokenResult = await user.getIdTokenResult();
+                    const isAdmin = !!idTokenResult.claims.admin;
+
+                    this.user = {  // Correctly update the store's state
+                        id: user.uid,
+                        email: user.email,
+                        displayName: user.displayName, // Add displayName
+                        admin: isAdmin, // Add isAdmin flag
+                    };
+                    console.log("User logged in:", this.user);
+                } else {
+                    this.user = null;  // Set to null on logout
+                    console.log("User logged out");
+                }
             });
         },
-        async deleteAccount() {
-            if(confirm("Are you sure you want to delete your account? This will delete all your tests as well.")) {
-                try {
-                    try {
-                        const { data, error } = await supabaseAdmin.auth.admin.deleteUser(this.user.id);
-
-                        if (error) {
-                        console.error("Error deleting user:", error);
-                        // return { error };
-                        }
-
-                        console.log("User deleted successfully:", data);
-                        // return { data };
-
-                    } catch (error) {
-                        console.error("Unexpected error during user deletion:", error);
-                        // return { error: { message: "Unexpected error", details: error.message } };
-                    }
-                    // await this.$axios.delete('/api/account', { data: { user_id: this.user.id }});
-                    await this.signOut()
-                    this.$router.push({ name: 'home' });
-                } catch(e) {
-                    console.error("Error deleting account", e);
-                }
-            }
+        stopAuthListener(){
+          if (this.unsubscribe){
+            this.unsubscribe();
+            this.unsubscribe = null;
+          }
         }
     },
 });

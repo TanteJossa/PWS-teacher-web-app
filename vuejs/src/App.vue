@@ -53,10 +53,12 @@ export default {
             });
         },
     },
-    async mounted() {
-        await this.user_store.fetchUser(); // Fetch user on mount.
-        this.user_store.handleAuthStateChange(); // Set up the auth state listener
+     mounted() {
+        this.user_store.initializeAuthListener(); // Initialize the listener ONCE
     },
+    beforeUnmount() {
+      this.user_store.stopAuthListener(); // Stop listening to auth state changes, cleanup.
+    }
 }
 </script>
 

@@ -4,7 +4,7 @@ div
     h2.ml-4 Vragen
     div
         transition-group
-            v-card.ma-2(v-for="(question, index) in test.questions" :key="question.id")
+            v-card.ma-2(v-for="(question, index) in test.questions" :key="index")
                 v-card-text
                     QuestionEditor(:question="question" :index="index" :test="test")
         v-btn.ml-4(prepend-icon="mdi-plus" text="Voeg eigen vraag toe" @click="test.addQuestion({})")

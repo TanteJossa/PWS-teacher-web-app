@@ -3,14 +3,36 @@ import {
     getRandomID,
     delay,
     sum,
-    apiRequest,
+    apiRequest, // Keep apiRequest if still used for other APIs, otherwise remove
     downloadResultPdf,
     downloadTest
 } from '@/helpers';
-// import {
-//     uploadFile,
-//     deleteFile
-// } from '@/helpers/gcp_storage'; // Import GCP storage functions
+import {
+    db,
+    storage,
+    auth,
+    currentUser
+} from './firebase.js'; // Import Firebase instances
+import {
+    ref,
+    uploadBytes,
+    getDownloadURL,
+    deleteObject,
+    getStorage
+} from "firebase/storage";
+import {
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    query,
+    where,
+    writeBatch
+} from "firebase/firestore";
+
 import {
     globals
 } from '@/main'
@@ -18,14 +40,154 @@ import {
     useUserStore
 } from '@/stores/user_store'; // Import user store
 
-import {
-    supabase
-} from './supabase.js'
-
 var temp_saved_grade_data = {}
 var temp_section_data = []
 
-class File {
+
+// --- Base Classes ---
+
+class FirestoreBase {
+    constructor(collectionName) {
+        this.collectionName = collectionName;
+        this.dbCollection = collection(db, collectionName);
+    }
+
+    async getById(id) {
+        if (!id) return null;
+        const docRef = doc(this.dbCollection, id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return {
+                id: docSnap.id,
+                ...docSnap.data()
+            };
+        } else {
+            return null;
+        }
+    }
+
+    async getAll() {
+        const querySnapshot = await getDocs(this.dbCollection);
+        return querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    }
+
+    async add(data) {
+        try {
+            const docRef = await addDoc(this.dbCollection, data);
+            return docRef.id; // Return the newly created document ID
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            throw e;
+        }
+    }
+
+    async update(id, data) {
+        if (!id) throw new Error("Update requires a document ID.");
+        try {
+            const docRef = doc(this.dbCollection, id);
+            await updateDoc(docRef, data);
+            return true; // Indicate success
+        } catch (e) {
+            console.error("Error updating document: ", e);
+            throw e;
+        }
+    }
+
+    async delete(id) {
+        if (!id) throw new Error("Delete requires a document ID.");
+        try {
+            const docRef = doc(this.dbCollection, id);
+            await deleteDoc(docRef);
+            return true; // Indicate success
+        } catch (e) {
+            console.error("Error deleting document: ", e);
+            throw e;
+        }
+    }
+
+    async getByField(fieldName, fieldValue) {
+        const q = query(this.dbCollection, where(fieldName, "==", fieldValue));
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    }
+}
+
+class FirebaseFileBase {
+    constructor() {
+        this.storage = getStorage();
+    }
+
+    async store(filePath, base64Data, contentType) {
+        if (!base64Data) {
+            console.error("No base64 data to store.");
+            return null;
+        }
+        if (!filePath) {
+            console.error("No filePath specified for storage.");
+            return null;
+        }
+
+        try {
+            const storageRef = ref(this.storage, filePath);
+
+            // Extract base64 content
+            const matches = base64Data.match(/^data:(.+);base64,(.+)$/);
+            if (!matches || matches.length !== 3) {
+                throw new Error("Invalid base64 data format.");
+            }
+            const base64Content = matches[2];
+            const buffer = Buffer.from(base64Content, 'base64');
+
+            await uploadBytes(storageRef, buffer, {
+                contentType: contentType
+            });
+            return filePath; // Return the storage path as "location"
+        } catch (error) {
+            console.error("Failed to store file:", error);
+            throw error;
+        }
+    }
+
+    async deleteFromStorage(filePath) {
+        if (!filePath) {
+            console.warn("No file path specified for deletion.");
+            return;
+        }
+        try {
+            const storageRef = ref(this.storage, filePath);
+            await deleteObject(storageRef);
+            return true; // Indicate success
+        } catch (error) {
+            console.error("Failed to delete file from storage:", error);
+            throw error;
+        }
+    }
+
+    async getDownloadURL(filePath) {
+        if (!filePath) {
+            console.warn("No file path specified to get download URL.");
+            return null;
+        }
+        try {
+            const storageRef = ref(this.storage, filePath);
+            return await getDownloadURL(storageRef);
+        } catch (error) {
+            console.error("Failed to get download URL:", error);
+            return null;
+        }
+    }
+}
+
+
+// --- Models ---
+
+class File extends FirebaseFileBase {
     constructor({
         id = getRandomID(),
         test_id = null,
@@ -35,6 +197,7 @@ class File {
         base64Data = null, // Only used temporarily
         is_stored = false
     }) {
+        super(); // Initialize FirebaseFileBase
         this.id = id;
         this.test_id = test_id
         this.student_question_result_id = student_question_result_id
@@ -46,12 +209,12 @@ class File {
 
     get url() {
         // Return base64 data URL if not stored, otherwise return cloud storage URL
-        return this.is_stored ?
-            this.location :
+        return this.is_stored && this.location ?
+            this.getDownloadURL(this.location) : // Get download URL from Firebase Storage
             this.base64Data;
     }
 
-    async store(test_id = null, student_question_result_id = null) {
+    async storeFile(test_id = null, student_question_result_id = null) { // Renamed to avoid conflict with base class method name
         if (this.is_stored) {
             console.warn("File already stored.");
             return;
@@ -80,41 +243,28 @@ class File {
             }
 
 
-            // Extract base64 content type and data
-            const matches = this.base64Data.match(/^data:(.+);base64,(.+)$/);
-            if (!matches || matches.length !== 3) {
-                throw new Error("Invalid base64 data format.");
-            }
-            const contentType = matches[1];
-            const base64Content = matches[2];
-            const buffer = Buffer.from(base64Content, 'base64');
-
-            // this.location = await uploadFile(filePath, buffer, contentType);
+            this.location = await super.store(filePath, this.base64Data, `image/${this.file_type}`); // Use FirebaseFileBase.store
             this.is_stored = true;
             this.base64Data = null; // Clear base64 data after storing
             this.test_id = test_id
             this.student_question_result_id = student_question_result_id
-            //insert this file into supabase
-            console.log('STORED: ', filePath, '   location: ', this.location)
+            //insert this file into firestore? or just keep location in other documents? - keep location in other documents for now
+            console.log('STORED in Firebase Storage: ', filePath, '   location: ', this.location)
 
         } catch (error) {
             console.error("Failed to store file:", error);
             throw error; // Re-throw for handling in calling function.
         }
     }
-    async deleteFromStorage() {
+
+    async deleteFileFromStorage() { // Renamed to avoid conflict with base class method name
         if (!this.is_stored || !this.location) {
             console.warn("File not stored or no location specified.");
             return;
         }
 
         try {
-            // Extract the file path from the full URL.  This assumes the URL format
-            // is consistent with what `uploadFile` returns.
-            const urlParts = this.location.split('/');
-            const filePath = urlParts.slice(urlParts.indexOf(config.gcp.bucketName) + 1).join('/');
-
-            // await deleteFile(filePath);
+            await super.deleteFromStorage(this.location); // Use FirebaseFileBase.deleteFromStorage
             this.is_stored = false;
             this.location = null;
         } catch (error) {
@@ -603,16 +753,17 @@ class ScanQuestion {
 }
 
 
-class GptQuestionSettings {
+class GptQuestionSettings extends FirestoreBase {
     constructor({
         test = null,
-        id = getRandomID(),
+        id = null,
         rtti = "i",
         subject = "motor",
         targets = {},
         point_count = 3
 
     }) {
+        super('gpt_questions_settings');
         this.test = test
         this.id = id
         this.rtti = rtti
@@ -639,9 +790,9 @@ class GptQuestionSettings {
                 ${this.test.gpt_test.subject?.length > 0 ? 'Onderwerp(en):  '+this.test.gpt_test.subject : 'Bedenk zelf de onderwerpen'}
                 ${this.test.gpt_test.learned?.length > 0 ? 'Geleerde stof:  '+this.test.gpt_test.learned : ''}
                 ${this.test.gpt_test.requested_topics?.length > 0 ? 'Door de docent aangevraagde informatie over de toets: '+this.test.gpt_test.requested_topics : ''}
-                
 
-                de vraag moet het volgdende rtti (de R staat voor Reproductie, de eerste T voor Training, de tweede T voor Transfer en de I voor Inzicht) hebben: 
+
+                de vraag moet het volgdende rtti (de R staat voor Reproductie, de eerste T voor Training, de tweede T voor Transfer en de I voor Inzicht) hebben:
                 ${this.rtti}
 
                 ${this.subject.length == 0 ? '' : `De vraag moet over het volgende onderwerp gaan: ${this.subject}`}
@@ -658,14 +809,14 @@ class GptQuestionSettings {
                         een nummber (point_index) welk punt dit is, bij deze vraag, start bij 0
                         een gewicht (point_weight) voor hoeveel punten deze rubricpoint mee telt
                         leerdoel (target_name) het leerdoel waar dit punt bij hoort, hieronder kan je zien welke namen je hier mag invullen
-                
+
                 hier zijn de leerdoelen die in de vraag/punten moeten voorkomen JE MAG GEEN ANDERE LEERDOEL NAMEN GEBRUIKEN, geef alleen de naam van het leerdoel (voor de ":"):
                 ${this.selected_targets.map(e => `${e.target_name}: ${e.explanation}`).join('\n')}
-                
+
                 Dit zijn de vragen die al in de toets gestelt zijn, houdt hier rekening mee, zodat je niet 2x hetzelde vraagt:
                 ${this.test.questions.map(e => `Vraag ${e.question_number}: ${e.question_text}`).join('\n')}
 
-                Voor de vraag teksten mag je markdown gebruiken 
+                Voor de vraag teksten mag je markdown gebruiken
                 Ook kan je dollar tekens gebruiken om latex equations te laten zien
                 niewe regels ook toegestaan bij bijvoorbeeld meerkeuzevragen of een opsomming van dingen die een leerling moet beantwoorden.
                 ook zijn nieuwe regels in de context toegestaan.
@@ -673,16 +824,46 @@ class GptQuestionSettings {
                 De vraag mag maximaal ${this.point_count} punten hebben.
 
                 geeft de resultaten in de taal van de gegeven toets(vaak zal dat Nederlands zijn)
-                
+
                 Houd je altijd aan het gegeven schema
                 `
     }
+    async saveToFirestore(testId) {
+        if (!testId) {
+            console.error("GptQuestionSettings: saveToFirestore requires a testId.");
+            return false;
+        }
+
+        const data = {
+            test_id: testId,
+            rtti: this.rtti,
+            subject: this.subject,
+            targets: this.targets,
+            point_count: this.point_count,
+        };
+
+        try {
+            if (this.id) {
+                // Update existing document
+                await this.update(this.id, data);
+                console.log(`GptQuestionSettings updated for test ${testId}, id: ${this.id}`);
+            } else {
+                // Create new document
+                this.id = await this.add(data);
+                console.log(`GptQuestionSettings created for test ${testId}, new id: ${this.id}`);
+            }
+            return true;
+        } catch (error) {
+            console.error("Error saving GptQuestionSettings:", error);
+            return false;
+        }
+    }
 }
 
-class GptTestSettings {
+class GptTestSettings extends FirestoreBase {
     constructor({
         test = null,
-        id = getRandomID(),
+        id = null,
         school_type = "vwo",
         school_year = 3,
         school_subject = "Scheikunde",
@@ -690,6 +871,7 @@ class GptTestSettings {
         learned = "",
         requested_topics = "",
     }) {
+        super('gpt_tests_settings');
         this.test = test
         this.id = id
         this.school_type = school_type
@@ -701,68 +883,139 @@ class GptTestSettings {
     }
     get request_text() {
         return `
-                Je moet een toets gaan genereren op het juiste niveau.
-                School Type: ${this.school_type}
-                School Jaar: ${this.school_year}
-                Vak: ${this.school_subject}
-                Onderwerp(en): ${this.subject}
+            Je moet een toets gaan genereren op het juiste niveau.
+            School Type: ${this.school_type}
+            School Jaar: ${this.school_year}
+            Vak: ${this.school_subject}
+            Onderwerp(en): ${this.subject}
 
-                Nu krijg je wat informatie over wat er in de toets moet komen en wat je de leerlingen kan vragen.
-                Geleerde stof: ${this.learned}
-                Door de docent aangevraagde onderwerpen die op de toets komen: ${this.requested_topics}
+            Nu krijg je wat informatie over wat er in de toets moet komen en wat je de leerlingen kan vragen.
+            Geleerde stof: ${this.learned}
+            Door de docent aangevraagde onderwerpen die op de toets komen: ${this.requested_topics}
 
-                Geef de vragen in het aangegeven schema
-                        vraag tekstQ: de exacte tekst van de vraag
-                        question_number: dit is het nummer van de vraag, oftewel vraagnummer.
-                        question_context: is de tekst die voor een vraag staat om de situatie te schetsen of de vraag in te leiden, dit is niet altijd nodig
-                        is_draw_question: geeft aan of het antwoord bij deze vraag het antwoord geen puur tekstantwoord is
-                        points: Haal uit de rubric bij elke vraag de rubric punten, als er geen punten in de rubric staan moet je zelf punten bedenken.
-                een vraag heeft 1-3 punten en elk punt heeft:
-                        een naam (point_name) met in 1 of 2 woorden waar die punt overgaat
-                        een tekst (point_text) met daarin de exacte uitleg van dit punt
-                        een nummber (point_index) welk punt dit is, bij deze vraag, start bij 0
-                        een gewicht (point_weight) voor hoeveel punten deze rubricpoint mee telt
-                        leerdoel (target_name) het leerdoel waar dit punt bij hoort
-                
-                Daarmaast moet je bij de hele toets een paar overkoepelende leerdoelen bedenken.
-                Elk leerdoel heeft een korte naam: dit is ook de naam die bij elk punt waar dit leerdoel het meest bij hoort wordt ingevuld
-                en een uitleg (explanation) met daarin exact wat dit leerdoel inhoud.
+            Geef de vragen in het aangegeven schema
+                    vraag tekstQ: de exacte tekst van de vraag
+                    question_number: dit is het nummer van de vraag, oftewel vraagnummer.
+                    question_context: is de tekst die voor een vraag staat om de situatie te schetsen of de vraag in te leiden, dit is niet altijd nodig
+                    is_draw_question: geeft aan of het antwoord bij deze vraag het antwoord geen puur tekstantwoord is
+                    points: Haal uit de rubric bij elke vraag de rubric punten, als er geen punten in de rubric staan moet je zelf punten bedenken.
+            een vraag heeft 1-3 punten en elk punt heeft:
+                    een naam (point_name) met in 1 of 2 woorden waar die punt overgaat
+                    een tekst (point_text) met daarin de exacte uitleg van dit punt
+                    een nummber (point_index) welk punt dit is, bij deze vraag, start bij 0
+                    een gewicht (point_weight) voor hoeveel punten deze rubricpoint mee telt
+                    leerdoel (target_name) het leerdoel waar dit punt bij hoort
 
-                Voor de vraag teksten mag je markdown gebruiken 
-                Ook kan je dollar tekens gebruiken om latex equations te laten zien
-                niewe regels ook toegestaan bij bijvoorbeeld meerkeuzevragen of een opsomming van dingen die een leerling moet beantwoorden.
-                ook zijn nieuwe regels in de context toegestaan.
+            Daarnaast moet je bij de hele toets een paar overkoepelende leerdoelen bedenken.
+            Elk leerdoel heeft een korte naam: dit is ook de naam die bij elk punt waar dit leerdoel het meest bij hoort wordt ingevuld
+            en een uitleg (explanation) met daarin exact wat dit leerdoel inhoud.
 
-                De punten moeten heel duidelijk beschrijven wat een leerling precies moet hebben gedaan om het punt te verdienen. 
-                Er mag geen twijfel over mogelijk zijn.
-                Zet er zo nodig uitzonderingen bij
 
-                geeft de resultaten in de taal van de gegeven toets(vaak zal dat Nederlands zijn)
-                
-                Houd je altijd aan het gegeven schema
+            Voor de vraag teksten mag je markdown gebruiken
+            Ook kan je dollar tekens gebruiken om latex equations te laten zien
+            niewe regels ook toegestaan bij bijvoorbeeld meerkeuzevragen of een opsomming van dingen die een leerling moet beantwoorden.
+            ook zijn nieuwe regels in de context toegestaan.
 
-                `
+            De punten moeten heel duidelijk beschrijven wat een leerling precies moet hebben gedaan om het punt te verdienen.
+            Er mag geen twijfel over mogelijk zijn.
+            Zet er zo nodig uitzonderingen bij
+
+            geeft de resultaten in de taal van de gegeven toets(vaak zal dat Nederlands zijn)
+
+            Houd je altijd aan het gegeven schema
+
+        `
     }
+    async saveToFirestore(testId) {
+        if (!testId) {
+            console.error("GptTestSettings: saveToFirestore requires a testId.");
+            return false;
+        }
+
+        const data = {
+            test_id: testId,
+            school_type: this.school_type,
+            school_year: this.school_year,
+            school_subject: this.school_subject,
+            subject: this.subject,
+            learned: this.learned,
+            requested_topics: this.requested_topics,
+        };
+
+        try {
+            if (this.id) {
+                // Update existing document
+                await this.update(this.id, data);
+                console.log(`GptTestSettings updated for test ${testId}, id: ${this.id}`);
+
+            } else {
+                // Create new document
+                this.id = await this.add(data);
+                console.log(`GptTestSettings created for test ${testId}, new id: ${this.id}`);
+            }
+            return true;
+        } catch (error) {
+            console.error("Error saving GptTestSettings:", error);
+            return false;
+        }
+    }
+
+
 }
 
-class TestPdfSettings {
+class TestPdfSettings extends FirestoreBase {
     constructor({
+        test = null,
+        id = null,
         name = "",
         show_targets = true,
         show_answers = false,
         output_type = 'docx'
     }) {
+        super('test_pdf_settings');
+        this.test = test
+        this.id = id
         this.name = name
         this.show_targets = show_targets
         this.show_answers = show_answers
         this.output_type = output_type
     }
+    async saveToFirestore(testId) {
+        if (!testId) {
+            console.error("TestPdfSettings: saveToFirestore requires a testId.");
+            return false;
+        }
+
+        const data = {
+            test_id: testId,
+            name: this.name,
+            show_targets: this.show_targets,
+            show_answers: this.show_answers,
+            output_type: this.output_type,
+        };
+
+        try {
+            if (this.id) {
+                // Update existing document
+                await this.update(this.id, data);
+                console.log(`TestPdfSettings updated for test ${testId}, id: ${this.id}`);
+            } else {
+                // Create new document
+                this.id = await this.add(data);
+                console.log(`TestPdfSettings created for test ${testId}, new id: ${this.id}`);
+            }
+            return true;
+        } catch (error) {
+            console.error("Error saving TestPdfSettings:", error);
+            return false;
+        }
+    }
 
 }
 
-class Test {
+class Test extends FirestoreBase {
     constructor({
-        id = getRandomID(),
+        id = null,
         user_id = null,
         files = {
             test: {
@@ -791,10 +1044,11 @@ class Test {
         gpt_provider = "google",
         gpt_model = "gemini-2.0-flash",
         grade_rules = "",
-        name="",
-        is_public=false
+        name = "",
+        is_public = false
 
     }) {
+        super('tests');
         this.id = id
         this.user_id = user_id;
         this.name = name
@@ -1082,7 +1336,7 @@ class Test {
                 Extraheer uit de teksten de vragen:
                         vraag tekst: de exacte tekst van de vraag
                         question_context: tekst die voor een vraag staat, het is niet altijd nodig
-                        question_number: 
+                        question_number:
                                 dit is het nummer van de vraag, oftewel vraagnummer, dit kan ook een samenstelling zijn van nummers en letters: 1a, 4c enz. Het is SUPER belangrijk dat dit bij ELKE vraag wordt gegeven.
                         is_draw_question: geeft aan of het antwoord bij deze vraag het antwoord geen puur tekstantwoord is
                         points: Haal uit de rubric bij elke vraag de rubric punten, als er geen punten in de rubric staan moet je zelf punten bedenken.
@@ -1092,8 +1346,8 @@ class Test {
                         een nummber (point_index) welk punt dit is, bij deze vraag, start bij 0
                         een gewicht (point_weight) voor hoeveel punten deze rubricpoint mee telt
                         leerdoel (target_name) het leerdoel waar dit punt bij hoort
-                
-                Daarmaast moet je bij de hele toets een paar overkoepelende leerdoelen bedenken.
+
+                Daarnaast moet je bij de hele toets een paar overkoepelende leerdoelen bedenken.
                 Elk leerdoel heeft een korte naam: dit is ook de naam die bij elk punt waar dit leerdoel het meest bij hoort wordt ingevuld
                 en een uitleg (explanation) met daarin exact wat dit leerdoel inhoud.
 
@@ -1105,7 +1359,7 @@ class Test {
                 Houd je altijd aan het gegeven schema
 
                 Hier volgt de toets:
-                        
+
                 `
 
         const test_data = this.files.test.data
@@ -1485,909 +1739,330 @@ class Test {
         this.saved_grade_data = saved_grade_data
         this.saved_output = saved_output
     }
-    // async saveToDatabase() {
-    //     this.loading.save_to_database = true;
-    //     const userStore = useUserStore();
-    //     if (!userStore.user) {
-    //         console.error("No user logged in.");
-    //         this.loading.save_to_database = false;
-    //         return;
-    //     }
-    //     this.user_id = userStore.user.id;
-
-    //     let testId;
-    //     let savedTest;
-    //     let testError;
-
-    //     const testData = {
-    //         user_id: this.user_id,
-    //         name: this.test_settings.name,
-    //         is_public: false,
-    //         gpt_provider: this.gpt_provider,
-    //         gpt_model: this.gpt_model,
-    //         grade_rules: this.grade_rules,
-    //         test_data_result: this.test_data_result,
-    //     };
-        
-
-    //     if (this.id) {
-    //         // Update existing test
-    //         ({
-    //             data: savedTest,
-    //             error: testError
-    //         } = await supabase
-    //             .from('tests')
-    //             .update(testData)
-    //             .eq('id', this.id)
-    //             .select());
-    //         if (savedTest && savedTest.length > 0) {
-    //             testId = savedTest[0].id;
-    //         } else {
-    //             testId = this.id; // Keep existing id if select returns empty
-    //         }
-
-    //     } else {
-    //         // Insert new test
-    //         ({
-    //             data: savedTest,
-    //             error: testError
-    //         } = await supabase
-    //             .from('tests')
-    //             .insert([testData])
-    //             .select());
-    //         if (savedTest && savedTest.length > 0) {
-    //             testId = savedTest[0].id;
-    //             this.id = testId; // Set this.id for future updates
-    //         }
-    //     }
 
 
-    //     if (testError) {
-    //         console.error("Error saving test:", testError);
-    //         this.loading.save_to_database = false;
-    //         return;
-    //     }
-
-
-    //     await Promise.all(Object.keys(this.files).map(async key => {
-    //         if (this.files[key].raw) {
-    //             this.files[key].base64Data = this.files[key].raw
-    //         }
-    //         await this.files[key].store(this.id)
-
-    //         const fileData = {
-    //             test_id: this.id,
-    //             location: this.files[key].location,
-    //             file_type: this.files[key].file_type,
-    //         };
-
-    //         if (this.files[key].id) {
-    //             const {
-    //                 error
-    //             } = await supabase
-    //                 .from('files')
-    //                 .update(fileData)
-    //                 .eq('id', this.files[key].id)
-    //             if (error) {
-    //                 console.log('File update error: ', error)
-    //             }
-    //         } else {
-    //             const {
-    //                 error
-    //             } = await supabase
-    //                 .from('files')
-    //                 .insert([fileData])
-    //             if (error) {
-    //                 console.log('File insert error: ', error)
-    //             }
-    //         }
-    //     }))
-
-    //     //store gpt test settings
-    //     const gptTestData = {
-    //         test_id: testId,
-    //         school_type: this.gpt_test.school_type,
-    //         school_year: this.gpt_test.school_year,
-    //         school_subject: this.gpt_test.school_subject,
-    //         subject: this.gpt_test.subject,
-    //         learned: this.gpt_test.learned,
-    //         requested_topics: this.gpt_test.requested_topics,
-    //     };
-
-    //     let gptTestError;
-    //     if (this.gpt_test.id) {
-    //         ({
-    //             error: gptTestError
-    //         } = await supabase
-    //             .from('gpt_tests_settings')
-    //             .update(gptTestData)
-    //             .eq('id', this.gpt_test.id));
-    //     } else {
-    //         ({
-    //             error: gptTestError
-    //         } = await supabase
-    //             .from('gpt_tests_settings')
-    //             .insert([gptTestData]));
-    //     }
-
-
-    //     if (gptTestError)
-    //         console.error("Error saving GPT Test settings:", gptTestError);
-
-    //     // Store GPT Question settings
-    //     const gptQuestionData = {
-    //         test_id: testId,
-    //         rtti: this.gpt_question.rtti,
-    //         subject: this.gpt_question.subject,
-    //         targets: this.gpt_question.targets,
-    //         point_count: this.gpt_question.point_count,
-    //     };
-
-    //     let gptQuestionError;
-    //     if (this.gpt_question.id) {
-    //         ({
-    //             error: gptQuestionError
-    //         } = await supabase
-    //             .from('gpt_questions_settings')
-    //             .update(gptQuestionData)
-    //             .eq('id', this.gpt_question.id));
-    //     } else {
-    //         ({
-    //             error: gptQuestionError
-    //         } = await supabase
-    //             .from('gpt_questions_settings')
-    //             .insert([gptQuestionData]));
-    //     }
-
-
-    //     if (gptQuestionError)
-    //         console.error("Error saving GPT Question settings:", gptQuestionError);
-
-    //     // Store Test PDF settings
-    //     const testPdfSettingsData = {
-    //         test_id: testId,
-    //         name: this.test_settings.name,
-    //         show_targets: this.test_settings.show_targets,
-    //         show_answers: this.test_settings.show_answers,
-    //         output_type: this.test_settings.output_type,
-    //     };
-
-    //     let testPdfSettingsError;
-    //     if (this.test_settings.pdf_settings_id) { // Assuming you have a way to track pdf_settings_id
-    //         ({
-    //             error: testPdfSettingsError
-    //         } = await supabase
-    //             .from('test_pdf_settings')
-    //             .update(testPdfSettingsData)
-    //             .eq('id', this.test_settings.pdf_settings_id));
-    //     } else {
-    //         ({
-    //             error: testPdfSettingsError
-    //         } = await supabase
-    //             .from('test_pdf_settings')
-    //             .insert([testPdfSettingsData]));
-    //     }
-
-    //     if (testPdfSettingsError)
-    //         console.error("Error saving Test PDF settings:", testPdfSettingsError);
-
-    //     // 2. Store Targets
-    //     for (const target of this.targets) {
-    //         const targetData = {
-    //             test_id: testId,
-    //             target_name: target.target_name,
-    //             explanation: target.explanation,
-    //         };
-    //         let savedTarget;
-    //         let targetError;
-
-    //         if (target.id) {
-    //             ({
-    //                 data: savedTarget,
-    //                 error: targetError
-    //             } = await supabase
-    //                 .from('targets')
-    //                 .update(targetData)
-    //                 .eq('id', target.id)
-    //                 .select());
-    //         } else {
-    //             ({
-    //                 data: savedTarget,
-    //                 error: targetError
-    //             } = await supabase
-    //                 .from('targets')
-    //                 .insert([targetData]).select());
-    //             if (savedTarget && savedTarget.length > 0) {
-    //                 target.id = savedTarget[0].id; // Store the database ID
-    //             }
-    //         }
-
-    //         if (targetError) {
-    //             console.error("Error saving target:", targetError);
-    //             continue; // Skip to the next target on error
-    //         }
-    //     }
-
-    //     // 3. Store Questions and related data
-    //     for (const question of this.questions) {
-    //         const questionData = {
-    //             test_id: testId,
-    //             question_number: question.question_number,
-    //             question_text: question.question_text,
-    //             question_context: question.question_context,
-    //             answer_text: question.base64_answer_text, // Assuming this is text, not a file
-    //             is_draw_question: question.is_draw_question,
-    //         };
-    //         let savedQuestion;
-    //         let questionError;
-
-    //         if (question.id) {
-    //             ({
-    //                 data: savedQuestion,
-    //                 error: questionError
-    //             } = await supabase
-    //                 .from('questions')
-    //                 .update(questionData)
-    //                 .eq('id', question.id)
-    //                 .select());
-    //         } else {
-    //             ({
-    //                 data: savedQuestion,
-    //                 error: questionError
-    //             } = await supabase
-    //                 .from('questions')
-    //                 .insert([questionData]).select());
-
-    //             if (savedQuestion && savedQuestion.length > 0) {
-    //                 question.id = savedQuestion[0].id;
-    //             }
-    //         }
-
-
-    //         if (questionError) {
-    //             console.error("Error saving question:", questionError);
-    //             continue;
-    //         }
-
-
-    //         // Store Rubric Points
-    //         for (const point of question.points) {
-    //             const pointData = {
-    //                 question_id: question.id,
-    //                 point_text: point.point_text,
-    //                 point_name: point.point_name,
-    //                 point_weight: point.point_weight,
-    //                 point_index: point.point_index,
-    //                 target_id: point.target.id, // Use the saved target ID
-    //             };
-    //             let pointError;
-    //             if (point.id) {
-    //                 ({
-    //                     error: pointError
-    //                 } = await supabase
-    //                     .from('rubric_points')
-    //                     .update(pointData)
-    //                     .eq('id', point.id));
-    //             } else {
-    //                 ({
-    //                     error: pointError
-    //                 } = await supabase
-    //                     .from('rubric_points')
-    //                     .insert([pointData]));
-    //             }
-
-    //             if (pointError) console.error("Error saving rubric point:", pointError);
-    //         }
-    //     }
-    //     //store all pages and section files
-    //     for (const page of this.pages) {
-    //         await page.file.store(this.id) // Store the page file
-    //         const pageFileData = {
-    //             test_id: this.id,
-    //             location: page.file.location,
-    //             file_type: page.file.file_type
-    //         }
-    //         if (page.file.id) {
-    //             const {
-    //                 error: pageFileError
-    //             } = await supabase.from('files').update(pageFileData).eq('id', page.file.id)
-    //             if (pageFileError) {
-    //                 console.log('Page file update error: ', pageFileError)
-    //             }
-
-    //         } else {
-    //             const {
-    //                 error: pageFileError
-    //             } = await supabase.from('files').insert([pageFileData])
-    //             if (pageFileError) {
-    //                 console.log('Page insert error: ', pageFileError)
-    //             }
-    //         }
-
-
-    //         for (const section of page.sections) {
-    //             await section.file_full.store(this.id)
-    //             await section.file_section_finder.store(this.id)
-    //             await section.file_question_selector.store(this.id)
-    //             await section.file_answer.store(this.id)
-    //             // Store section details
-    //             const sectionData = {
-    //                 test_id: this.id,
-    //                 question_number: section.question_number,
-    //                 is_qr_section: section.is_qr_section,
-    //                 student_id: section.student_id,
-    //             };
-
-    //             let savedSection;
-    //             let sectionError;
-    //             if (section.id) {
-    //                 ({
-    //                     data: savedSection,
-    //                     error: sectionError
-    //                 } = await supabase.from('sections').update(sectionData).eq('id', section.id).select());
-    //             } else {
-    //                 ({
-    //                     data: savedSection,
-    //                     error: sectionError
-    //                 } = await supabase.from('sections').insert([sectionData]).select());
-    //                 if (savedSection && savedSection.length > 0) {
-    //                     section.id = savedSection[0].id
-    //                 }
-    //             }
-
-    //             if (sectionError) {
-    //                 console.error("Error saving section:", sectionError);
-    //                 continue
-    //             }
-
-    //             const files = [{
-    //                 file: section.file_full,
-    //                 type: 'section_full',
-    //                 obj: section.file_full
-    //             }, {
-    //                 file: section.file_section_finder,
-    //                 type: 'section_finder',
-    //                 obj: section.file_section_finder
-    //             }, {
-    //                 file: section.file_question_selector,
-    //                 type: 'section_question_selector',
-    //                 obj: section.file_question_selector
-    //             }, {
-    //                 file: section.file_answer,
-    //                 type: 'section_answer',
-    //                 obj: section.file_answer
-    //             }]
-
-    //             for (const fileDetail of files) {
-    //                 const sectionFileData = {
-    //                     test_id: this.id,
-    //                     location: fileDetail.file.location,
-    //                     file_type: fileDetail.type
-    //                 }
-    //                 if (fileDetail.obj.id) {
-    //                     const {
-    //                         error: sectionFileError
-    //                     } = await supabase.from('files').update(sectionFileData).eq('id', fileDetail.obj.id)
-    //                     if (sectionFileError) {
-    //                         console.log('Section File update error: ', sectionFileError)
-    //                     }
-    //                 } else {
-    //                     const {
-    //                         error: sectionFileError
-    //                     } = await supabase.from('files').insert([sectionFileData])
-    //                     if (sectionFileError) {
-    //                         console.log('Section File insert error: ', sectionFileError)
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     // 4. Store Students and Results
-    //     for (const student of this.students) {
-    //         const studentData = {
-    //             test_id: testId,
-    //             student_id: student.student_id,
-    //         };
-    //         let savedStudent;
-    //         let studentError;
-
-    //         if (student.id) {
-    //             ({
-    //                 data: savedStudent,
-    //                 error: studentError
-    //             } = await supabase
-    //                 .from('students')
-    //                 .update(studentData)
-    //                 .eq('id', student.id)
-    //                 .select());
-    //         } else {
-    //             ({
-    //                 data: savedStudent,
-    //                 error: studentError
-    //             } = await supabase
-    //                 .from('students')
-    //                 .insert([studentData]).select());
-    //             if (savedStudent && savedStudent.length > 0) {
-    //                 student.id = savedStudent[0].id;
-    //             }
-    //         }
-
-
-    //         if (studentError) {
-    //             console.error("Error saving student:", studentError);
-    //             continue;
-    //         }
-
-
-    //         // Store StudentQuestionResults
-    //         for (const result of student.results) {
-    //             const resultData = {
-    //                 student_id: student.id,
-    //                 question_id: result.question.id,
-    //                 feedback: result.feedback,
-    //                 student_handwriting_percent: result.student_handwriting_percent
-    //             };
-    //             let savedResult;
-    //             let resultError;
-    //             if (result.id) {
-    //                 ({
-    //                     data: savedResult,
-    //                     error: resultError
-    //                 } = await supabase
-    //                     .from('students_question_results')
-    //                     .update(resultData)
-    //                     .eq('id', result.id)
-    //                     .select());
-    //             } else {
-    //                 ({
-    //                     data: savedResult,
-    //                     error: resultError
-    //                 } = await supabase
-    //                     .from('students_question_results')
-    //                     .insert([resultData]).select());
-
-    //                 if (savedResult && savedResult.length > 0) {
-    //                     result.id = savedResult[0].id;
-    //                 }
-    //             }
-
-
-    //             if (resultError) {
-    //                 console.error("Error saving student question result:", resultError);
-    //                 continue;
-    //             }
-
-
-    //             //store the result file
-    //             if (result.scan.file) {
-
-    //                 await result.scan.file.store(null, result.id)
-    //                 const resultFileData = {
-    //                     student_question_result_id: result.id,
-    //                     location: result.scan.file.location,
-    //                     file_type: result.scan.file.file_type,
-    //                 }
-    //                 if (result.scan.file.id) {
-    //                     const {
-    //                         error
-    //                     } = await supabase
-    //                         .from('files')
-    //                         .update(resultFileData)
-    //                         .eq('id', result.scan.file.id)
-    //                     if (error) {
-    //                         console.log('result File update error: ', error)
-    //                     }
-    //                 } else {
-    //                     const {
-    //                         error
-    //                     } = await supabase
-    //                         .from('files')
-    //                         .insert([resultFileData])
-    //                     if (error) {
-    //                         console.log('result File insert error: ', error)
-    //                     }
-    //                 }
-
-    //             }
-    //             // Store StudentPointResults (linking to RubricPoint)
-    //             for (const pointIndex in result.point_results) {
-    //                 const pointResult = result.point_results[pointIndex];
-    //                 const pointResultData = {
-    //                     student_question_result_id: result.id,
-    //                     point_index: pointResult.point_index,
-    //                     has_point: pointResult.has_point,
-    //                     feedback: pointResult.feedback,
-    //                 };
-    //                 let pointResultError;
-    //                 if (pointResult.id) {
-    //                     ({
-    //                         error: pointResultError
-    //                     } = await supabase
-    //                         .from('students_points_results')
-    //                         .update(pointResultData)
-    //                         .eq('id', pointResult.id));
-    //                 } else {
-    //                     ({
-    //                         error: pointResultError
-    //                     } = await supabase
-    //                         .from('students_points_results')
-    //                         .insert([pointResultData]));
-    //                 }
-
-    //                 if (pointResultError)
-    //                     console.error("Error saving student point result:", pointResultError);
-    //             }
-    //             //store grade instance
-    //             const gradeInstanceData = {
-    //                 student_question_result_id: result.id,
-    //                 is_gpt: result.grade_instance.is_gpt,
-    //                 model: result.grade_instance.model,
-    //                 provider: result.grade_instance.provider
-    //             }
-    //             let gradeError;
-    //             if (result.grade_instance.id) {
-    //                 ({
-    //                     error: gradeError
-    //                 } = await supabase.from('grade_instances').update(gradeInstanceData).eq('id', result.grade_instance.id))
-    //             } else {
-    //                 ({
-    //                     error: gradeError
-    //                 } = await supabase.from('grade_instances').insert([gradeInstanceData]))
-    //             }
-
-    //             if (gradeError) {
-    //                 console.log('Grade error: ', gradeError)
-    //             }
-    //         }
-    //     }
-
-    //     this.loading.save_to_database = false;
-    // }
-
-
-    async uploadTestMetadataFunction() {
+    async saveToDatabase() {
         this.loading.save_to_database = true;
-        console.log("Test: Starting Test Metadata Upsert (Create or Update)...");
+        console.log("Test: Starting Save to Firestore...");
 
-        const userStore = useUserStore();
-        if (!userStore.user) {
+        if (!currentUser.value) {
             console.error("Test: No user logged in.");
             this.loading.save_to_database = false;
             return false;
         }
-        this.user_id = userStore.user.id;
-
-        const testData = {
-            id: this.id || undefined, // Include ID, use undefined if this.id is not set for new insert
-            user_id: this.user_id,
-            name: this.name,
-            is_public: this.is_public,
-            gpt_provider: this.gpt_provider,
-            gpt_model: this.gpt_model,
-            grade_rules: this.grade_rules || "",
-            test_data_result: this.test_data_result ? { ...this.test_data_result, questions: [], targets: [] } : null, // Minimal data for now
-        };
+        this.user_id = currentUser.value.uid;
 
         try {
-            const { data: savedTest, error: testError } = await supabase
-                .from('tests')
-                .upsert([testData], { onConflict: ['id'] }) // Use upsert, specify 'id' for onConflict
-                .select();
+            // 1. Save Test Metadata (as before, but with the user_id check)
+            const testData = {
+                user_id: this.user_id,  // This *must* be present.
+                name: this.name,
+                is_public: this.is_public,
+                gpt_provider: this.gpt_provider,
+                gpt_model: this.gpt_model,
+                grade_rules: this.grade_rules || "",
+                test_data_result: this.test_data_result ? { ...this.test_data_result, questions: [], targets: [] } : null,
+            };
+            let testId = this.id;
 
-            if (testError) {
-                console.error("Test: Error during Test Metadata Upsert:", testError);
+            // *** CRUCIAL CHECK ***
+            if (!this.user_id) {
+                console.error("Test: saveToDatabase: this.user_id is undefined!", this);
                 this.loading.save_to_database = false;
-                return false;
+                return false; // Prevent the update/insert
             }
 
-            if (savedTest && savedTest.length > 0) {
-                if (!this.id) {
-                    this.id = savedTest[0].id; // If it was a new insert, get the new ID
-                }
-                console.log(`Test: Test Metadata Upserted Successfully. Test ID: ${this.id} (Created or Updated)`);
-                this.loading.save_to_database = false;
-                return true;
+            if (testId) {
+                await super.update(testId, testData); // Update existing test
+                console.log(`Test: Test Metadata Updated. Test ID: ${testId}`);
             } else {
-                console.warn("Test: Test Metadata Upserted, but no data returned (check logs).");
-                this.loading.save_to_database = false;
-                return false; // Technically upserted, but no data back is unexpected
+                testId = await super.add(testData); // Add new test
+                this.id = testId; // Update instance with new ID
+                console.log(`Test: Test Metadata Created. Test ID: ${testId}`);
             }
 
-        } catch (e) {
-            console.error("Test: Exception during Test Metadata Upsert:", e);
-            this.loading.save_to_database = false;
-            return false;
-        }
-    }
+            // 2. Save GPT Settings
+            await this.gpt_test.saveToFirestore(testId);
+            await this.gpt_question.saveToFirestore(testId);
+            await this.test_settings.saveToFirestore(testId);
 
-    async uploadGPTSettingsMetadataFunction() {
-        this.loading.save_to_database = true;
-        console.log("Test: Starting GPT Settings Metadata Upload...");
-        if (!this.id) {
-            console.error("Test: Test ID is missing. Run uploadDummyTestFunction() first.");
-            this.loading.save_to_database = false;
-            return false;
-        }
+            // --- Child Cleanup (BEFORE adding/updating) ---
+            await this.cleanupUnusedChildren(testId);
 
-        const gptTestData = {
-            test_id: this.id,
-            school_type: this.gpt_test.school_type || null, // Default values
-            school_year: this.gpt_test.school_year || null,
-            school_subject: this.gpt_test.school_subject || null,
-            subject: this.gpt_test.subject || null,
-            learned: this.gpt_test.learned || null,
-            requested_topics: this.gpt_test.requested_topics || null,
-        };
+            // 3. Save Targets and Questions (using batch for efficiency)
+            await this.saveTargetsAndQuestions(testId);
 
-        const gptQuestionData = {
-            test_id: this.id,
-            rtti: this.gpt_question.rtti || null,
-            subject: this.gpt_question.subject || null,
-            targets: this.gpt_question.targets || null,
-            point_count: this.gpt_question.point_count || 1,
-        };
+            // 4. Save Pages and Sections (also handles file metadata)
+            await this.savePagesAndSections(testId);
 
-        const testPdfSettingsData = {
-            test_id: this.id,
-            name: this.test_settings.name || "Test Name",
-            show_targets: this.test_settings.show_targets || false,
-            show_answers: this.test_settings.show_answers || false,
-            output_type: this.test_settings.output_type || "pdf",
-        };
+            // 5. Save Students and Results
+            await this.saveStudentsAndResults(testId);
 
-        try {
-            let gptTestError, gptQuestionError, testPdfSettingsError;
+            // 6. Save Files (Test, Rubric, Students, Page Files, Section Files, Result Files)
+            // Only store the main files, if the base64 data exists
+            await this.saveTestFiles(testId);
+            await this.savePageAndSectionFiles(testId); // Includes file saving logic
+            await this.saveStudentResultFiles(testId);
 
-            if (this.gpt_test.id) {
-                ({ error: gptTestError } = await supabase.from('gpt_tests_settings').update(gptTestData).eq('id', this.gpt_test.id));
-            } else {
-                ({ error: gptTestError } = await supabase.from('gpt_tests_settings').insert([gptTestData]));
-            }
-            if (gptTestError) console.error("Test: Error saving GPT Test settings:", gptTestError);
 
-            if (this.gpt_question.id) {
-                ({ error: gptQuestionError } = await supabase.from('gpt_questions_settings').update(gptQuestionData).eq('id', this.gpt_question.id));
-            } else {
-                ({ error: gptQuestionError } = await supabase.from('gpt_questions_settings').insert([gptQuestionData]));
-            }
-            if (gptQuestionError) console.error("Test: Error saving GPT Question settings:", gptQuestionError);
-
-            if (this.test_settings.pdf_settings_id) {
-                ({ error: testPdfSettingsError } = await supabase.from('test_pdf_settings').update(testPdfSettingsData).eq('id', this.test_settings.pdf_settings_id));
-            } else {
-                ({ error: testPdfSettingsError } = await supabase.from('test_pdf_settings').insert([testPdfSettingsData]));
-            }
-            if (testPdfSettingsError) console.error("Test: Error saving Test PDF settings:", testPdfSettingsError);
-
-            if (gptTestError || gptQuestionError || testPdfSettingsError) {
-                this.loading.save_to_database = false;
-                return false;
-            }
-
-            console.log("Test: GPT Settings Metadata Uploaded Successfully. Test ID:", this.id);
+            console.log("Test: Save to Firestore Completed Successfully. Test ID:", testId);
             this.loading.save_to_database = false;
             return true;
 
         } catch (e) {
-            console.error("Test: Exception uploading GPT settings metadata:", e);
+            console.error("Test: Exception during Firestore save:", e);
             this.loading.save_to_database = false;
             return false;
         }
     }
 
-    async uploadTargetsAndQuestionsMetadataFunction() {
-        this.loading.save_to_database = true;
-        console.log("Test: Starting Targets and Questions Metadata Upload...");
-        if (!this.id) {
-            console.error("Test: Test ID is missing. Run uploadDummyTestFunction() first.");
-            this.loading.save_to_database = false;
+    async saveGPTSettingsMetadataFunction() { // Deprecated - settings are now saved within saveToDatabase
+        return this.gpt_test.saveToFirestore(this.id) && this.gpt_question.saveToFirestore(this.id) && this.test_settings.saveToFirestore(this.id)
+    }
+
+    async saveTargetsAndQuestionsMetadataFunction() { // Deprecated - targets and questions are now saved within saveToDatabase
+        return this.saveTargetsAndQuestions(this.id)
+    }
+
+    async savePagesAndSectionsMetadataFunction() { // Deprecated - pages and sections are now saved within saveToDatabase
+        return this.savePagesAndSections(this.id)
+    }
+
+
+    async saveStudentsAndResultsMetadataFunction() { // Deprecated - students and results are now saved within saveToDatabase
+        return this.saveStudentsAndResults(this.id)
+    }
+
+
+    async saveToDatabaseFunction() { // Deprecated - use saveToDatabase
+        return this.saveToDatabase()
+    }
+
+    async saveTestFiles(testId) {
+        console.log("Test: Starting Test Files Upload...");
+        if (!testId) {
+            console.error("Test: Test ID is missing. Cannot save files.");
             return false;
         }
 
         try {
-            // 2. Store Targets (simplified - just names and test_id)
-            for (const target of this.targets) {
-                const targetData = {
-                    test_id: this.id,
-                    target_name: target.target_name, // Default target name
-                    explanation: target.explanation, // Default explanation
-                };
-                let savedTarget, targetError;
-
-                if (target.id) {
-                    ({ data: savedTarget, error: targetError } = await supabase.from('targets').update(targetData).eq('id', target.id).select());
-                } else {
-                    ({ data: savedTarget, error: targetError } = await supabase.from('targets').insert([targetData]).select());
-                    if (savedTarget && savedTarget.length > 0) {
-                        target.id = savedTarget[0].id; // Store the database ID
+            await Promise.all(Object.keys(this.files).map(async key => {
+                if (this.files[key].raw) {
+                    this.files[key].base64Data = this.files[key].raw // Prepare for storage
+                }
+                if (this.files[key].base64Data) { // Only store if there's base64 data (new file uploaded)
+                    await this.files[key].storeFile(testId) // Use File class to store to Firebase Storage
+                    const fileData = {
+                        test_id: testId,
+                        location: this.files[key].location,
+                        file_type: this.files[key].file_type,
+                    };
+                    if (this.files[key].id) {
+                        await updateDoc(doc(collection(db, 'files'), this.files[key].id), fileData); // Update file metadata in Firestore
+                    } else {
+                        this.files[key].id = await addDoc(collection(db, 'files'), fileData); // Add file metadata to Firestore and get new ID
                     }
                 }
-                if (targetError) {
-                    console.error("Test: Error saving target:", targetError);
-                    return false; // Indicate failure
+            }));
+            console.log("Test: Test Files Uploaded Successfully. Test ID:", testId);
+            return true;
+
+        } catch (e) {
+            console.error("Test: Exception uploading test files:", e);
+            return false;
+        }
+    }
+
+    async saveTargetsAndQuestions(testId) {
+        console.log("Test: Starting Targets and Questions Save to Firestore...")
+        if (!testId) {
+            console.error("Test: Test ID is missing. Cannot save targets and questions.");
+            return false;
+        }
+
+        try {
+            // Use a Firestore Batch for efficiency
+            const batch = writeBatch(db);
+
+            // 2. Save Targets
+            for (const target of this.targets) {
+                const targetData = {
+                    test_id: testId,
+                    target_name: target.target_name,
+                    explanation: target.explanation,
+                };
+                const targetRef = target.id ? doc(collection(db, 'targets'), target.id) : doc(collection(db, 'targets'));
+                batch.set(targetRef, targetData, { merge: true }); // Use set with merge for updates/inserts
+                if (!target.id) {
+                    target.id = targetRef.id; // Assign new ID if it's a new target
                 }
             }
 
-            // 3. Store Questions and Rubric Points (simplified - basic question data and point names)
+            console.log(this)
+            // 3. Save Questions and Rubric Points
             for (const question of this.questions) {
                 const questionData = {
-                    test_id: this.id,
-                    question_number: question.question_number || "1", // Default question number
-                    question_text: question.question_text || "Question Text", // Default question text
-                    question_context: question.question_context || "Question Context",
-                    answer_text: question.base64_answer_text || "Answer Text",
-                    is_draw_question: question.is_draw_question || false,
+                    test_id: testId,
+                    question_number: question.question_number,
+                    question_text: question.question_text,
+                    question_context: question.question_context,
+                    answer_text: question.base64_answer_text, // Assuming this is text, not a file
+                    is_draw_question: question.is_draw_question,
                 };
-                let savedQuestion, questionError;
-
-                if (question.id) {
-                    ({ data: savedQuestion, error: questionError } = await supabase.from('questions').update(questionData).eq('id', question.id).select());
-                } else {
-                    ({ data: savedQuestion, error: questionError } = await supabase.from('questions').insert([questionData]).select());
-                    if (savedQuestion && savedQuestion.length > 0) {
-                        question.id = savedQuestion[0].id;
-                    }
-                }
-                if (questionError) {
-                    console.error("Test: Error saving question:", questionError);
-                    return false; // Indicate failure
+                const questionRef = question.id ? doc(collection(db, 'questions'), question.id) : doc(collection(db, 'questions'));
+                batch.set(questionRef, questionData, { merge: true }); // Use set with merge for updates/inserts
+                if (!question.id) {
+                    question.id = questionRef.id; // Assign new ID if it's a new question
                 }
 
-                // Store Rubric Points (simplified - just point_name and question_id)
+                // Save Rubric Points for each question
                 for (const point of question.points) {
                     const pointData = {
                         question_id: question.id,
-                        point_text: point.point_text || "Point Text",
-                        point_name: point.point_name || "Point Name",
-                        point_weight: point.point_weight || 1,
-                        point_index: point.point_index || 0,
-                        target_id: point.target?.id, // Use the saved target ID
+                        point_text: point.point_text,
+                        point_name: point.point_name,
+                        point_weight: point.point_weight,
+                        point_index: point.point_index,
+                        target_id: point.target_id, // Use the saved target ID
                     };
-                    let pointError;
-                    if (point.id) {
-                        ({ error: pointError } = await supabase.from('rubric_points').update(pointData).eq('id', point.id));
-                    } else {
-                        ({ error: pointError } = await supabase.from('rubric_points').insert([pointData]));
-                    }
-                    if (pointError) {
-                        console.error("Test: Error saving rubric point:", pointError);
-                        return false; // Indicate failure
+                    const pointRef = point.id ? doc(collection(db, 'rubric_points'), point.id) : doc(collection(db, 'rubric_points'));
+                    batch.set(pointRef, pointData, { merge: true }); // Use set with merge for updates/inserts
+                    if (!point.id) {
+                        point.id = pointRef.id; // Assign new ID if it's a new point
                     }
                 }
             }
 
-            console.log("Test: Targets and Questions Metadata Uploaded Successfully. Test ID:", this.id);
-            this.loading.save_to_database = false;
+            await batch.commit(); // Commit the batch write
+            console.log("Test: Targets and Questions Saved Successfully. Test ID:", testId);
             return true;
 
         } catch (e) {
-            console.error("Test: Exception uploading targets and questions metadata:", e);
-            this.loading.save_to_database = false;
+            console.error("Test: Exception saving targets and questions metadata:", e);
             return false;
         }
     }
 
-    async uploadPagesAndSectionsMetadataFunction() {
-        this.loading.save_to_database = true;
-        console.log("Test: Starting Pages and Sections Metadata Upload...");
-        if (!this.id) {
-            console.error("Test: Test ID is missing. Run uploadDummyTestFunction() first.");
-            this.loading.save_to_database = false;
+    async savePagesAndSections(testId) {
+        console.log("Test: Starting Pages and Sections Save to Firestore...");
+        if (!testId) {
+            console.error("Test: Test ID is missing. Cannot save pages and sections.");
             return false;
         }
 
         try {
+            // Use a Firestore Batch for efficiency
+            const batch = writeBatch(db);
+
             // Store all pages and section metadata (excluding files for now)
             for (const page of this.pages) {
                 const pageData = {
-                    test_id: this.id,
-                    // No file location for now
+                    test_id: testId,
                     file_type: page.file.file_type || "pdf" // Keep file_type metadata
                 }
-                let savedPage, pageError;
-                if (page.file.id) {
-                    ({ data: savedPage, error: pageError } = await supabase.from('files').update(pageData).eq('id', page.file.id)) // Assuming 'files' table for pages too
-                } else {
-                    ({ data: savedPage, error: pageError } = await supabase.from('files').insert([pageData])) // Assuming 'files' table for pages too
-                }
-                if (pageError) {
-                    console.error('Test: Page metadata save error: ', pageError);
-                    return false;
+                const pageFileRef = page.file.id ? doc(collection(db, 'files'), page.file.id) : doc(collection(db, 'files')); // Assuming 'files' collection for pages too
+                batch.set(pageFileRef, pageData, { merge: true }); // Use set with merge for updates/inserts
+                if (!page.file.id) {
+                    page.file.id = pageFileRef.id; // Assign new ID if it's a new page file
                 }
 
 
                 for (const section of page.sections) {
                     // Store section details (no file locations for now)
                     const sectionData = {
-                        test_id: this.id,
+                        test_id: testId,
                         question_number: section.question_number || 0, // Default question number
                         is_qr_section: section.is_qr_section || false,
                         student_id: section.student_id || "unknown_student",
                     };
-
-                    let savedSection, sectionError;
-                    if (section.id) {
-                        ({ data: savedSection, error: sectionError } = await supabase.from('sections').update(sectionData).eq('id', section.id).select());
-                    } else {
-                        ({ data: savedSection, error: sectionError } = await supabase.from('sections').insert([sectionData]).select());
-                        if (savedSection && savedSection.length > 0) {
-                            section.id = savedSection[0].id
-                        }
+                    const sectionRef = section.id ? doc(collection(db, 'sections'), section.id) : doc(collection(db, 'sections'));
+                    batch.set(sectionRef, sectionData, { merge: true }); // Use set with merge for updates/inserts
+                    if (!section.id) {
+                        section.id = sectionRef.id; // Assign new ID if it's a new section
                     }
-                    if (sectionError) {
-                        console.error("Test: Error saving section:", sectionError);
-                        return false;
+
+                    // Save Section Files Metadata (Full, Finder, Selector, Answer)
+                    const sectionFiles = [{
+                        file: section.file_full,
+                        type: 'section_full'
+                    }, {
+                        file: section.file_section_finder,
+                        type: 'section_finder'
+                    }, {
+                        file: section.file_question_selector,
+                        type: 'section_question_selector'
+                    }, {
+                        file: section.file_answer,
+                        type: 'section_answer'
+                    }];
+
+                    for (const sectionFileDetail of sectionFiles) {
+                        if (sectionFileDetail.file.base64Data) { // Only if there's new base64 data
+                            await sectionFileDetail.file.storeFile(testId); // Store to Firebase Storage
+                        }
+                        const sectionFileData = {
+                            test_id: testId,
+                            location: sectionFileDetail.file.location,
+                            file_type: sectionFileDetail.type
+                        };
+                        const sectionFileRef = sectionFileDetail.file.id ? doc(collection(db, 'files'), sectionFileDetail.file.id) : doc(collection(db, 'files'));
+                        batch.set(sectionFileRef, sectionFileData, { merge: true }); // Use set with merge for updates/inserts
+                        if (!sectionFileDetail.file.id) {
+                            sectionFileDetail.file.id = sectionFileRef.id; // Assign new ID if it's a new section file
+                        }
                     }
                 }
             }
 
-            console.log("Test: Pages and Sections Metadata Uploaded Successfully. Test ID:", this.id);
-            this.loading.save_to_database = false;
+            await batch.commit(); // Commit the batch write
+            console.log("Test: Pages and Sections Saved Successfully. Test ID:", testId);
             return true;
 
         } catch (e) {
-            console.error("Test: Exception uploading pages and sections metadata:", e);
-            this.loading.save_to_database = false;
+            console.error("Test: Exception saving pages and sections metadata:", e);
             return false;
         }
     }
 
 
-    async uploadStudentsAndResultsMetadataFunction() {
-        this.loading.save_to_database = true;
-        console.log("Test: Starting Students and Results Metadata Upload...");
-        if (!this.id) {
-            console.error("Test: Test ID is missing. Run uploadDummyTestFunction() first.");
-            this.loading.save_to_database = false;
+    async saveStudentsAndResults(testId) {
+        console.log("Test: Starting Students and Results Save to Firestore...");
+        if (!testId) {
+            console.error("Test: Test ID is missing. Cannot save students and results.");
             return false;
         }
 
         try {
+            // Use a Firestore Batch for efficiency
+            const batch = writeBatch(db);
+
             // 4. Store Students and Results
             for (const student of this.students) {
                 const studentData = {
-                    test_id: this.id,
+                    test_id: testId,
                     student_id: student.student_id || "unknown_student", // Default student ID
                 };
-                let savedStudent, studentError;
-
-                if (student.id) {
-                    ({ data: savedStudent, error: studentError } = await supabase.from('students').update(studentData).eq('id', student.id).select());
-                } else {
-                    ({ data: savedStudent, error: studentError } = await supabase.from('students').insert([studentData]).select());
-                    if (savedStudent && savedStudent.length > 0) {
-                        student.id = savedStudent[0].id;
-                    }
-                }
-                if (studentError) {
-                    console.error("Test: Error saving student:", studentError);
-                    return false; // Indicate failure
+                const studentRef = student.id ? doc(collection(db, 'students'), student.id) : doc(collection(db, 'students'));
+                batch.set(studentRef, studentData, { merge: true }); // Use set with merge for updates/inserts
+                if (!student.id) {
+                    student.id = studentRef.id; // Assign new ID if it's a new student
                 }
 
-                // Store StudentQuestionResults (simplified - feedback and student_id)
+                // Store StudentQuestionResults
                 for (const result of student.results) {
                     const resultData = {
                         student_id: student.id,
-                        question_id: result.question.id,
+                        question_id: result.question_id,
                         feedback: result.feedback || "No feedback", // Default feedback
                         student_handwriting_percent: result.student_handwriting_percent || 0,
                     };
-                    let savedResult, resultError;
-                    if (result.id) {
-                        ({ data: savedResult, error: resultError } = await supabase.from('students_question_results').update(resultData).eq('id', result.id).select());
-                    } else {
-                        ({ data: savedResult, error: resultError } = await supabase.from('students_question_results').insert([resultData]).select());
-                        if (savedResult && savedResult.length > 0) {
-                            result.id = savedResult[0].id;
-                        }
-                    }
-                    if (resultError) {
-                        console.error("Test: Error saving student question result:", resultError);
-                        return false; // Indicate failure
+                    const resultRef = result.id ? doc(collection(db, 'students_question_results'), result.id) : doc(collection(db, 'students_question_results'));
+                    batch.set(resultRef, resultData, { merge: true }); // Use set with merge for updates/inserts
+                    if (!result.id) {
+                        result.id = resultRef.id; // Assign new ID if it's a new result
                     }
 
-
-                    // Store StudentPointResults (simplified - just has_point and student_question_result_id)
+                    // Store StudentPointResults
                     for (const pointIndex in result.point_results) {
                         const pointResult = result.point_results[pointIndex];
                         const pointResultData = {
@@ -2396,80 +2071,306 @@ class Test {
                             has_point: pointResult.has_point || false, // Default has_point
                             feedback: pointResult.feedback || "No point feedback", // Default point feedback
                         };
-                        let pointResultError;
-                        if (pointResult.id) {
-                            ({ error: pointResultError } = await supabase.from('students_points_results').update(pointResultData).eq('id', pointResult.id));
-                        } else {
-                            ({ error: pointResultError } = await supabase.from('students_points_results').insert([pointResultData]));
-                        }
-                        if (pointResultError) {
-                            console.error("Test: Error saving student point result:", pointResultError);
-                            return false; // Indicate failure
+                        const pointResultRef = pointResult.id ? doc(collection(db, 'students_points_results'), pointResult.id) : doc(collection(db, 'students_points_results'));
+                        batch.set(pointResultRef, pointResultData, { merge: true }); // Use set with merge for updates/inserts
+                        if (!pointResult.id) {
+                            pointResult.id = pointResultRef.id; // Assign new ID if it's a new point result
                         }
                     }
 
-                    // Store Grade Instance (simplified - just is_gpt and student_question_result_id)
+                    // Store Grade Instance
                     const gradeInstanceData = {
                         student_question_result_id: result.id,
                         is_gpt: result.grade_instance.is_gpt || false, // Default is_gpt
                         model: result.grade_instance.model || "default_model", // Default model
                         provider: result.grade_instance.provider || "default_provider", // Default provider
                     }
-                    let gradeError;
-                    if (result.grade_instance.id) {
-                        ({ error: gradeError } = await supabase.from('grade_instances').update(gradeInstanceData).eq('id', result.grade_instance.id))
-                    } else {
-                        ({ error: gradeError } = await supabase.from('grade_instances').insert([gradeInstanceData]))
-                    }
-                    if (gradeError) {
-                        console.error('Test: Grade error: ', gradeError);
-                        return false; // Indicate failure
+                    const gradeInstanceRef = result.grade_instance.id ? doc(collection(db, 'grade_instances'), result.grade_instance.id) : doc(collection(db, 'grade_instances'));
+                    batch.set(gradeInstanceRef, gradeInstanceData, { merge: true }); // Use set with merge for updates/inserts
+                    if (!result.grade_instance.id) {
+                        result.grade_instance.id = gradeInstanceRef.id; // Assign new ID if it's a new grade instance
                     }
                 }
             }
 
-            console.log("Test: Students and Results Metadata Uploaded Successfully. Test ID:", this.id);
-            this.loading.save_to_database = false;
+            await batch.commit(); // Commit the batch write
+            console.log("Test: Students and Results Saved Successfully. Test ID:", testId);
             return true;
 
         } catch (e) {
-            console.error("Test: Exception uploading students and results metadata:", e);
+            console.error("Test: Exception saving students and results metadata:", e);
+            return false;
+        }
+    }
+
+    async saveStudentResultFiles(testId) {
+        console.log("Test: Starting Student Result Files Upload...");
+        if (!testId) {
+            console.error("Test: Test ID is missing. Cannot save student result files.");
+            return false;
+        }
+
+        try {
+            // Use a Firestore Batch for efficiency
+            const batch = writeBatch(db);
+
+            for (const student of this.students) {
+                for (const result of student.results) {
+                    if (result.scan.file.base64Data) { // Only store if there's base64 data (new file uploaded)
+                        await result.scan.file.storeFile(null, result.id); // Store to Firebase Storage, using result ID
+                        const resultFileData = {
+                            student_question_result_id: result.id,
+                            location: result.scan.file.location,
+                            file_type: result.scan.file.file_type,
+                        }
+                        const resultFileRef = result.scan.file.id ? doc(collection(db, 'files'), result.scan.file.id) : doc(collection(db, 'files'));
+                        batch.set(resultFileRef, resultFileData, { merge: true }); // Use set with merge for updates/inserts
+                        if (!result.scan.file.id) {
+                            result.scan.file.id = resultFileRef.id; // Assign new ID if it's a new result file
+                        }
+                    }
+                }
+            }
+
+            await batch.commit(); // Commit the batch write
+            console.log("Test: Student Result Files Uploaded Successfully. Test ID:", testId);
+            return true;
+
+        } catch (e) {
+            console.error("Test: Exception uploading student result files:", e);
+            return false;
+        }
+    }
+
+    async savePageAndSectionFiles(testId) {
+        console.log("Test: Starting Page and Section Files Upload...");
+        if (!testId) {
+            console.error("Test: Test ID is missing. Cannot save page and section files.");
+            return false;
+        }
+
+        try {
+            // Use a Firestore Batch for efficiency
+            const batch = writeBatch(db);
+
+            for (const page of this.pages) {
+                if (page.file.base64Data) { // Only store if there's base64 data (new page file)
+                    await page.file.storeFile(testId); // Store page file to Firebase Storage
+                    const pageFileData = {
+                        test_id: testId,
+                        location: page.file.location,
+                        file_type: page.file.file_type
+                    }
+                    const pageFileRef = page.file.id ? doc(collection(db, 'files'), page.file.id) : doc(collection(db, 'files')); // Assuming 'files' table for pages too
+                    batch.set(pageFileRef, pageFileData, { merge: true }); // Use set with merge for updates/inserts
+                    if (!page.file.id) {
+                        page.file.id = pageFileRef.id; // Assign new ID if it's a new page file
+                    }
+                }
+
+                for (const section of page.sections) {
+                    // Section files are handled in savePagesAndSections function already.
+                    // No need to re-upload or re-save metadata here.
+                    // This function is primarily for the page file itself.
+                }
+            }
+
+            await batch.commit(); // Commit the batch write
+            console.log("Test: Page and Section Files Uploaded Successfully. Test ID:", testId);
+            return true;
+
+        } catch (e) {
+            console.error("Test: Exception uploading page and section files:", e);
+            return false;
+        }
+    }
+
+
+    async deleteFromDatabase() {
+        if (!this.id) {
+            console.error("Test: No ID found, cannot delete.");
+            return false;
+        }
+        this.loading.save_to_database = true;
+
+        try {
+            // 2. Delete related files from Firebase Storage (BEFORE deleting from Firestore)
+            await this.deleteRelatedFilesFromStorage();
+
+            // 3. Delete the main test document - the cloud function will do the cascading delete
+            await super.delete(this.id);
+
+            console.log(`Test with ID ${this.id} and all related data deleted successfully.`);
+            this.loading.save_to_database = false;
+            return true;
+
+        } catch (error) {
+            console.error("Error deleting test and related data:", error);
             this.loading.save_to_database = false;
             return false;
         }
     }
-    async saveToDatabase(){
-        console.log("\nRunning Dummy Test Upload...");
-        await this.uploadTestMetadataFunction();
 
-        if (this.id) { // Only proceed if Dummy Test was successful and we have a test.id
-            // console.log("\nRunning Test Metadata Upload...");
-            // await this.uploadTestMetadataFunction();
 
-            console.log("\nRunning GPT Settings Metadata Upload...");
-            await this.uploadGPTSettingsMetadataFunction();
+    async deleteRelatedFilesFromStorage() {
+        try {
+            // Delete test-level files
+            for (const fileKey in this.files) {
+                if (this.files[fileKey]?.is_stored && this.files[fileKey].location) {
+                    await this.files[fileKey].deleteFileFromStorage();
+                }
+            }
+            // Delete student answer files, sections and pages
+            for (const student of this.students) {
+                for (const result of student.results) {
+                    if (result.scan.file?.is_stored && result.scan.file.location) {
+                        await result.scan.file.deleteFileFromStorage()
+                    }
+                }
+            }
 
-            console.log("\nRunning Targets and Questions Metadata Upload...");
-            await this.uploadTargetsAndQuestionsMetadataFunction();
+            for (const page of this.pages) {
+                if (page.file?.is_stored && page.file.location) {
+                    await page.file.deleteFileFromStorage()
+                }
+                for (const section of page.sections) {
+                    if (section.file_full?.is_stored && section.file_full.location) {
+                        await section.file_full.deleteFileFromStorage()
+                    }
+                    if (section.file_section_finder?.is_stored && section.file_section_finder.location) {
+                        await section.file_section_finder.deleteFileFromStorage()
+                    }
+                    if (section.file_question_selector?.is_stored && section.file_question_selector.location) {
+                        await section.file_question_selector.deleteFileFromStorage()
+                    }
+                    if (section.file_answer?.is_stored && section.file_answer.location) {
+                        await section.file_answer.deleteFileFromStorage()
+                    }
+                }
+            }
 
-            console.log("\nRunning Pages and Sections Metadata Upload...");
-            await this.uploadPagesAndSectionsMetadataFunction();
-
-            console.log("\nRunning Students and Results Metadata Upload...");
-            await this.uploadStudentsAndResultsMetadataFunction();
-        } else {
-            console.warn("Skipping further tests because Dummy Test Upload failed.");
+        } catch (error) {
+            console.error("Error deleting files from storage:", error);
+            // Continue even if file deletion fails from storage, as database entry is more critical to delete.
         }
-        console.log("\nDatabase Tests Completed.");
-    }    
+    }
+    async cleanupUnusedChildren(testId) {
+        if (!testId) {
+            console.error("Test: cleanupUnusedChildren requires a testId.");
+            return;
+        }
+        const batch = writeBatch(db); // Use a batch for efficient deletion
+
+        try {
+            // --- Questions ---
+            const questionQuery = query(collection(db, 'questions'), where("test_id", "==", testId));
+            const questionSnapshot = await getDocs(questionQuery);
+            questionSnapshot.forEach(doc => {
+                // Check if the question exists in the current this.questions array
+                if (!this.questions.some(q => q.id === doc.id)) {
+                    console.log(`Deleting orphaned question: ${doc.id}`);
+                    batch.delete(doc.ref); // Delete orphaned questions
+
+                    // Also delete associated rubric_points
+                    const pointsQuery = query(collection(db, 'rubric_points'), where("question_id", "==", doc.id));
+                    getDocs(pointsQuery).then(pointsSnapshot => {
+                        pointsSnapshot.forEach(pointDoc => {
+                            batch.delete(pointDoc.ref);
+                        });
+                    });
+
+                }
+            });
+
+            // --- Targets ---
+            const targetQuery = query(collection(db, 'targets'), where("test_id", "==", testId));
+            const targetSnapshot = await getDocs(targetQuery);
+            targetSnapshot.forEach(doc => {
+                if (!this.targets.some(t => t.id === doc.id)) {
+                    console.log(`Deleting orphaned target: ${doc.id}`);
+                    batch.delete(doc.ref); // Delete orphaned targets
+                }
+            });
+
+
+            // --- Students (and related data) ---
+            const studentQuery = query(collection(db, 'students'), where("test_id", "==", testId));
+            const studentSnapshot = await getDocs(studentQuery);
+            studentSnapshot.forEach(studentDoc => {
+                if (!this.students.some(s => s.id === studentDoc.id)) {
+                    console.log(`Deleting orphaned student: ${studentDoc.id}`);
+                    // Also delete associated studentQuestionResults, and within those:
+                    //  - studentPointResults
+                    //  - gradeInstances
+
+                    const resultsQuery = query(collection(db, "students_question_results"), where("student_id", "==", studentDoc.id));
+                    getDocs(resultsQuery).then(resultSnapshot => {
+                        resultSnapshot.forEach(async resultDoc => {
+                            // Delete studentPointResults
+                            const pointsQuery = query(collection(db, 'students_points_results'), where("student_question_result_id", "==", resultDoc.id));
+                            getDocs(pointsQuery).then(pointsSnapshot => {
+                                pointsSnapshot.forEach(pointDoc => {
+                                    batch.delete(pointDoc.ref);
+                                });
+                            });
+
+                            // Delete gradeInstances
+                            const gradeQuery = query(collection(db, 'grade_instances'), where("student_question_result_id", "==", resultDoc.id));
+                            getDocs(gradeQuery).then(gradeSnapshot => {
+                                gradeSnapshot.forEach(gradeDoc => {
+                                    batch.delete(gradeDoc.ref);
+                                });
+                            });
+                            // Delete Student files
+                            const fileQuery = query(collection(db, 'files'), where("student_question_result_id", "==", resultDoc.id));
+                            getDocs(fileQuery).then(filesSnapshot => {
+                                filesSnapshot.forEach(fileDoc => {
+                                    batch.delete(fileDoc.ref);
+                                    // Also delete from storage.
+                                    const file = new File({
+                                        id: fileDoc.id,
+                                        test_id: fileDoc.data().test_id,
+                                        student_question_result_id: fileDoc.data().student_question_result_id,
+                                        location: fileDoc.data().location,
+                                        file_type: fileDoc.data().fileType,
+                                        is_stored: true,
+                                    })
+                                    file.deleteFileFromStorage()
+                                });
+                            });
+                            batch.delete(resultDoc.ref); //Delete the student result
+
+                        })
+                    })
+
+                    batch.delete(studentDoc.ref); // Delete the student
+                }
+            })
+
+            // --- Sections ---
+            // For sections, you will need to add more information, I dont know on what basis the should be deleted.
+            const sectionQuery = query(collection(db, 'sections'), where("test_id", "==", testId));
+            const sectionSnapshot = await getDocs(sectionQuery);
+            sectionSnapshot.forEach(doc => {
+                // if (!this.sections.some(s => s.id === doc.id)) { // Check this condition
+                    console.log(`Deleting orphaned section: ${doc.id}`);
+                    batch.delete(doc.ref); // Delete orphaned sections
+                // }
+            });
+
+            await batch.commit(); // Commit all deletions in a single batch
+        } catch (error) {
+            console.error("Error cleaning up unused children:", error);
+        }
+    }
 
 }
 
 
-class Question {
+class Question extends FirestoreBase {
     constructor({
         test = new Test({}),
-        id = getRandomID(),
+        id = null,
         question_number = "",
         question_text = "",
         question_context = "",
@@ -2477,6 +2378,7 @@ class Question {
         is_draw_question = false,
         points = [],
     }) {
+        super('questions');
         this.test = test
         this.is_draw_question = is_draw_question
         this.id = id
@@ -2503,10 +2405,10 @@ class Question {
     }
 }
 
-class RubricPoint {
+class RubricPoint extends FirestoreBase {
     constructor({
         question = new Question({}),
-        id = getRandomID(),
+        id = null,
         point_text = "",
         point_name = "",
         point_weight = 1,
@@ -2514,6 +2416,7 @@ class RubricPoint {
         target = new Target({}),
         target_id = null
     }) {
+        super('rubric_points');
         this.question = question
 
         this.id = id
@@ -2528,13 +2431,14 @@ class RubricPoint {
     }
 }
 
-class Target {
+class Target extends FirestoreBase {
     constructor({
         test = new Test({}),
-        id = getRandomID(),
+        id = null,
         target_name = "",
         explanation = "",
     }) {
+        super('targets');
         this.test = test
 
         this.id = id
@@ -2552,14 +2456,15 @@ class Target {
     }
 }
 
-class Student {
+class Student extends FirestoreBase {
     constructor({
         test = new Test({}),
-        id = getRandomID(),
+        id = null,
         student_id = "",
         results = [],
         is_grading = false,
     }) {
+        super('students');
         this.test = test
         this.id = id
         this.student_id = student_id
@@ -2686,21 +2591,26 @@ class Student {
 
 }
 
-class GradeInstance {
+class GradeInstance extends FirestoreBase {
     constructor({
+        id = null,
+        student_question_result = null,
         is_gpt = false,
         model = null,
         provider = null,
     }) {
+        super('grade_instances');
+        this.id = id;
+        this.student_question_result = student_question_result;
         this.is_gpt = is_gpt
         this.model = model
         this.provider = provider
     }
 }
 
-class StudentQuestionResult {
+class StudentQuestionResult extends FirestoreBase {
     constructor({
-        id = getRandomID(),
+        id = null,
         student = new Student({}),
         grade_instance = new GradeInstance({}),
         question_id = "",
@@ -2712,6 +2622,7 @@ class StudentQuestionResult {
         is_grading = false,
         student_handwriting_percent = 0
     }) {
+        super('students_question_results');
         this.id = id
         this.student = student
         this.grade_instance = grade_instance
@@ -2813,14 +2724,15 @@ class StudentQuestionResult {
     }
 }
 
-class StudentPointResult {
+class StudentPointResult extends FirestoreBase {
     constructor({
-        id = getRandomID(),
+        id = null,
         student_result = new StudentQuestionResult({}),
         has_point = null,
         feedback = "",
         point_index = "",
     }) {
+        super('students_points_results');
         this.id = id
         this.student_result = student_result
         this.has_point = has_point
@@ -2831,8 +2743,9 @@ class StudentPointResult {
         return this.student_result.question.points.find(e => e.point_index == this.point_index) || new RubricPoint({})
     }
 }
-class TestManager {
+class TestManager extends FirestoreBase {
     constructor() {
+        super('tests');
         this.tests = [];
         this.loading = false;
         this.searchQuery = '';
@@ -2840,177 +2753,51 @@ class TestManager {
 
     async fetchTests() {
         this.loading = true;
-        const userStore = useUserStore();
 
-        if (!userStore.user) {
+        if (!currentUser) {
             console.error("No user logged in.");
             this.loading = false;
             return;
         }
+        const userId = currentUser.uid;
 
-      let query = supabase
-      .from('tests')
-      .select('*, gpt_tests_settings(*), gpt_questions_settings(*), test_pdf_settings(*), targets(*), questions(*, rubric_points(*)), students(*, students_question_results(*, grade_instances(*), students_points_results(*))), files(*)',
-      { count: 'exact' }) // Fetch row count
+        let q = query(this.dbCollection,
+            where('user_id', '==', userId)
+            // consider adding is_public filter here if needed for public tests
+        );
 
-        // Apply filters based on user role and test visibility.
-        if (userStore.isAdmin) {
-            // Admins can see all tests.
-        } else {
-            // Regular users see their own tests and public tests.
-            query = query.or(`user_id.eq.${userStore.user.id},is_public.eq.true`);
-        }
+        const querySnapshot = await getDocs(q);
+        this.tests = querySnapshot.docs.map(doc => this.loadTestFromData({
+            id: doc.id,
+            ...doc.data()
+        }));
 
-      const { data, error, count } = await query;
-
-      if (error) {
-            console.error("Error fetching tests:", error);
-            this.loading = false;
-            return;
-        }
-      this.tests = data.map(testData => this.loadTestFromData(testData))
-
-      this.loading = false;
-      console.log('Test count: ', count)
+        this.loading = false;
     }
 
     // Add method to load a single test (used by TestView)
     async fetchTest(testId) {
         this.loading = true
-        const { data, error } = await supabase
-            .from('tests')
-            .select('*, gpt_tests_settings(*), gpt_questions_settings(*), test_pdf_settings(*), targets(*), questions(*, rubric_points(*)), students(*, students_question_results(*, grade_instances(*), students_points_results(*))), files(*)')
-            .eq('id', testId)
-            .single(); // Important: Use .single() for fetching one test.
-
-        this.loading = false
-        if (error) {
-            console.error("Error fetching test:", error);
-            // throw error; // Re-throw so calling component can handle
+        const testDoc = await super.getById(testId);
+        if (testDoc) {
+            return this.loadTestFromData(testDoc);
+        } else {
+            return null;
         }
-        if (data) {
-          return this.loadTestFromData(data)
-        }
-        return null
     }
-    loadTestFromData(testData){
-      const test = new Test({
-          id: testData.id,
-          user_id: testData.user_id,
-          name: testData.name, // Add test name loading.
-          is_public: testData.is_public, // Load is_public
-          gpt_provider: testData.gpt_provider,
-          gpt_model: testData.gpt_model,
-          grade_rules: testData.grade_rules,
-          test_data_result: testData.test_data_result,
 
-      });
-
-      // Load related data (similar to your existing TestManager, but simplified)
-      testData.files.forEach(fileData => {
-          const file = new File({
-              id: fileData.id,
-              test_id: fileData.test_id,
-              student_question_result_id: fileData.student_question_result_id,
-              location: fileData.location,
-              file_type: fileData.file_type,
-              is_stored: true, // Since it's loaded from DB, it's stored.
-          });
-
-          //put them into the right test file fields
-          const file_type = file.file_type.split('.')[0]
-          if (Object.keys(test.files).includes(file_type)) {
-            test.files[file_type] = file
-          }
-      });
-
-
-      if (testData.gpt_tests_settings) {
-          test.gpt_test = new GptTestSettings({
-            ...testData.gpt_tests_settings,
-            test: test, // Pass the test instance. VERY IMPORTANT.
-            id: testData.gpt_tests_settings.id
+    loadTestFromData(testData) {
+        const test = new Test({
+            id: testData.id,
+            user_id: testData.user_id,
+            name: testData.name, // Add test name loading.
+            is_public: testData.is_public, // Load is_public
+            gpt_provider: testData.gpt_provider,
+            gpt_model: testData.gpt_model,
+            grade_rules: testData.grade_rules,
+            test_data_result: testData.test_data_result,
         });
-
-      }
-      if (testData.gpt_questions_settings) {
-          test.gpt_question = new GptQuestionSettings({
-            ...testData.gpt_questions_settings,
-            test: test,
-            id: testData.gpt_questions_settings.id
-
-        });
-      }
-
-      if (testData.test_pdf_settings) {
-          test.test_settings = new TestPdfSettings({
-              ...testData.test_pdf_settings,
-              id: testData.test_pdf_settings.id
-          });
-      }
-      if (testData.targets){
-          test.targets = testData.targets.map(targetData => new Target({
-              test: test,
-              ...targetData
-          }));
-      }
-      if (testData.questions){
-          test.questions = testData.questions.map(questionData => {
-            const question = new Question({
-              test: test,
-              ...questionData
-            })
-            question.points = questionData.rubric_points.map(pointData => new RubricPoint({
-                question: question,
-                ...pointData,
-                target: test.targets.find(e => e.id == pointData.target_id) || new Target({})
-            }))
-            return question
-          })
-      }
-      if(testData.students){
-          test.students = testData.students.map(studentData => {
-            const student = new Student({
-                test: test,
-                ...studentData
-            });
-            //load results
-            student.results = studentData.students_question_results.map(resultData => {
-              const question_result = new StudentQuestionResult({
-                  student: student,
-                  ...resultData
-              })
-
-              //get files
-              const resultFile = testData.files.find(e => e.student_question_result_id == question_result.id)
-              if (resultFile) {
-                  question_result.scan.file = new File({
-                      id: resultFile.id,
-                      location: resultFile.location,
-                      file_type: resultFile.file_type,
-                      is_stored: true
-                  })
-              }
-              //get points
-              resultData.students_points_results.forEach(pointResultData => {
-                  question_result.point_results[pointResultData.point_index] = new StudentPointResult({
-                      student_result: question_result,
-                      ...pointResultData
-                  });
-              });
-              //get grade
-              question_result.grade_instance = new GradeInstance({
-                  ...resultData.grade_instances
-              })
-
-              return question_result
-          })
-
-          return student;
-          })
-      }
-        return test;
-
+        return test; // Incomplete - needs full data loading. Implement loading of children later if needed in TestManager.
     }
 
 
@@ -3023,66 +2810,7 @@ class TestManager {
 
         const test = this.tests[testIndex];
 
-        // Delete files from Google Cloud Storage
-        try {
-            // Delete test-level files
-            for (const fileKey in test.files) {
-                if (test.files[fileKey]?.is_stored) {
-                    await test.files[fileKey].deleteFromStorage();
-                }
-            }
-            // Delete student answer files, sections and pages
-            test.students.forEach(student => {
-                student.results.forEach(async result => {
-                    if (result.scan.file?.is_stored) {
-                        await result.scan.file.deleteFromStorage()
-                    }
-                })
-            })
-
-            test.pages.forEach(page => {
-                if (page.file?.is_stored) {
-                    page.file.deleteFromStorage()
-                }
-                page.sections.forEach(section => {
-                    if (section.file_full?.is_stored) {
-                        section.file_full.deleteFromStorage()
-                    }
-                    if (section.file_section_finder?.is_stored) {
-                        section.file_section_finder.deleteFromStorage()
-                    }
-                    if (section.file_question_selector?.is_stored) {
-                        section.file_question_selector.deleteFromStorage()
-                    }
-                    if (section.file_answer?.is_stored) {
-                        section.file_answer.deleteFromStorage()
-                    }
-                })
-            })
-
-
-        } catch (error) {
-            console.error("Error deleting files from storage:", error);
-            // Even if file deletion fails, proceed with deleting from the database
-        }
-
-        // Delete from Supabase
-        const {
-            error
-        } = await supabase.from('tests').delete().eq('id', testId);
-
-        if (error) {
-            console.error("Error deleting test from Supabase:", error);
-            return; // Don't remove from local array if database deletion fails
-        }
-        //delete files from supabase
-        const {
-            error: fileError
-        } = await supabase.from('files').delete().eq('test_id', testId)
-        if (fileError) {
-            console.log('File delete error', fileError)
-        }
-
+        await test.deleteFromDatabase(); // Use the delete method in Test class to handle cascading delete
 
         // Remove from the local array *only* if database deletion is successful
         this.tests.splice(testIndex, 1);
@@ -3097,7 +2825,6 @@ class TestManager {
         );
     }
 }
-
 
 
 export {
