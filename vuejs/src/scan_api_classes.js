@@ -275,6 +275,46 @@ class File extends FirebaseFileBase {
 }
 
 
+class User extends FirestoreBase {
+    constructor({
+        uid,
+        email,
+        displayName = null,
+        role = 'user',
+        photoURL = null
+    }) {
+        super('users'); // The Firestore collection name
+        this.uid = uid;
+        this.email = email;
+        this.displayName = displayName;
+        this.role = role;
+        this.photoURL = photoURL;
+    }
+
+    // No longer needed, FirestoreBase handles this
+    // async save() { ... }
+
+    // No longer needed, FirestoreBase handles this
+    // static async find(uid) { ... }
+
+    // toFirestoreData is a helper to convert to a plain object for Firestore
+    toFirestoreData() {
+        return {
+            uid: this.uid,
+            email: this.email,
+            displayName: this.displayName,
+            role: this.role,
+            photoURL: this.photoURL, // Store photoURL
+            // Add other fields as needed
+        };
+    }
+
+    // fromFirestoreData is a helper to create a User instance from Firestore data
+    static fromFirestoreData(data) {
+        return new User(data);
+    }
+}
+
 
 class ContextData {
     constructor({
@@ -550,7 +590,7 @@ class ScanPage {
             this.loading.create_question = false
             return
         } else {
-        console.log('Page: Extract question number result: ', response)
+            console.log('Page: Extract question number result: ', response)
 
         }
 
@@ -941,7 +981,7 @@ class GptTestSettings extends FirestoreBase {
             learned: this.learned,
             requested_topics: this.requested_topics,
         };
-
+        console.log(data)
         try {
             if (this.id) {
                 // Update existing document
@@ -1147,6 +1187,12 @@ class Test extends FirestoreBase {
                     test_generation: "pro 2.0, werkt meestal",
                     text_recognition: "pro 2.0, werkt meestal",
                     grading: "pro 2.0, werkt meestal",
+                },
+                'gemini-2.0-flash-lite-preview-02-05': {
+                    test_recognition: "snel",
+                    test_generation: "snel",
+                    text_recognition: "snel",
+                    grading: "snel",
                 }
             },
             openai: {
@@ -1739,8 +1785,6 @@ class Test extends FirestoreBase {
         this.saved_grade_data = saved_grade_data
         this.saved_output = saved_output
     }
-
-
     async saveToDatabase() {
         this.loading.save_to_database = true;
         console.log("Test: Starting Save to Firestore...");
@@ -1755,13 +1799,17 @@ class Test extends FirestoreBase {
         try {
             // 1. Save Test Metadata (as before, but with the user_id check)
             const testData = {
-                user_id: this.user_id,  // This *must* be present.
+                user_id: this.user_id, // This *must* be present.
                 name: this.name,
                 is_public: this.is_public,
                 gpt_provider: this.gpt_provider,
                 gpt_model: this.gpt_model,
                 grade_rules: this.grade_rules || "",
-                test_data_result: this.test_data_result ? { ...this.test_data_result, questions: [], targets: [] } : null,
+                test_data_result: this.test_data_result ? {
+                    ...this.test_data_result,
+                    questions: [],
+                    targets: []
+                } : null,
             };
             let testId = this.id;
 
@@ -1892,7 +1940,9 @@ class Test extends FirestoreBase {
                     explanation: target.explanation,
                 };
                 const targetRef = target.id ? doc(collection(db, 'targets'), target.id) : doc(collection(db, 'targets'));
-                batch.set(targetRef, targetData, { merge: true }); // Use set with merge for updates/inserts
+                batch.set(targetRef, targetData, {
+                    merge: true
+                }); // Use set with merge for updates/inserts
                 if (!target.id) {
                     target.id = targetRef.id; // Assign new ID if it's a new target
                 }
@@ -1910,7 +1960,9 @@ class Test extends FirestoreBase {
                     is_draw_question: question.is_draw_question,
                 };
                 const questionRef = question.id ? doc(collection(db, 'questions'), question.id) : doc(collection(db, 'questions'));
-                batch.set(questionRef, questionData, { merge: true }); // Use set with merge for updates/inserts
+                batch.set(questionRef, questionData, {
+                    merge: true
+                }); // Use set with merge for updates/inserts
                 if (!question.id) {
                     question.id = questionRef.id; // Assign new ID if it's a new question
                 }
@@ -1918,6 +1970,7 @@ class Test extends FirestoreBase {
                 // Save Rubric Points for each question
                 for (const point of question.points) {
                     const pointData = {
+                        test_id: testId,
                         question_id: question.id,
                         point_text: point.point_text,
                         point_name: point.point_name,
@@ -1926,7 +1979,9 @@ class Test extends FirestoreBase {
                         target_id: point.target_id, // Use the saved target ID
                     };
                     const pointRef = point.id ? doc(collection(db, 'rubric_points'), point.id) : doc(collection(db, 'rubric_points'));
-                    batch.set(pointRef, pointData, { merge: true }); // Use set with merge for updates/inserts
+                    batch.set(pointRef, pointData, {
+                        merge: true
+                    }); // Use set with merge for updates/inserts
                     if (!point.id) {
                         point.id = pointRef.id; // Assign new ID if it's a new point
                     }
@@ -1961,7 +2016,9 @@ class Test extends FirestoreBase {
                     file_type: page.file.file_type || "pdf" // Keep file_type metadata
                 }
                 const pageFileRef = page.file.id ? doc(collection(db, 'files'), page.file.id) : doc(collection(db, 'files')); // Assuming 'files' collection for pages too
-                batch.set(pageFileRef, pageData, { merge: true }); // Use set with merge for updates/inserts
+                batch.set(pageFileRef, pageData, {
+                    merge: true
+                }); // Use set with merge for updates/inserts
                 if (!page.file.id) {
                     page.file.id = pageFileRef.id; // Assign new ID if it's a new page file
                 }
@@ -1976,7 +2033,9 @@ class Test extends FirestoreBase {
                         student_id: section.student_id || "unknown_student",
                     };
                     const sectionRef = section.id ? doc(collection(db, 'sections'), section.id) : doc(collection(db, 'sections'));
-                    batch.set(sectionRef, sectionData, { merge: true }); // Use set with merge for updates/inserts
+                    batch.set(sectionRef, sectionData, {
+                        merge: true
+                    }); // Use set with merge for updates/inserts
                     if (!section.id) {
                         section.id = sectionRef.id; // Assign new ID if it's a new section
                     }
@@ -2006,7 +2065,9 @@ class Test extends FirestoreBase {
                             file_type: sectionFileDetail.type
                         };
                         const sectionFileRef = sectionFileDetail.file.id ? doc(collection(db, 'files'), sectionFileDetail.file.id) : doc(collection(db, 'files'));
-                        batch.set(sectionFileRef, sectionFileData, { merge: true }); // Use set with merge for updates/inserts
+                        batch.set(sectionFileRef, sectionFileData, {
+                            merge: true
+                        }); // Use set with merge for updates/inserts
                         if (!sectionFileDetail.file.id) {
                             sectionFileDetail.file.id = sectionFileRef.id; // Assign new ID if it's a new section file
                         }
@@ -2043,7 +2104,9 @@ class Test extends FirestoreBase {
                     student_id: student.student_id || "unknown_student", // Default student ID
                 };
                 const studentRef = student.id ? doc(collection(db, 'students'), student.id) : doc(collection(db, 'students'));
-                batch.set(studentRef, studentData, { merge: true }); // Use set with merge for updates/inserts
+                batch.set(studentRef, studentData, {
+                    merge: true
+                }); // Use set with merge for updates/inserts
                 if (!student.id) {
                     student.id = studentRef.id; // Assign new ID if it's a new student
                 }
@@ -2057,7 +2120,9 @@ class Test extends FirestoreBase {
                         student_handwriting_percent: result.student_handwriting_percent || 0,
                     };
                     const resultRef = result.id ? doc(collection(db, 'students_question_results'), result.id) : doc(collection(db, 'students_question_results'));
-                    batch.set(resultRef, resultData, { merge: true }); // Use set with merge for updates/inserts
+                    batch.set(resultRef, resultData, {
+                        merge: true
+                    }); // Use set with merge for updates/inserts
                     if (!result.id) {
                         result.id = resultRef.id; // Assign new ID if it's a new result
                     }
@@ -2072,7 +2137,9 @@ class Test extends FirestoreBase {
                             feedback: pointResult.feedback || "No point feedback", // Default point feedback
                         };
                         const pointResultRef = pointResult.id ? doc(collection(db, 'students_points_results'), pointResult.id) : doc(collection(db, 'students_points_results'));
-                        batch.set(pointResultRef, pointResultData, { merge: true }); // Use set with merge for updates/inserts
+                        batch.set(pointResultRef, pointResultData, {
+                            merge: true
+                        }); // Use set with merge for updates/inserts
                         if (!pointResult.id) {
                             pointResult.id = pointResultRef.id; // Assign new ID if it's a new point result
                         }
@@ -2086,7 +2153,9 @@ class Test extends FirestoreBase {
                         provider: result.grade_instance.provider || "default_provider", // Default provider
                     }
                     const gradeInstanceRef = result.grade_instance.id ? doc(collection(db, 'grade_instances'), result.grade_instance.id) : doc(collection(db, 'grade_instances'));
-                    batch.set(gradeInstanceRef, gradeInstanceData, { merge: true }); // Use set with merge for updates/inserts
+                    batch.set(gradeInstanceRef, gradeInstanceData, {
+                        merge: true
+                    }); // Use set with merge for updates/inserts
                     if (!result.grade_instance.id) {
                         result.grade_instance.id = gradeInstanceRef.id; // Assign new ID if it's a new grade instance
                     }
@@ -2124,7 +2193,9 @@ class Test extends FirestoreBase {
                             file_type: result.scan.file.file_type,
                         }
                         const resultFileRef = result.scan.file.id ? doc(collection(db, 'files'), result.scan.file.id) : doc(collection(db, 'files'));
-                        batch.set(resultFileRef, resultFileData, { merge: true }); // Use set with merge for updates/inserts
+                        batch.set(resultFileRef, resultFileData, {
+                            merge: true
+                        }); // Use set with merge for updates/inserts
                         if (!result.scan.file.id) {
                             result.scan.file.id = resultFileRef.id; // Assign new ID if it's a new result file
                         }
@@ -2162,7 +2233,9 @@ class Test extends FirestoreBase {
                         file_type: page.file.file_type
                     }
                     const pageFileRef = page.file.id ? doc(collection(db, 'files'), page.file.id) : doc(collection(db, 'files')); // Assuming 'files' table for pages too
-                    batch.set(pageFileRef, pageFileData, { merge: true }); // Use set with merge for updates/inserts
+                    batch.set(pageFileRef, pageFileData, {
+                        merge: true
+                    }); // Use set with merge for updates/inserts
                     if (!page.file.id) {
                         page.file.id = pageFileRef.id; // Assign new ID if it's a new page file
                     }
@@ -2353,8 +2426,8 @@ class Test extends FirestoreBase {
             const sectionSnapshot = await getDocs(sectionQuery);
             sectionSnapshot.forEach(doc => {
                 // if (!this.sections.some(s => s.id === doc.id)) { // Check this condition
-                    console.log(`Deleting orphaned section: ${doc.id}`);
-                    batch.delete(doc.ref); // Delete orphaned sections
+                console.log(`Deleting orphaned section: ${doc.id}`);
+                batch.delete(doc.ref); // Delete orphaned sections
                 // }
             });
 
@@ -2828,6 +2901,7 @@ class TestManager extends FirestoreBase {
 
 
 export {
+    User,
     ScanPage,
     ScanSection,
     ScanQuestion,

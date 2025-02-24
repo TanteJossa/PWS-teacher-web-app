@@ -58,7 +58,7 @@ import {
     useUserStore
 } from '@/stores/user_store'; // Import UserStore
 import { db } from '@/firebase.js';
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, or } from "firebase/firestore";
 
 
 export default {
@@ -77,8 +77,12 @@ export default {
         return { userStore }
     },
     computed: {
+        userTests(){
+            return this.testManager.tests.filter(test => test.user_id == this.userStore.user.id);
+
+        },
         publicTests() {
-            return this.testManager.tests.filter(test => test.is_public);
+            return this.testManager.tests.filter(test => test.is_public && test.user_id != this.userStore.user.id);
         },
         filteredAdminTests() {
             if (!this.userStore.user || !this.userStore.user.admin) {
@@ -120,9 +124,10 @@ export default {
                     q = query(collection(db, "tests"), orderBy("created_at", "desc"));
                 }
                 else {
-                    q = query(collection(db, "tests"), where("user_id", "==", this.userStore.user.id), orderBy("created_at", "desc"));
+                    q = query(collection(db, "tests"), or(where("user_id", "==", this.userStore.user.id), where("is_public", "==", true)));
                 }
                 const querySnapshot = await getDocs(q);
+                console.log(querySnapshot)
                 this.testManager.tests = querySnapshot.docs.map(doc => this.testManager.loadTestFromData({
                     id: doc.id,
                     ...doc.data()
@@ -138,11 +143,11 @@ export default {
 
     },
     watch: {
-        // async 'userStore.user'(newUser){ // Watch for user changes //REMOVING WATCH
-        //     if (newUser) {
-        //         await this.fetchTests(); // Refetch when user changes.
-        //     }
-        // }
+        async 'userStore.user'(newUser){
+            if (newUser) {
+                await this.fetchTests(); // Refetch when user changes.
+            }
+        }
     },
     async mounted() {
         await this.fetchTests(); // Load initial tests

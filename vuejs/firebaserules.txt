@@ -1,0 +1,121 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users Collection
+    match /users/{userId} {
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow update, create: if (
+      	request.auth != null 
+        && request.auth.uid == userId
+      	&& (
+        	get(/databases/$(database)/documents/tests/$(testId)).data.role == request.request.resource.data.role
+        )
+      );
+      // allow : if false; // Only via Admin SDK
+    }
+    function exists(data){
+    	return data.exists
+    }
+    // Generic Rule for Child Collections (using a function)
+    function canEditTest(testId) {
+    
+       return exists(/databases/$(database)/documents/tests/$(testId))          || ( request.auth != null 
+            && (
+            	get(/databases/$(database)/documents/tests/$(testId)).data.user_id == request.auth.uid 
+            	|| get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+            )
+          );
+      	
+    }
+    function canAccessTest(testId) {
+       return exists(/databases/$(database)/documents/tests/$(testId)) 
+      				&& (
+              	get(/databases/$(database)/documents/tests/$(testId)).data.is_public == true
+              	|| canEditTest(testId) 
+              );
+    }
+    // Tests Collection
+    match /tests/{testId} {
+          allow create: if request.auth != null;
+          allow read: if request.auth != null && request.resource.data.user_id == request.auth.uid || request.resource.data.is_public == true;
+          allow update, delete: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+    }
+
+
+    // Questions
+    match /questions/{questionId} {
+        allow read: if  canAccessTest(request.resource.data.test_id);
+        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+    }
+    // Sections
+    match /sections/{sectionId} {
+        allow read: if  canAccessTest(request.resource.data.test_id);
+        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+		}
+
+    // Rubric Points (now correctly linked to tests)
+    match /rubric_points/{pointId} {
+        allow read: if  canAccessTest(request.resource.data.test_id);
+        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+    }
+
+    // Targets
+    match /targets/{targetId} {
+        allow read: if  canAccessTest(request.resource.data.test_id);
+        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+    }
+
+    // Students
+    match /students/{studentId} {
+        allow read: if  canAccessTest(request.resource.data.test_id);
+        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+    }
+
+    // studentQuestionResults (now correctly linked through questions)
+    match /students_question_results/{resultId} {
+        allow read: if  canAccessTest(get(/databases/$(database)/documents/questions/$(request.resource.data.question_id)).data.test_id);
+        allow create, update, delete: if canEditTest(get(/databases/$(database)/documents/questions/$(request.resource.data.question_id)).data.test_id);
+    }
+
+    // StudentPointResults
+    match /students_points_results/{pointResultId} {
+        allow read: if  canAccessTest(/databases/$(database)/documents/students_question_results/$(request.resource.data.student_question_result_id));
+        allow create, update, delete: if canEditTest(get(/databases/$(database)/documents/students_question_results/$(request.resource.data.student_question_result_id)).data.test_id);
+    }
+
+    // GradeInstances
+    match /grade_instances/{gradeInstanceId} {
+        allow read: if  canAccessTest(get(/databases/$(database)/documents/students_question_results/$(request.resource.data.student_question_result_id)).data.test_id);
+        allow create, update, delete: if canEditTest(get(/databases/$(database)/documents/students_question_results/$(request.resource.data.student_question_result_id)).data.test_id);
+
+    }
+
+    // GPT Test Settings
+    match /gpt_tests_settings/{gptTestSettingsId} {
+        allow read: if  canAccessTest(request.resource.data.test_id);
+        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+    }
+
+    // GPT Question Settings
+    match /gpt_questions_settings/{gptQuestionSettingsId} {
+        allow read: if  canAccessTest(request.resource.data.test_id);
+        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+    }
+
+    // Test PDF Settings
+    match /test_pdf_settings/{testPdfSettingsId} {
+        allow read: if  canAccessTest(request.resource.data.test_id);
+        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+    }
+    // Files
+    match /files/{fileId} {
+       allow read, create, update, delete: if request.auth != null && (
+            (request.resource.data.test_id != null && canAccessTest(request.resource.data.test_id)) ||
+            (request.resource.data.student_question_result_id != null && canAccessTest(
+                get(/databases/$(database)/documents/students_question_results/$(request.resource.data.student_question_result_id)).data.test_id)
+            )
+        );
+    }
+  }
+}
