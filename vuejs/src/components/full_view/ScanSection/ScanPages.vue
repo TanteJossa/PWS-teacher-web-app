@@ -11,7 +11,7 @@ ImagesPreview(height="calc(100dvh - 80px)" :items="test.pages.map((page, index) 
         v-btn(text="laad deze pagina" @click="async () => {this.test.loading.sections = true; await test.pages[item.index].detectStudentId(); await test.pages[item.index].loadSections();this.test.loading.sections = false}")
         v-row.w-100
             v-col
-                img(v-if="item.image" style="max-height: 100%; max-width: 100%" v-fullscreen-img="{scaleOnHover: true}" :src="item.image")
+                img(v-if="item.image" style="max-height: 100%; max-width: 100%" v-fullscreen-img="{scaleOnHover: true}" :src="item.image.url")
             v-col.w-50
                 v-text-field(label="Leerlingnummer" v-model="test.pages[item.index].student_id")
                 v-table

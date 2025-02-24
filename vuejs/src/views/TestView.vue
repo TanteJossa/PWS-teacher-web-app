@@ -14,21 +14,17 @@ div.h-100
 
             v-btn(v-if="is_editing" color="primary" @click="saveTest" :loading="is_saving") Save
             v-btn(v-if="is_editing" color="error" @click="deleteTest") Delete Test
-            v-btn(v-else color="primary" @click="is_editing = true") Edit
+            v-btn(v-else color="primary" v-if="canEdit" @click="is_editing = true") Edit
 
-        div.h-100(v-if="!is_editing")
+        div.h-100()
             p Display Mode
             MainLayout.h-100(
                 :test="test"
+                @save="is_editing ? saveTest : {}"
+                @delete="is_editing ? deleteTest : {}"
+            )
+            //- v-btn(v-if="canEdit" color="warning" @click="is_editing = true") Edit
 
-            )
-            v-btn(v-if="canEdit" color="warning" @click="is_editing = true") Edit
-        div.h-100(v-else)
-            MainLayout.h-100(
-                :test="test"
-                @save="saveTest"
-                @delete="deleteTest"
-            )
     v-progress-circular(v-else indeterminate)
 </template>
 
@@ -78,7 +74,7 @@ export default {
     },
     methods: {
         async loadTest() {
-            try {
+            // try {
                 var testId = this.$route.params.id;
                 if (testId == 'null') {
                     this.test = new Test({}); // Create a new test, id will be null
@@ -86,7 +82,10 @@ export default {
                     this.test.name = 'New Test'; // Set a default name
 
                 } else {
-                    this.test = await this.test_manager.fetchTest(testId);
+                    this.test = new Test({
+                        id: testId
+                    })
+                    await this.test.loadFromFirestore(testId);
                     if (!this.test) { // if no test with id exists
                         console.warn('test not found');
                         this.test = new Test({});
@@ -94,9 +93,9 @@ export default {
                         this.test.name = 'New Test'; // Set a default name
                     }
                 }
-            } catch (error) {
-                console.error("Failed to load test:", error);
-            }
+            // } catch (error) {
+            //     console.error("Failed to load test:", error);
+            // }
         },
         async saveTest() {
             this.is_saving = true;

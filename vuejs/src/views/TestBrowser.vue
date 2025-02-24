@@ -58,7 +58,7 @@ import {
     useUserStore
 } from '@/stores/user_store'; // Import UserStore
 import { db } from '@/firebase.js';
-import { collection, query, where, getDocs, orderBy, or } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, or, getDoc, doc, limit } from "firebase/firestore";
 
 
 export default {
@@ -118,25 +118,24 @@ export default {
                 this.testManager.loading = false;
                 return;
             }
-            try {
+            // try {
                 let q;
-                if (this.userStore.user.admin) {
+                if (this.userStore.user.role == "admin") {
                     q = query(collection(db, "tests"), orderBy("created_at", "desc"));
                 }
                 else {
-                    q = query(collection(db, "tests"), or(where("user_id", "==", this.userStore.user.id), where("is_public", "==", true)));
+                    q = query(collection(db, "tests"), or(where("user_id", "==", this.userStore.user.id), where( "is_public", "==", true)), limit(100));
                 }
                 const querySnapshot = await getDocs(q);
-                console.log(querySnapshot)
                 this.testManager.tests = querySnapshot.docs.map(doc => this.testManager.loadTestFromData({
                     id: doc.id,
                     ...doc.data()
                 }));
 
-            }
-            catch (e){
-                console.log(e)
-            }
+            // }
+            // catch (e){
+            //     console.log(e)
+            // }
 
             this.testManager.loading = false;
         }

@@ -1,14 +1,14 @@
-
 <template lang="pug">
-div(v-for="(item,index) in  test.files[selected_subsection.id].data")
+div(v-for="(item,index) in  (test.files[selected_subsection.id]?.data || [])" :key="index")
     v-expansion-panels
         v-expansion-panel
-            v-expansion-panel-title {{ item.type }}
+            v-expansion-panel-title {{ item.type }} {{ index }}
             v-expansion-panel-text
                 div(v-if="item.type == 'text'")
-                    v-textarea(v-model="test.files[selected_subsection.id].data[index].data")
-                div(v-if="item.type == 'image'")
-                    img(style="height: 300px" :src="item.data")
+                    v-textarea(v-model="item.data" :label="item.type + ' ' + index")
+                div(v-else-if="item.type == 'image'")
+                    img(style="max-height: 300px" :src="item.data" :alt="'Image ' + index")
+                div(v-else) Unknown data type
 </template>
 
 <script>

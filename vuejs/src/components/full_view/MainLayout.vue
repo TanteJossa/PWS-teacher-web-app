@@ -354,6 +354,9 @@ export default {
                 if (file.type.startsWith('image/')) {
                     const base64png = await imageToPngBase64(file)
                     if (base64png) {
+                        if (this.test.files.students.data == null){
+                            this.test.files.students.data = []
+                        }
                         this.test.files.students.data.push(base64png)
                         this.test.addPage(base64png)
                     }

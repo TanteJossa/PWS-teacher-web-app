@@ -1,10 +1,11 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
     // Users Collection
     match /users/{userId} {
-      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow read, delete: if resource.data.role == 'admin' || (
+      	request.auth != null && request.auth.uid == userId
+      );
       allow update, create: if (
       	request.auth != null 
         && request.auth.uid == userId
@@ -19,8 +20,8 @@ service cloud.firestore {
     }
     // Generic Rule for Child Collections (using a function)
     function canEditTest(testId) {
-    
-       return exists(/databases/$(database)/documents/tests/$(testId))          || ( request.auth != null 
+			// let user = get(/databases/$(database)/documents/users/$(request.auth.uid))
+     	return ( request.auth != null 
             && (
             	get(/databases/$(database)/documents/tests/$(testId)).data.user_id == request.auth.uid 
             	|| get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
@@ -29,47 +30,55 @@ service cloud.firestore {
       	
     }
     function canAccessTest(testId) {
-       return exists(/databases/$(database)/documents/tests/$(testId)) 
-      				&& (
-              	get(/databases/$(database)/documents/tests/$(testId)).data.is_public == true
-              	|| canEditTest(testId) 
-              );
+       return true ||
+          get(/databases/$(database)/documents/tests/$(testId)).data.is_public == true
+          || canEditTest(testId) 
+        ;
     }
     // Tests Collection
     match /tests/{testId} {
           allow create: if request.auth != null;
-          allow read: if request.auth != null && request.resource.data.user_id == request.auth.uid || request.resource.data.is_public == true;
-          allow update, delete: if request.auth != null && request.resource.data.user_id == request.auth.uid;
+          allow read: if true;
+          allow update, delete: if canEditTest(testId);
     }
 
 
     // Questions
     match /questions/{questionId} {
-        allow read: if  canAccessTest(request.resource.data.test_id);
-        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+        allow read: if  canAccessTest(resource.data.test_id);
+        allow create, update: if canEditTest(request.resource.data.test_id);
+        allow delete: if canEditTest(resource.data.test_id);
     }
     // Sections
     match /sections/{sectionId} {
-        allow read: if  canAccessTest(request.resource.data.test_id);
-        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+        allow read: if  canAccessTest(resource.data.test_id);
+        allow create, update: if canEditTest(request.resource.data.test_id);
+        allow delete: if canEditTest(resource.data.test_id);
+
 		}
 
     // Rubric Points (now correctly linked to tests)
     match /rubric_points/{pointId} {
-        allow read: if  canAccessTest(request.resource.data.test_id);
-        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+        allow read: if  canAccessTest(resource.data.test_id);
+        allow create, update: if canEditTest(request.resource.data.test_id);
+        allow delete: if canEditTest(resource.data.test_id);
+
     }
 
     // Targets
     match /targets/{targetId} {
-        allow read: if  canAccessTest(request.resource.data.test_id);
-        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+        allow read: if  canAccessTest(resource.data.test_id);
+        allow create, update: if canEditTest(request.resource.data.test_id);
+        allow delete: if canEditTest(resource.data.test_id);
+
     }
 
     // Students
     match /students/{studentId} {
-        allow read: if  canAccessTest(request.resource.data.test_id);
-        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+        allow read: if  canAccessTest(resource.data.test_id);
+        allow create, update: if canEditTest(request.resource.data.test_id);
+        allow delete: if canEditTest(resource.data.test_id);
+
     }
 
     // studentQuestionResults (now correctly linked through questions)
@@ -93,25 +102,25 @@ service cloud.firestore {
 
     // GPT Test Settings
     match /gpt_tests_settings/{gptTestSettingsId} {
-        allow read: if  canAccessTest(request.resource.data.test_id);
-        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+        allow read: if  canAccessTest(resource.data.test_id);
+        allow create, update, delete: if canEditTest(resource.data.test_id);
     }
 
     // GPT Question Settings
     match /gpt_questions_settings/{gptQuestionSettingsId} {
-        allow read: if  canAccessTest(request.resource.data.test_id);
-        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+        allow read: if  canAccessTest(resource.data.test_id);
+        allow create, update, delete: if canEditTest(resource.data.test_id);
     }
 
     // Test PDF Settings
     match /test_pdf_settings/{testPdfSettingsId} {
-        allow read: if  canAccessTest(request.resource.data.test_id);
-        allow create, update, delete: if canEditTest(request.resource.data.test_id);
+        allow read: if  canAccessTest(resource.data.test_id);
+        allow create, update, delete: if canEditTest(resource.data.test_id);
     }
     // Files
     match /files/{fileId} {
        allow read, create, update, delete: if request.auth != null && (
-            (request.resource.data.test_id != null && canAccessTest(request.resource.data.test_id)) ||
+            (resource.data.test_id != null && canAccessTest(resource.data.test_id)) ||
             (request.resource.data.student_question_result_id != null && canAccessTest(
                 get(/databases/$(database)/documents/students_question_results/$(request.resource.data.student_question_result_id)).data.test_id)
             )

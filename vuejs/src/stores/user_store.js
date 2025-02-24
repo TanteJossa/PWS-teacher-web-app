@@ -40,10 +40,16 @@ export const useUserStore = defineStore('user', {
             this.unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
                 if (firebaseUser) {
                     // 1. Get/Create User Document in Firestore
-                    const userDocRef = doc(db, 'users', firebaseUser.uid);
-                    let userDocSnap = await getDoc(userDocRef);
+                    let userDocSnap
+                    try {
+                        const userDocRef = doc(db, 'users', firebaseUser.uid);
+                        userDocSnap = await getDoc(userDocRef);
+                        
+                    } catch (error) {
+                        console.warn('UserStore: ',  error)
+                    }
 
-                    if (!userDocSnap.exists()) {
+                    if (!userDocSnap || !userDocSnap.exists()) {
                         // Create a new user document
                         const newUser = new User({
                             uid: firebaseUser.uid,
