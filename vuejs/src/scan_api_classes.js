@@ -777,6 +777,14 @@ class Test {
                     text_recognition: "werkt ook goed",
                     grading: "werkt ook goed",
                 }
+            },
+            
+            claude: {
+                "claude-3-5-sonnet": {}, 
+                "claude-3-7-sonnet": {}, 
+                "claude-3-5-haiku": {}, 
+                "claude-3-opus": {}, 
+                "claude-3-haiku": {}, 
             }
         };
     }
@@ -796,9 +804,14 @@ class Test {
 
         if (this.modelConfig[this.gpt_provider]) {
             return Object.keys(this.modelConfig[this.gpt_provider]).map(model => {
+                let text = ""
+                if (this.modelConfig[this.gpt_provider]?.[model]?.[action]?.length > 0){
+                    text ='(' + (this.modelConfig[this.gpt_provider][model]?.[action] || '') + ')'
+                }
+
                 return {
                     value: model,
-                    title: model + '(' + (this.modelConfig[this.gpt_provider][model]?. [action] || '') + ')'
+                    title: model + text
                 }
             })
         }
