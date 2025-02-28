@@ -16,9 +16,9 @@ v-row(style="height: 100dvh")
                 @click="loadDataFromPdf"
                 :loading="test.loading.pdf_data"
             )
-        object.w-100(style="height: calc(100% - 40px)" :data="test.files.students?.url" type="application/pdf" class="internal")
+        object.w-100( v-if="test.files.students.url" style="height: calc(100% - 40px)" :data="test.files.students.url" type="application/pdf" class="internal")
             embed(
-                v-if="test.files.students?.url"
+                
                 :src="test.files.students.url"
                 type="application/pdf"
             )
@@ -77,13 +77,12 @@ export default {
                 return;
             }
             this.test.student_pdf_raw = this.studentFile // NEW - Store raw file in Test object
-            this.test.files.students = { // NEW - update nested structure
-                raw: this.studentFile,
-                url: URL.createObjectURL(this.studentFile)
-            }
+            this.test.files.students = URL.createObjectURL(this.studentFile)
             await this.test.loadDataFromPdf(this.selected_subsection.id);
             this.studentFile = null // NEW - clear selectedFile
         }
     }
 };
 </script>
+
+

@@ -881,6 +881,109 @@ class TestPdfSettings extends FirestoreBase {
 
 }
 
+class TestFile {
+    constructor({
+        name= null,
+        id= null,
+        fileType= null,
+        localData= null,
+        url= null,
+        storage_path= null,
+        data= null,
+        raw= null,
+    }) {
+        this._name = name;
+        this._id = id;  // Firestore document ID
+        this._fileType = fileType;
+        this._localData = localData;
+        this._url = url;
+        this._storage_path = storage_path;
+        this._data = data;
+        this._raw = raw;
+    }
+
+    get url() {
+        return this._url || (this._localData ? this._localData : null);
+    }
+
+    set url(value) {
+        this._url = value;
+    }
+
+    get storage_path() {
+        return this._storage_path;
+    }
+
+    set storage_path(value) {
+        this._storage_path = value;
+    }
+
+    get data() {
+        return this._data;
+    }
+
+    set data(value) {
+        this._data = value;
+    }
+
+    get raw() {
+        return this._raw;
+    }
+
+    set raw(value) {
+        this._raw = value;
+        if (value) {
+            this._localData = URL.createObjectURL(value);
+        }
+    }
+
+    get isUploaded() {
+        return !!this._storage_path && !!this._url;
+    }
+
+    toFirestore() {
+        return {
+            fileType: `${this._fileType}.pdf`,
+            location: this._storage_path,
+            url: this._url,
+            name: this._name
+        };
+    }
+
+    fromFirestore(data) {
+        this._url = data.url;
+        this._storage_path = data.location;
+        return this;
+    }
+
+    async deleteFromStorage() {
+        if (this._storage_path) {
+            const storageRef = ref(storage, this._storage_path);
+            try {
+                await deleteObject(storageRef);
+                this._storage_path = null;
+                this._url = null;
+                return true;
+            } catch (error) {
+                console.error(`Error deleting file from storage:`, error);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    clear() {
+        if (this._localData) {
+            URL.revokeObjectURL(this._localData);
+        }
+        this._localData = null;
+        this._url = null;
+        this._storage_path = null;
+        this._data = null;
+        this._raw = null;
+    }
+}
+
 class Test extends FirestoreBase {
     constructor({
         id = null,
@@ -906,17 +1009,18 @@ class Test extends FirestoreBase {
         name = "",
         is_public = false,
 
-        test_pdf_raw = null, //NEW: raw file data
-        rubric_pdf_raw = null, //NEW: raw file data
-        student_pdf_raw = null, //NEW: raw file data
+
 
     }) {
         super('tests');
         this.id = id
         this.user_id = user_id;
         this.name = name
-        this.files = files // Updated to store paths directly
-
+        this.files = {
+            test: new TestFile({name: 'test'}),
+            rubric: new TestFile({name: 'rubric'}),
+            students: new TestFile({name: 'students'}),
+        };
         this.pages = pages
 
         this.questions = questions.map(e => new Question({
@@ -964,9 +1068,6 @@ class Test extends FirestoreBase {
 
         this.is_public = is_public
 
-        this.test_pdf_raw = test_pdf_raw //NEW
-        this.rubric_pdf_raw = rubric_pdf_raw //NEW
-        this.student_pdf_raw = student_pdf_raw //NEW
 
 
     }
@@ -1111,20 +1212,74 @@ class Test extends FirestoreBase {
             question.question_number = (index + 1).toString()
         })
     }
-    async loadDataFromPdf(field_type) {
-        this.loading.pdf_data = true
-        console.log(field_type)
-        if (["rubric", "test"].includes(field_type)) {
-            this.files[field_type].data = await globals.$extractTextAndImages(this.files[field_type].raw)
-
-        } else if (["load_pages", "students"].includes(field_type)) {
-            this.students.data = await globals.$pdfToBase64Images(this.files["students"].raw)
-
-            this.students.data.forEach(page => {
-                this.addPage(page)
-            })
+    async uploadFile(file, fileType) {
+        if (!file || !fileType) {
+            console.error("Test: Missing file or fileType for upload");
+            return false;
         }
-        this.loading.pdf_data = false
+
+        console.log(`Test: Uploading ${fileType} file...`);
+        
+        try {
+            // Create storage reference
+            const storagePath = `tests/${this.id}/${fileType}.pdf`;
+            const storageRef = ref(storage, storagePath);
+
+            // Upload the file
+            await uploadBytes(storageRef, file, {
+                contentType: 'application/pdf'
+            });
+
+            // Get the download URL
+            const downloadURL = await getDownloadURL(storageRef);
+
+            // Update the files object
+            this.files[fileType].url = downloadURL;
+
+            console.log(`Test: Successfully uploaded ${fileType} file`);
+            return true;
+        } catch (error) {
+            console.error(`Test: Error uploading ${fileType} file:`, error);
+            return false;
+        }
+    }
+    async loadDataFromPdf(fileType) {
+        if (!this.files[fileType]?.url) {
+            console.error(`Test: No ${fileType} file available`);
+            return false;
+        }
+
+        console.log(`Test: Loading data from ${fileType} PDF...`);
+        this.loading.pdf_data = true;
+
+        try {
+            const blob = await this.fetchFileAsBlob(this.files[fileType].url);
+            
+            if (["rubric", "test"].includes(fileType)) {
+                this.files[fileType].data = await globals.$extractTextAndImages(blob);
+            } else if (fileType === "students") {
+                const imageData = await globals.$pdfToBase64Images(blob);
+                this.files[fileType].data = imageData;
+
+                if (imageData) {
+                    imageData.forEach(page => {
+                        this.addPage(page);
+                    });
+                }
+            }
+
+            console.log(`Test: Successfully loaded data from ${fileType} PDF`);
+            return true;
+        } catch (error) {
+            console.error(`Test: Error loading PDF data:`, error);
+            return false;
+        } finally {
+            this.loading.pdf_data = false;
+        }
+    }
+    async fetchFileAsBlob(url) {
+        const response = await fetch(url);
+        return await response.blob();
     }
     async generateGptTest() {
         this.loading.structure = true
@@ -1612,6 +1767,14 @@ class Test extends FirestoreBase {
         this.user_id = currentUser.value.uid;
 
         try {
+            let testId = this.id;
+
+            // 0. Save Files (Test, Rubric, Students, Page Files, Section Files, Result Files)
+            // Only store the main files, if the base64 data exists
+            await this.saveTestFiles(testId);
+            await this.savePageAndSectionFiles(testId); // Includes file saving logic
+            await this.saveStudentResultFiles(testId);
+
             // 1. Save Test Metadata (as before, but with the user_id check)
             const testData = {
                 user_id: this.user_id, // This *must* be present.
@@ -1625,10 +1788,14 @@ class Test extends FirestoreBase {
                     questions: [],
                     targets: []
                 } : null,
-                updated_at: new Date().getUTCDate()
+                updated_at: new Date().getUTCDate(),
+                files: {
+                    test: this.files.test.toFirestore(),
+                    rubric: this.files.rubric.toFirestore(),
+                    students: this.files.students.toFirestore(),
+                }
 
             };
-            let testId = this.id;
 
             // *** CRUCIAL CHECK ***
             if (!this.user_id) {
@@ -1663,11 +1830,7 @@ class Test extends FirestoreBase {
             // 5. Save Students and Results
             await this.saveStudentsAndResults(testId);
 
-            // 6. Save Files (Test, Rubric, Students, Page Files, Section Files, Result Files)
-            // Only store the main files, if the base64 data exists
-            await this.saveTestFiles(testId);
-            await this.savePageAndSectionFiles(testId); // Includes file saving logic
-            await this.saveStudentResultFiles(testId);
+
 
 
             console.log("Test: Save to Firestore Completed Successfully. Test ID:", testId);
@@ -1681,90 +1844,42 @@ class Test extends FirestoreBase {
         }
     }
 
-    async saveGPTSettingsMetadataFunction() { // Deprecated - settings are now saved within saveToDatabase
-        return this.gpt_test.saveToFirestore(this.id) && this.gpt_question.saveToFirestore(this.id) && this.test_settings.saveToFirestore(this.id)
-    }
-
-    async saveTargetsAndQuestionsMetadataFunction() { // Deprecated - targets and questions are now saved within saveToDatabase
-        return this.saveTargetsAndQuestions(this.id)
-    }
-
-    async savePagesAndSectionsMetadataFunction() { // Deprecated - pages and sections are now saved within saveToDatabase
-        return this.savePagesAndSections(this.id)
-    }
-
-
-    async saveStudentsAndResultsMetadataFunction() { // Deprecated - students and results are now saved within saveToDatabase
-        return this.saveStudentsAndResults(this.id)
-    }
-
-
-    async saveToDatabaseFunction() { // Deprecated - use saveToDatabase
-        return this.saveToDatabase()
-    }
-
     async saveTestFiles(testId) {
-        console.log("Test: Starting Test Files Upload...");
         if (!testId) {
             console.error("Test: Test ID is missing. Cannot save files.");
             return false;
         }
 
         try {
-            const filesToUpload = [{
-                    key: 'test',
-                    localFile: this.test_pdf_raw,
-                    storagePath: `tests/${testId}/test.pdf`,
-                    contentType: 'application/pdf',
-                    pathKey: 'test'
-                },
-                {
-                    key: 'rubric',
-                    localFile: this.rubric_pdf_raw,
-                    storagePath: `tests/${testId}/rubric.pdf`,
-                    contentType: 'application/pdf',
-                    pathKey: 'rubric'
-                },
-                {
-                    key: 'students',
-                    localFile: this.student_pdf_raw,
-                    storagePath: `tests/${testId}/students.pdf`,
-                    contentType: 'application/pdf',
-                    pathKey: 'students'
-                },
-            ];
+            const fileTypes = ['test', 'rubric', 'students'];
+            
+            for (const fileType of fileTypes) {
+                const file = this.files[fileType];
+                if (file.raw && !file.isUploaded) {
+                    const storagePath = `tests/${testId}/${fileType}.pdf`;
+                    const storageRef = ref(storage, storagePath);
 
-            await Promise.all(filesToUpload.map(async fileInfo => {
-                if (fileInfo.localFile) { // Check if there's a file to upload
-                    const storageRef = ref(storage, fileInfo.storagePath); // Create storage ref
-                    const snapshot = await uploadBytes(storageRef, fileInfo.localFile, {
-                        contentType: fileInfo.contentType
-                    }); // Upload file
-                    const downloadURL = getDownloadURL(snapshot.ref); // Get download URL
-                    this.files[fileInfo.pathKey] = fileInfo.storagePath; // Store storage path NOT URL
+                    await uploadBytes(storageRef, file.raw, {
+                        contentType: 'application/pdf'
+                    });
 
-                    const fileData = { // Update Firestore with storage path
+                    const downloadURL = await getDownloadURL(storageRef);
+                    
+                    file.url = downloadURL;
+                    file.storage_path = storagePath;
+
+                    await addDoc(collection(db, 'files'), {
                         test_id: testId,
-                        location: fileInfo.storagePath, // Store Path NOT URL
-                        file_type: fileInfo.contentType.split('/')[1], // Extract file extension, e.g., "pdf"
-                    };
-                    const existingFileDoc = await this.getByField('files', 'location', fileInfo.location)
-                    if (existingFileDoc.length > 0 && existingFileDoc[0].id) {
-                        await updateDoc(doc(collection(db, 'files'), existingFileDoc[0].id), fileData); // Update file metadata in Firestore
-                    } else {
-                        await addDoc(collection(db, 'files'), fileData); // Add file metadata to Firestore
-                    }
-                    console.log(`${fileInfo.key} file uploaded to: ${fileInfo.storagePath}`);
+                        location: storagePath,
+                        file_type: 'pdf'
+                    });
                 }
-            }));
+            }
 
-            console.log("Test: Test Files Uploaded Successfully. Test ID:", testId);
             return true;
-
-        } catch (e) {
-            console.error("Test: Exception uploadingTest Files Uploaded Successfully. Test ID:", testId);
-            return true;
-
+        } catch (error) {
+            console.error("Test: Error saving files:", error);
+            return false;
         }
     }
 
@@ -2453,6 +2568,13 @@ class Test extends FirestoreBase {
         this.test_data_result = testDoc.test_data_result;
         // Load related data (similar to your existing TestManager, but simplified)
 
+        this.files = {
+            test: new TestFile(testDoc.files?.test || {} ),
+            rubric: new TestFile(testDoc.files?.rubric || {} ),
+            students: new TestFile(testDoc.files?.students || {} ),
+        }
+
+
         // 3. Fetch child collections concurrently using Promise.all
         const [
             questionsSnapshot,
@@ -2461,7 +2583,7 @@ class Test extends FirestoreBase {
             gptTestSettingsSnapshot,
             gptQuestionSettingsSnapshot,
             testPdfSettingsSnapshot,
-            filesSnapshot
+            // filesSnapshot
         ] = await Promise.all([
             getDocs(query(collection(db, 'questions'), where("test_id", "==", testId))),
             getDocs(query(collection(db, 'targets'), where("test_id", "==", testId))),
@@ -2469,7 +2591,7 @@ class Test extends FirestoreBase {
             getDocs(query(collection(db, 'gpt_tests_settings'), where("test_id", "==", testId))),
             getDocs(query(collection(db, 'gpt_questions_settings'), where("test_id", "==", testId))),
             getDocs(query(collection(db, 'test_pdf_settings'), where("test_id", "==", testId))),
-            getDocs(query(collection(db, 'files'), where("test_id", "==", testId))), // Get file metadata
+            // getDocs(query(collection(db, 'files'), where("test_id", "==", testId))), // Get file metadata
         ]);
 
         // 4. Process and assign child data
@@ -2572,21 +2694,8 @@ class Test extends FirestoreBase {
 
             }));
         }
-        //put files into the right test file fields
-        filesSnapshot.docs.forEach(fileData => {
-            const file = new File({
-                id: fileData.id,
-                test_id: fileData.data().test_id,
-                student_question_result_id: fileData.data().student_question_result_id,
-                location: fileData.data().location,
-                file_type: fileData.data().file_type,
-                is_stored: true, // Since it's loaded from DB, it's stored.
-            });
-            const file_type = file.file_type.split('.')[0]
-            if (Object.keys(this.files).includes(file_type)) {
-                this.files[file_type] = file
-            }
-        });
+
+
 
         return this; // Return the populated Test instance
 
@@ -2596,15 +2705,6 @@ class Test extends FirestoreBase {
         // }
     }
 
-    getTestFileUrl() { // NEW - method to get test pdf url
-        return this.files.test ? this.getDownloadURL(this.files.test) : null
-    }
-    getRubricFileUrl() { // NEW - method to get rubric pdf url
-        return this.files.rubric ? this.getDownloadURL(this.files.rubric) : null
-    }
-    getStudentFileUrl() { // NEW - method to get student pdf url
-        return this.files.students ? this.getDownloadURL(this.files.students) : null
-    }
 
 }
 
@@ -3105,3 +3205,4 @@ export {
 
 }
 // --- END OF FILE scan_api_classes.js ---
+

@@ -82,6 +82,7 @@ import GradeSection from '@/components/full_view/GradeSection/GradeSection.vue';
 import AnalyzeSection from '@/components/full_view/AnalyzeSection/AnalyzeSection.vue';
 import RequestDialog from '@/components/full_view/RequestDialog.vue';
 import GoogleLoginButton from '@/components/auth/GoogleLoginButton.vue'; // IMPORT GoogleLoginButton
+import { initializeFileStructure, safelyLoadStudentFiles } from '@/file-fixes.js';
 
 import {
     total_requests,
@@ -350,7 +351,13 @@ export default {
             });
         },
         async loadStudentPages(event) {
-            event.forEach(async file => {
+            console.log(event)
+            if (!event){
+                return 
+            }
+            for (var i = 0; i < event.target.files.length; i++){
+
+                var file = event.target.files[0]
                 if (file.type.startsWith('image/')) {
                     const base64png = await imageToPngBase64(file)
                     if (base64png) {
@@ -362,11 +369,11 @@ export default {
                     }
                 }
                 if (file.type.startsWith('application/pdf')) {
-                    this.test.files.students.raw = file
-                    this.test.files.students.url = URL.createObjectURL(file)
+                    this.test.files.students = file
+
 
                 }
-            })
+            }
         },
         printTest() {
             console.log(this.test.students.map(student => {
