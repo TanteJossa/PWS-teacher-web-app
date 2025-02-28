@@ -21,7 +21,7 @@ v-row(style="height: 100dvh")
 
                     v-select(:items="page.image_options" v-model="test.pages[index].selected_image_type" density="compact")
                     v-icon.mr-1(icon="mdi-flip-vertical" @click="async () => {test.pages[index].image = await rotateImage180(test.pages[index].image)}")
-                    v-icon.ml-auto(icon="mdi-delete" color="red" @click="test.files.students.data.splice(index,1)")
+                    v-icon.ml-auto(icon="mdi-delete" color="red" @click="test.pages.splice(index,1)")
 
                 img.w-100(:src="page.image")
 </template>

@@ -711,12 +711,7 @@ class Test {
                     text_recognition: "gemaakt voor feedback leerling, maar oud",
                     grading: "gemaakt voor feedback leerling, maar oud",
                 },
-                "gemini-exp-1206": {
-                    test_recognition: "pro 2.0, werkt meestal",
-                    test_generation: "pro 2.0, werkt meestal",
-                    text_recognition: "pro 2.0, werkt meestal",
-                    grading: "pro 2.0, werkt meestal",
-                }
+
             },
             openai: {
                 "gpt-4o-mini": {
@@ -856,7 +851,7 @@ class Test {
             var result = await apiRequest('/gpt-test', {
                 requestText: request_text,
                 model: this.gpt_model,
-                provider: this.gpt_provider
+                provider: this.gpt_provider,
             })
             console.log(result)
         } catch (error) {
@@ -1194,7 +1189,9 @@ class Test {
                 testData: {
                     toets: test_data,
                     rubric: rubric_data
-                }
+                },
+                provider: this.gpt_provider,
+                model: this.gpt_model
             })
         }
 
