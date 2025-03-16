@@ -711,7 +711,18 @@ class Test {
                     text_recognition: "gemaakt voor feedback leerling, maar oud",
                     grading: "gemaakt voor feedback leerling, maar oud",
                 },
-
+                'gemini-2.0-flash-lite-preview-02-05': {
+                    test_recognition: "snel",
+                    test_generation: "snel",
+                    text_recognition: "snel",
+                    grading: "snel",
+                },
+                'gemma-3-27b-it': {
+                    test_recognition: "open source google",
+                    test_generation: "open source google",
+                    text_recognition: "open source google",
+                    grading: "open source google",
+                }
             },
             openai: {
                 "gpt-4o-mini": {
