@@ -1105,17 +1105,17 @@ class Test extends FirestoreBase {
                     text_recognition: "gemaakt voor feedback leerling, maar oud",
                     grading: "gemaakt voor feedback leerling, maar oud",
                 },
-                "gemini-exp-1206": {
-                    test_recognition: "pro 2.0, werkt meestal",
-                    test_generation: "pro 2.0, werkt meestal",
-                    text_recognition: "pro 2.0, werkt meestal",
-                    grading: "pro 2.0, werkt meestal",
-                },
                 'gemini-2.0-flash-lite-preview-02-05': {
                     test_recognition: "snel",
                     test_generation: "snel",
                     text_recognition: "snel",
                     grading: "snel",
+                },
+                'gemma-3-27b-it': {
+                    test_recognition: "open source google",
+                    test_generation: "open source google",
+                    text_recognition: "open source google",
+                    grading: "open source google",
                 }
             },
             openai: {
@@ -1177,6 +1177,13 @@ class Test extends FirestoreBase {
                     text_recognition: "werkt ook goed",
                     grading: "werkt ook goed",
                 }
+            },
+            
+            anthropic: {
+                "claude-3-5-sonnet-20241022": {}, 
+                "claude-3-5-haiku-20241022": {}, 
+                "claude-3-7-sonnet-20250219": {}, 
+
             }
         };
     }
@@ -1196,9 +1203,14 @@ class Test extends FirestoreBase {
 
         if (this.modelConfig[this.gpt_provider]) {
             return Object.keys(this.modelConfig[this.gpt_provider]).map(model => {
+                let text = ""
+                if (this.modelConfig[this.gpt_provider]?.[model]?.[action]?.length > 0){
+                    text ='(' + (this.modelConfig[this.gpt_provider][model]?.[action] || '') + ')'
+                }
+
                 return {
                     value: model,
-                    title: model + '(' + (this.modelConfig[this.gpt_provider][model]?. [action] || '') + ')'
+                    title: model + text
                 }
             })
         }
@@ -1298,7 +1310,7 @@ class Test extends FirestoreBase {
             var result = await apiRequest('/gpt-test', {
                 requestText: request_text,
                 model: this.gpt_model,
-                provider: this.gpt_provider
+                provider: this.gpt_provider,
             })
             console.log(result)
         } catch (error) {
@@ -1401,7 +1413,9 @@ class Test extends FirestoreBase {
                 testData: {
                     toets: test_data,
                     rubric: rubric_data
-                }
+                },
+                provider: this.gpt_provider,
+                model: this.gpt_model
             })
         }
 

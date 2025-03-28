@@ -24,7 +24,7 @@ v-navigation-drawer(
 
         p Aantal modellen: {{ test.total_model_count }}
         v-select(
-            :items='["google", "openai", "deepseek", "alibaba"]'
+            :items='Object.keys(test.modelConfig)'
             v-model="test.gpt_provider"
             @update:modelValue="test.gpt_model = test.gpt_models(action)?.[0]?.value"
         )

@@ -233,6 +233,8 @@ const apiRequest = async (route, data) => {
     return response
 }
 
+
+
 function downloadFileFromBase64(base64String, filename = 'downloaded', datatype="pdf") {
     /**
     * Downloads a PDF file from a base64 encoded string.
