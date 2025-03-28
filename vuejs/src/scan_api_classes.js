@@ -193,7 +193,7 @@ class ContextData {
 
 class ScanPage {
     constructor(file, context_data = new ContextData({})) {
-        // this.file = new File({ ...file, file_type: 'jpeg' }); // REMOVE File instance
+        // this.file = new File({ ...file, file_type: 'png' }); // REMOVE File instance
         this.base64Image = file.base64Data || null; // Store base64 directly //NEW
         this.id = getRandomID()
 
@@ -883,17 +883,17 @@ class TestPdfSettings extends FirestoreBase {
 
 class TestFile {
     constructor({
-        name= null,
-        id= null,
-        fileType= null,
-        localData= null,
-        url= null,
-        storage_path= null,
-        data= null,
-        raw= null,
+        name = null,
+        id = null,
+        fileType = null,
+        localData = null,
+        url = null,
+        storage_path = null,
+        data = null,
+        raw = null,
     }) {
         this._name = name;
-        this._id = id;  // Firestore document ID
+        this._id = id; // Firestore document ID
         this._fileType = fileType;
         this._localData = localData;
         this._url = url;
@@ -1017,9 +1017,15 @@ class Test extends FirestoreBase {
         this.user_id = user_id;
         this.name = name
         this.files = {
-            test: new TestFile({name: 'test'}),
-            rubric: new TestFile({name: 'rubric'}),
-            students: new TestFile({name: 'students'}),
+            test: new TestFile({
+                ...(files.test || {})
+            }),
+            rubric: new TestFile({
+                ...(files.rubric || {})
+            }),
+            students: new TestFile({
+                ...(files.students || {})
+            }),
         };
         this.pages = pages
 
@@ -1047,6 +1053,7 @@ class Test extends FirestoreBase {
             questions: [],
             targets: []
         }
+
         this.gpt_test = gpt_test
         this.gpt_test.test = this
         this.gpt_question = gpt_question
@@ -1219,10 +1226,10 @@ class Test extends FirestoreBase {
         }
 
         console.log(`Test: Uploading ${fileType} file...`);
-        
+
         try {
             // Create storage reference
-            const storagePath = `tests/${this.id}/${fileType}.pdf`;
+            const storagePath = `tests/${this.id}/pdfs/${fileType}.pdf`;
             const storageRef = ref(storage, storagePath);
 
             // Upload the file
@@ -1254,7 +1261,7 @@ class Test extends FirestoreBase {
 
         try {
             const blob = await this.fetchFileAsBlob(this.files[fileType].url);
-            
+
             if (["rubric", "test"].includes(fileType)) {
                 this.files[fileType].data = await globals.$extractTextAndImages(blob);
             } else if (fileType === "students") {
@@ -1755,6 +1762,7 @@ class Test extends FirestoreBase {
         this.saved_grade_data = saved_grade_data
         this.saved_output = saved_output
     }
+    // FIREBASE
     async saveToDatabase() {
         this.loading.save_to_database = true;
         console.log("Test: Starting Save to Firestore...");
@@ -1852,11 +1860,11 @@ class Test extends FirestoreBase {
 
         try {
             const fileTypes = ['test', 'rubric', 'students'];
-            
+
             for (const fileType of fileTypes) {
                 const file = this.files[fileType];
                 if (file.raw && !file.isUploaded) {
-                    const storagePath = `tests/${testId}/${fileType}.pdf`;
+                    const storagePath = `tests/${testId}/pdfs/${fileType}.pdf`;
                     const storageRef = ref(storage, storagePath);
 
                     await uploadBytes(storageRef, file.raw, {
@@ -1864,7 +1872,7 @@ class Test extends FirestoreBase {
                     });
 
                     const downloadURL = await getDownloadURL(storageRef);
-                    
+
                     file.url = downloadURL;
                     file.storage_path = storagePath;
 
@@ -1895,18 +1903,18 @@ class Test extends FirestoreBase {
             const batch = writeBatch(db);
 
             for (const page of this.pages) {
-                if (page.base64Image) { // Check if there's base64 data for the page file
-                    const storagePath = `pages/${testId}/${page.id}.jpeg`; // Define storage path for page
+                if (page.image) { // Check if there's base64 data for the page file
+                    const storagePath = `tests/${testId}/pages/${testId}/${page.id}.png`; // Define storage path for page
                     const storageRef = ref(storage, storagePath);
-                    const buffer = Buffer.from(page.base64Image.split(',')[1], 'base64')
+                    const buffer = Buffer.from(page.image.split(',')[1], 'base64')
                     await uploadBytes(storageRef, buffer, {
-                        contentType: 'image/jpeg'
+                        contentType: 'image/png'
                     }); // Upload page file
                     page.file_location = storagePath //NEW: store location in page object
                     const pageFileData = { // Update Firestore with storage path
                         test_id: testId,
                         location: storagePath,
-                        file_type: 'jpeg'
+                        file_type: 'png'
                     }
                     const pageFileRef = page.file.id ? doc(collection(db, 'files'), page.file.id) : doc(collection(db, 'files')); // Assuming 'files' table for pages too
                     batch.set(pageFileRef, pageFileData, {
@@ -1923,19 +1931,19 @@ class Test extends FirestoreBase {
                     const sectionFiles = [{
                         base64Data: section.base64_full,
                         type: 'section_full',
-                        storagePath: `sections/${section.id}/full.jpeg`
+                        storagePath: `sections/${section.id}/full.png`
                     }, {
                         base64Data: section.base64_section_finder,
                         type: 'section_finder',
-                        storagePath: `sections/${section.id}/sectionFinder.jpeg`
+                        storagePath: `sections/${section.id}/sectionFinder.png`
                     }, {
                         base64Data: section.base64_question_selector,
                         type: 'section_question_selector',
-                        storagePath: `sections/${section.id}/questionSelector.jpeg`
+                        storagePath: `sections/${section.id}/questionSelector.png`
                     }, {
                         base64Data: section.base64_answer,
                         type: 'section_answer',
-                        storagePath: `sections/${section.id}/answer.jpeg`
+                        storagePath: `sections/${section.id}/answer.png`
                     }];
 
                     for (const sectionFileDetail of sectionFiles) {
@@ -1944,7 +1952,7 @@ class Test extends FirestoreBase {
                             const buffer = Buffer.from(sectionFileDetail.base64Data.split(',')[1], 'base64')
 
                             await uploadBytes(storageRef, buffer, {
-                                contentType: 'image/jpeg'
+                                contentType: 'image/png'
                             }); // Upload to Firebase Storage
 
                             const sectionFileData = {
@@ -1989,17 +1997,17 @@ class Test extends FirestoreBase {
             for (const student of this.students) {
                 for (const result of student.results) {
                     if (result.scan_base64) { // Only store if there's base64 data (new file uploaded)
-                        const storagePath = `student_answers/${result.id}/answer.jpeg`;
+                        const storagePath = `tests/${testId}/student_answers/${result.id}/answer.png`;
                         const storageRef = ref(storage, storagePath);
                         const buffer = Buffer.from(result.scan_base64.split(',')[1], 'base64')
                         await uploadBytes(storageRef, buffer, {
-                            contentType: 'image/jpeg'
+                            contentType: 'image/png'
                         }); // Store to Firebase Storage, using result ID
 
                         const resultFileData = {
                             student_question_result_id: result.id,
                             location: storagePath, // Store Path NOT URL
-                            file_type: 'jpeg',
+                            file_type: 'png',
                         }
                         const resultFileRef = result.scan.file.id ? doc(collection(db, 'files'), result.scan.file.id) : doc(collection(db, 'files'));
                         batch.set(resultFileRef, resultFileData, {
@@ -2569,9 +2577,9 @@ class Test extends FirestoreBase {
         // Load related data (similar to your existing TestManager, but simplified)
 
         this.files = {
-            test: new TestFile(testDoc.files?.test || {} ),
-            rubric: new TestFile(testDoc.files?.rubric || {} ),
-            students: new TestFile(testDoc.files?.students || {} ),
+            test: new TestFile(testDoc.files?.test || {}),
+            rubric: new TestFile(testDoc.files?.rubric || {}),
+            students: new TestFile(testDoc.files?.students || {}),
         }
 
 
@@ -2987,7 +2995,7 @@ class StudentQuestionResult extends FirestoreBase {
             file: {
                 base64Data: scan.base64Data || null
             },
-            file_type: scan.file_type || "jpeg",
+            file_type: scan.file_type || "png",
 
         }
         this.is_grading = is_grading
@@ -3205,4 +3213,3 @@ export {
 
 }
 // --- END OF FILE scan_api_classes.js ---
-
