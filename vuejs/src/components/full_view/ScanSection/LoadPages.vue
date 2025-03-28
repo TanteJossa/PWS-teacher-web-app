@@ -41,7 +41,8 @@ v-row(style="height: 100dvh")
 
 <script>
 import {
-    rotateImage180
+    rotateImage180,
+    imageToPngBase64
 } from '@/helpers';
 export default {
     name: 'LoadPages',
@@ -69,20 +70,44 @@ export default {
     methods: {
         handleFileChange(event) {
             this.studentFile = event // NEW - just update selectedFile
-            this.$emit('load-student-pages', event) // Keep emitting the event for page handling in MainLayout
+            this.loadStudentPages(event) // Keep emitting the event for page handling in MainLayout
         },
         async loadDataFromPdf() {
-            if (!this.studentFile) {
-                console.warn("No file selected.");
-                return;
-            }
-            this.test.student_pdf_raw = this.studentFile // NEW - Store raw file in Test object
-            this.test.files.students = URL.createObjectURL(this.studentFile)
-            await this.test.loadDataFromPdf(this.selected_subsection.id);
+            // if (!this.studentFile) {
+            //     console.warn("No file selected.");
+            //     return;
+            // }
+
+            // this.test.student_pdf_raw = this.studentFile // NEW - Store raw file in Test object
+            // console.log(this.studentFile)
+            // this.test.files.students.localData = URL.createObjectURL(this.studentFile)
+            await this.test.loadDataFromPdf("students");
             this.studentFile = null // NEW - clear selectedFile
-        }
+        },
+        async loadStudentPages(event) {
+            console.log('student_pages:', event)
+            if (!event) {
+                return
+            }
+            for (var i = 0; i < event.target.files.length; i++) {
+
+                var file = event.target.files[0]
+                if (file.type.startsWith('image/')) {
+                    const base64png = await imageToPngBase64(file)
+                    if (base64png) {
+                        if (this.test.files.students.data == null) {
+                            this.test.files.students.data = []
+                        }
+                        this.test.files.students.data.push(base64png)
+                        this.test.addPage(base64png)
+                    }
+                }
+                if (file.type.startsWith('application/pdf')) {
+                    await this.test.uploadFile(file, 'students')
+
+                }
+            }
+        },
     }
 };
 </script>
-
-

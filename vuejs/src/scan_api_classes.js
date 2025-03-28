@@ -1081,17 +1081,17 @@ class Test extends FirestoreBase {
     get modelConfig() {
         return {
             google: {
-                "gemini-2.0-pro-exp-02-05": {
-                    test_recognition: "nieuw, zeer langzaam en werkt soms",
-                    test_generation: "nieuw, zeer langzaam en werkt soms",
-                    text_recognition: "nieuw, zeer langzaam en werkt soms",
-                    grading: "nieuw, zeer langzaam en werkt soms",
-                },
                 "gemini-2.0-flash": {
                     test_recognition: "snel, nieuw en geeft soms error",
                     test_generation: "snel, nieuw en geeft soms error",
                     text_recognition: "snel, nieuw en geeft soms error",
                     grading: "snel, nieuw en geeft soms error",
+                },
+                "gemini-2.5-pro-exp-03-25": {
+                    test_recognition: "nieuw, zeer langzaam en werkt soms",
+                    test_generation: "nieuw, zeer langzaam en werkt soms",
+                    text_recognition: "nieuw, zeer langzaam en werkt soms",
+                    grading: "nieuw, zeer langzaam en werkt soms",
                 },
                 "gemini-1.5-pro": {
                     test_recognition: "prima, maar oud",
@@ -1178,11 +1178,11 @@ class Test extends FirestoreBase {
                     grading: "werkt ook goed",
                 }
             },
-            
+
             anthropic: {
-                "claude-3-5-sonnet-20241022": {}, 
-                "claude-3-5-haiku-20241022": {}, 
-                "claude-3-7-sonnet-20250219": {}, 
+                "claude-3-5-sonnet-20241022": {},
+                "claude-3-5-haiku-20241022": {},
+                "claude-3-7-sonnet-20250219": {},
 
             }
         };
@@ -1204,8 +1204,8 @@ class Test extends FirestoreBase {
         if (this.modelConfig[this.gpt_provider]) {
             return Object.keys(this.modelConfig[this.gpt_provider]).map(model => {
                 let text = ""
-                if (this.modelConfig[this.gpt_provider]?.[model]?.[action]?.length > 0){
-                    text ='(' + (this.modelConfig[this.gpt_provider][model]?.[action] || '') + ')'
+                if (this.modelConfig[this.gpt_provider]?. [model]?. [action]?.length > 0) {
+                    text = '(' + (this.modelConfig[this.gpt_provider][model]?. [action] || '') + ')'
                 }
 
                 return {
@@ -1297,8 +1297,26 @@ class Test extends FirestoreBase {
         }
     }
     async fetchFileAsBlob(url) {
-        const response = await fetch(url);
-        return await response.blob();
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.responseType = 'blob';
+
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    resolve(xhr.response); // Resolve with the blob
+                } else {
+                    reject(new Error(`Request failed with status: ${xhr.status}`)); // Reject if status is not OK
+                }
+            };
+
+            xhr.onerror = () => {
+                reject(new Error('Network error')); // Reject on network errors
+            };
+
+            xhr.open('GET', url);
+            xhr.send();
+        });
+
     }
     async generateGptTest() {
         this.loading.structure = true
@@ -1781,88 +1799,337 @@ class Test extends FirestoreBase {
         this.loading.save_to_database = true;
         console.log("Test: Starting Save to Firestore...");
 
-        if (!currentUser.value) {
-            console.error("Test: No user logged in.");
+        const user = currentUser.value; // Get the current user reactive value
+        if (!user || !user.uid) {
+            console.error("Test: No user logged in or UID missing.");
             this.loading.save_to_database = false;
             return false;
         }
-        this.user_id = currentUser.value.uid;
+        // Ensure this.user_id is set correctly before proceeding
+        if (!this.user_id) {
+            this.user_id = user.uid;
+        } else if (this.user_id !== user.uid) {
+            // This case should ideally not happen if loading/creation is correct
+            console.warn(`Test: Instance user_id (${this.user_id}) differs from current user (${user.uid}). Using current user.`);
+            this.user_id = user.uid;
+        }
+
+        let testId = this.id;
 
         try {
-            let testId = this.id;
+            // --- PRE-SAVE OPERATIONS ---
 
-            // 0. Save Files (Test, Rubric, Students, Page Files, Section Files, Result Files)
-            // Only store the main files, if the base64 data exists
-            await this.saveTestFiles(testId);
-            await this.savePageAndSectionFiles(testId); // Includes file saving logic
-            await this.saveStudentResultFiles(testId);
+            // 0. Assign IDs to new children (if needed by subsequent steps like cleanup or linking)
+            // This is now handled within the specific save methods (e.g., saveStudentsResultsAndFiles)
+            // Ensure targets and questions have IDs before saving points that reference them.
+            this.targets.forEach(target => {
+                if (!target.id) target.id = doc(collection(db, 'targets')).id;
+            });
+            this.questions.forEach(question => {
+                if (!question.id) question.id = doc(collection(db, 'questions')).id;
+            });
+            this.questions.forEach(q => q.points.forEach(point => {
+                if (!point.id) point.id = doc(collection(db, 'rubric_points')).id;
+            }));
+            this.students.forEach(student => {
+                if (!student.id) student.id = doc(collection(db, 'students')).id;
+                student.results.forEach(result => {
+                    if (!result.id) result.id = doc(collection(db, 'students_question_results')).id;
+                    Object.values(result.point_results).forEach(pr => {
+                        if (!pr.id) pr.id = doc(collection(db, 'students_points_results')).id;
+                    });
+                    if (result.grade_instance && !result.grade_instance.id) {
+                        result.grade_instance.id = doc(collection(db, 'grade_instances')).id;
+                    }
+                })
+            });
+            // Note: Pages/Sections don't have persistent Firestore IDs in the current design.
 
-            // 1. Save Test Metadata (as before, but with the user_id check)
+
+            // 1. Save Test Metadata (Get or Create Test ID)
             const testData = {
                 user_id: this.user_id, // This *must* be present.
-                name: this.name,
-                is_public: this.is_public,
+                name: this.name || "Untitled Test", // Default name
+                is_public: this.is_public || false,
                 gpt_provider: this.gpt_provider,
                 gpt_model: this.gpt_model,
                 grade_rules: this.grade_rules || "",
+                // Store only necessary parts of test_data_result, excluding large/redundant data if needed
                 test_data_result: this.test_data_result ? {
-                    ...this.test_data_result,
-                    questions: [],
-                    targets: []
+                    targets: this.test_data_result.targets || [], // Keep targets/questions if they are identifiers/lightweight
+                    questions: this.test_data_result.questions || [],
+                    // Exclude potentially large base64 data if it was part of the original structure
                 } : null,
-                updated_at: new Date().getUTCDate(),
+                updated_at: new Date(), // Use Firestore Server Timestamp in production if possible
+                // Store file metadata using the TestFile's toFirestore method
                 files: {
                     test: this.files.test.toFirestore(),
                     rubric: this.files.rubric.toFirestore(),
                     students: this.files.students.toFirestore(),
                 }
-
             };
-
-            // *** CRUCIAL CHECK ***
-            if (!this.user_id) {
-                console.error("Test: saveToDatabase: this.user_id is undefined!", this);
-                this.loading.save_to_database = false;
-                return false; // Prevent the update/insert
-            }
 
             if (testId) {
                 await super.update(testId, testData); // Update existing test
                 console.log(`Test: Test Metadata Updated. Test ID: ${testId}`);
             } else {
-                testId = await super.add(testData); // Add new test
+                // Add new test and get the new ID
+                const docRef = await addDoc(this.dbCollection, testData);
+                testId = docRef.id;
                 this.id = testId; // Update instance with new ID
                 console.log(`Test: Test Metadata Created. Test ID: ${testId}`);
             }
 
-            // 2. Save GPT Settings
+            // --- CRUCIAL: Ensure testId is valid before proceeding ---
+            if (!testId) {
+                throw new Error("Failed to get or create a valid Test ID.");
+            }
+
+
+            // 2. Upload/Update Primary Files (Test, Rubric, Students PDFs)
+            // This also updates the URL/storage_path in the this.files objects
+            await this.saveTestFiles(testId);
+            // Update the main test document AGAIN to store the potentially updated file URLs/paths
+            await super.update(testId, {
+                'files.test': this.files.test.toFirestore(),
+                'files.rubric': this.files.rubric.toFirestore(),
+                'files.students': this.files.students.toFirestore(),
+                updated_at: new Date(),
+            });
+            console.log(`Test: Test file metadata updated after potential uploads. Test ID: ${testId}`);
+
+
+            // 3. Save Settings Sub-documents
             await this.gpt_test.saveToFirestore(testId);
             await this.gpt_question.saveToFirestore(testId);
             await this.test_settings.saveToFirestore(testId);
 
-            // --- Child Cleanup (BEFORE adding/updating) ---
+            // --- Child Management ---
+            // 4. Cleanup Unused Children (Firestore documents and associated Storage files)
+            // Do this *before* saving the current children to avoid deleting things you're about to add/update
             await this.cleanupUnusedChildren(testId);
 
-            // 3. Save Targets and Questions (using batch for efficiency)
-            await this.saveTargetsAndQuestions(testId);
+            // 5. Save Current Children (Targets, Questions, Points, Students, Results, etc.)
+            // These methods use batch writes and handle Storage uploads for relevant items (e.g., student answers)
+            await this.saveTargetsAndQuestions(testId); // Saves Targets, Questions, RubricPoints
+            await this.saveStudentsResultsAndFiles(testId); // Saves Students, Results, PointResults, GradeInstances, and uploads student answer images
 
-            // 4. Save Pages and Sections (also handles file metadata)
-            await this.savePagesAndSections(testId);
-
-            // 5. Save Students and Results
-            await this.saveStudentsAndResults(testId);
-
-
+            // 6. Save Pages and Sections (Currently only uploads images to Storage, no Firestore metadata)
+            // If you added Firestore metadata saving for pages/sections, call that method here.
+            await this.savePagesAndSections(testId); // Uploads page/section images if base64 is present
 
 
-            console.log("Test: Save to Firestore Completed Successfully. Test ID:", testId);
+            console.log("Test: Save to Firestore and Storage Completed Successfully. Test ID:", testId);
             this.loading.save_to_database = false;
             return true;
 
         } catch (e) {
             console.error("Test: Exception during Firestore save:", e);
             this.loading.save_to_database = false;
+            // Consider more granular error reporting or rollback logic if necessary
             return false;
+        }
+    }
+
+    async cleanupUnusedChildren(testId) {
+        if (!testId) {
+            console.error("Test: cleanupUnusedChildren requires a testId.");
+            return;
+        }
+        console.log(`Test: Starting cleanup for unused children of Test ID: ${testId}`);
+        const batch = writeBatch(db); // Use a batch for efficient Firestore deletions
+        const storageDeletePromises = []; // Collect promises for Storage deletions
+
+        try {
+            // --- Get Current Child IDs from the Instance ---
+            const currentQuestionIds = new Set(this.questions.map(q => q.id).filter(id => id));
+            const currentRubricPointIds = new Set(this.questions.flatMap(q => q.points.map(p => p.id)).filter(id => id));
+            const currentTargetIds = new Set(this.targets.map(t => t.id).filter(id => id));
+            const currentStudentIds = new Set(this.students.map(s => s.id).filter(id => id));
+            const currentResultIds = new Set(this.students.flatMap(s => s.results.map(r => r.id)).filter(id => id));
+            const currentPointResultIds = new Set(this.students.flatMap(s => s.results.flatMap(r => Object.values(r.point_results).map(pr => pr.id))).filter(id => id));
+            const currentGradeInstanceIds = new Set(this.students.flatMap(s => s.results.map(r => r.grade_instance?.id)).filter(id => id));
+            // Note: Pages/Sections are not tracked by ID in Firestore in the current design.
+
+            // --- Questions & Rubric Points ---
+            console.log("Test Cleanup: Checking Questions and Rubric Points...");
+            const questionsQuery = query(collection(db, 'questions'), where("test_id", "==", testId));
+            const questionsSnapshot = await getDocs(questionsQuery);
+            for (const doc of questionsSnapshot.docs) {
+                if (!currentQuestionIds.has(doc.id)) {
+                    console.log(`Test Cleanup: Deleting orphaned question: ${doc.id}`);
+                    batch.delete(doc.ref);
+
+                    // Also delete associated rubric_points for the orphaned question
+                    const pointsQuery = query(collection(db, 'rubric_points'), where("question_id", "==", doc.id));
+                    const pointsSnapshot = await getDocs(pointsQuery);
+                    pointsSnapshot.forEach(pointDoc => {
+                        console.log(`Test Cleanup: Deleting orphaned rubric point (due to question delete): ${pointDoc.id}`);
+                        batch.delete(pointDoc.ref);
+                    });
+                } else {
+                    // If question exists, check its points
+                    const pointsQuery = query(collection(db, 'rubric_points'), where("question_id", "==", doc.id));
+                    const pointsSnapshot = await getDocs(pointsQuery);
+                    pointsSnapshot.forEach(pointDoc => {
+                        if (!currentRubricPointIds.has(pointDoc.id)) {
+                            console.log(`Test Cleanup: Deleting orphaned rubric point: ${pointDoc.id}`);
+                            batch.delete(pointDoc.ref);
+                        }
+                    });
+                }
+            }
+
+            // --- Targets ---
+            console.log("Test Cleanup: Checking Targets...");
+            const targetQuery = query(collection(db, 'targets'), where("test_id", "==", testId));
+            const targetSnapshot = await getDocs(targetQuery);
+            targetSnapshot.forEach(doc => {
+                if (!currentTargetIds.has(doc.id)) {
+                    console.log(`Test Cleanup: Deleting orphaned target: ${doc.id}`);
+                    batch.delete(doc.ref);
+                }
+            });
+
+            // --- Students (and their related data/files) ---
+            console.log("Test Cleanup: Checking Students and related data/files...");
+            const studentQuery = query(collection(db, 'students'), where("test_id", "==", testId));
+            const studentSnapshot = await getDocs(studentQuery);
+            for (const studentDoc of studentSnapshot.docs) {
+                if (!currentStudentIds.has(studentDoc.id)) {
+                    console.log(`Test Cleanup: Deleting orphaned student: ${studentDoc.id}`);
+                    batch.delete(studentDoc.ref); // Delete the student document
+
+                    // Find and delete all related data for this student
+                    const resultsQuery = query(collection(db, "students_question_results"), where("student_id", "==", studentDoc.id));
+                    const resultSnapshot = await getDocs(resultsQuery);
+                    for (const resultDoc of resultSnapshot.docs) {
+                        console.log(`Test Cleanup: Deleting orphaned student result (due to student delete): ${resultDoc.id}`);
+                        batch.delete(resultDoc.ref); // Delete the result document
+
+                        // Delete associated point results
+                        const pointsQuery = query(collection(db, 'students_points_results'), where("student_question_result_id", "==", resultDoc.id));
+                        const pointsSnapshot = await getDocs(pointsQuery);
+                        pointsSnapshot.forEach(pointDoc => {
+                            console.log(`Test Cleanup: Deleting orphaned point result (due to result delete): ${pointDoc.id}`);
+                            batch.delete(pointDoc.ref);
+                        });
+
+                        // Delete associated grade instances
+                        const gradeQuery = query(collection(db, 'grade_instances'), where("student_question_result_id", "==", resultDoc.id));
+                        const gradeSnapshot = await getDocs(gradeQuery);
+                        gradeSnapshot.forEach(gradeDoc => {
+                            console.log(`Test Cleanup: Deleting orphaned grade instance (due to result delete): ${gradeDoc.id}`);
+                            batch.delete(gradeDoc.ref);
+                        });
+
+                        // Schedule deletion of the associated student answer image from Storage
+                        const storagePath = `tests/${testId}/student_answers/${resultDoc.id}/answer.png`;
+                        const storageRef = ref(storage, storagePath);
+                        console.log(`Test Cleanup: Scheduling Storage delete for orphaned student answer: ${storagePath}`);
+                        storageDeletePromises.push(deleteObject(storageRef).catch(err => {
+                            // Log error but don't block Firestore cleanup if file not found or other issue
+                            if (err.code !== 'storage/object-not-found') {
+                                console.error(`Test Cleanup: Failed to delete Storage object ${storagePath}:`, err);
+                            }
+                        }));
+                    }
+                } else {
+                    // If student exists, check their results
+                    const resultsQuery = query(collection(db, "students_question_results"), where("student_id", "==", studentDoc.id));
+                    const resultSnapshot = await getDocs(resultsQuery);
+                    for (const resultDoc of resultSnapshot.docs) {
+                        if (!currentResultIds.has(resultDoc.id)) {
+                            console.log(`Test Cleanup: Deleting orphaned student result: ${resultDoc.id}`);
+                            batch.delete(resultDoc.ref); // Delete the result document
+
+                            // Delete associated point results, grades, and files for this specific orphaned result
+                            const pointsQuery = query(collection(db, 'students_points_results'), where("student_question_result_id", "==", resultDoc.id));
+                            const pointsSnapshot = await getDocs(pointsQuery);
+                            pointsSnapshot.forEach(pointDoc => {
+                                console.log(`Test Cleanup: Deleting orphaned point result (due to result delete): ${pointDoc.id}`);
+                                batch.delete(pointDoc.ref);
+                            });
+                            const gradeQuery = query(collection(db, 'grade_instances'), where("student_question_result_id", "==", resultDoc.id));
+                            const gradeSnapshot = await getDocs(gradeQuery);
+                            gradeSnapshot.forEach(gradeDoc => {
+                                console.log(`Test Cleanup: Deleting orphaned grade instance (due to result delete): ${gradeDoc.id}`);
+                                batch.delete(gradeDoc.ref);
+                            });
+                            const storagePath = `tests/${testId}/student_answers/${resultDoc.id}/answer.png`;
+                            const storageRef = ref(storage, storagePath);
+                            console.log(`Test Cleanup: Scheduling Storage delete for orphaned student answer: ${storagePath}`);
+                            storageDeletePromises.push(deleteObject(storageRef).catch(err => {
+                                if (err.code !== 'storage/object-not-found') {
+                                    console.error(`Test Cleanup: Failed to delete Storage object ${storagePath}:`, err);
+                                }
+                            }));
+                        } else {
+                            // If result exists, check its point results and grade instance
+                            const pointsQuery = query(collection(db, 'students_points_results'), where("student_question_result_id", "==", resultDoc.id));
+                            const pointsSnapshot = await getDocs(pointsQuery);
+                            pointsSnapshot.forEach(pointDoc => {
+                                if (!currentPointResultIds.has(pointDoc.id)) {
+                                    console.log(`Test Cleanup: Deleting orphaned point result: ${pointDoc.id}`);
+                                    batch.delete(pointDoc.ref);
+                                }
+                            });
+                            const gradeQuery = query(collection(db, 'grade_instances'), where("student_question_result_id", "==", resultDoc.id));
+                            const gradeSnapshot = await getDocs(gradeQuery);
+                            gradeSnapshot.forEach(gradeDoc => {
+                                if (!currentGradeInstanceIds.has(gradeDoc.id)) {
+                                    console.log(`Test Cleanup: Deleting orphaned grade instance: ${gradeDoc.id}`);
+                                    batch.delete(gradeDoc.ref);
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+
+            // --- Settings Cleanup (Optional - usually only one per test) ---
+            // If you enforce only one settings doc per test, you could add cleanup here,
+            // but often just overwriting (set merge:true) is sufficient.
+
+            // --- Page/Section File Cleanup (More Complex) ---
+            // Since pages/sections aren't stored with IDs in Firestore, cleaning their
+            // Storage files requires listing directories and comparing. This is more intensive.
+            // Example sketch (run carefully, maybe separate utility):
+            /*
+            const currentSectionIds = new Set(this.pages.flatMap(p => p.sections.map(s => s.id)).filter(id => id)); // Assuming sections get *temporary* IDs
+            const sectionsDirRef = ref(storage, `tests/${testId}/sections`);
+            const listResult = await listAll(sectionsDirRef);
+            for (const itemPrefix of listResult.prefixes) { // Prefixes are the section ID folders
+                const sectionId = itemPrefix.name;
+                if (!currentSectionIds.has(sectionId)) {
+                    console.log(`Test Cleanup: Found orphaned section folder in Storage: ${sectionId}. Deleting contents...`);
+                    const sectionFilesList = await listAll(itemPrefix);
+                    sectionFilesList.items.forEach(fileRef => {
+                         console.log(`Test Cleanup: Scheduling delete for orphaned section file: ${fileRef.fullPath}`);
+                        storageDeletePromises.push(deleteObject(fileRef).catch(err => console.error(...)));
+                    });
+                }
+            }
+            // Similar logic for page folders if they exist `tests/${testId}/pages`
+            */
+            console.warn("Test Cleanup: Storage cleanup for orphaned Pages/Sections is not fully implemented due to lack of persistent IDs. Manual cleanup might be needed for Storage folders `tests/${testId}/pages` and `tests/${testId}/sections`.");
+
+
+            // --- Commit Firestore Deletions ---
+            console.log("Test Cleanup: Committing Firestore batch deletions...");
+            await batch.commit();
+            console.log("Test Cleanup: Firestore batch deletions committed.");
+
+            // --- Wait for Storage Deletions ---
+            console.log(`Test Cleanup: Waiting for ${storageDeletePromises.length} Storage deletions...`);
+            await Promise.all(storageDeletePromises);
+            console.log("Test Cleanup: Storage deletions completed (or attempted).");
+
+            console.log(`Test Cleanup: Finished cleanup for Test ID: ${testId}`);
+
+        } catch (error) {
+            console.error(`Test Cleanup: Error during cleanup for test ${testId}:`, error);
+            // Don't re-throw usually, allow the main save operation to potentially continue or fail separately
         }
     }
 
@@ -1905,144 +2172,151 @@ class Test extends FirestoreBase {
         }
     }
 
-    async savePageAndSectionFiles(testId) {
-        console.log("Test: Starting Page and Section Files Upload...");
+    async savePagesAndSections(testId) {
+        console.log("Test: Starting Unified Pages and Sections Save. Test ID:", testId);
         if (!testId) {
-            console.error("Test: Test ID is missing. Cannot save page and section files.");
+            console.error("Test: Test ID is missing. Cannot save.");
             return false;
         }
 
-        try {
-            // Use a Firestore Batch for efficiency
-            const batch = writeBatch(db);
+        // Promises for Cloud Storage uploads
+        const uploadPromises = [];
 
+        try {
             for (const page of this.pages) {
-                if (page.image) { // Check if there's base64 data for the page file
-                    const storagePath = `tests/${testId}/pages/${testId}/${page.id}.png`; // Define storage path for page
-                    const storageRef = ref(storage, storagePath);
-                    const buffer = Buffer.from(page.image.split(',')[1], 'base64')
-                    await uploadBytes(storageRef, buffer, {
-                        contentType: 'image/png'
-                    }); // Upload page file
-                    page.file_location = storagePath //NEW: store location in page object
-                    const pageFileData = { // Update Firestore with storage path
-                        test_id: testId,
-                        location: storagePath,
-                        file_type: 'png'
-                    }
-                    const pageFileRef = page.file.id ? doc(collection(db, 'files'), page.file.id) : doc(collection(db, 'files')); // Assuming 'files' table for pages too
-                    batch.set(pageFileRef, pageFileData, {
-                        merge: true
-                    }); // Use set with merge for updates/inserts
-                    if (!page.file.id) {
-                        page.file.id = pageFileRef.id; // Assign new ID if it's a new page file
-                    }
-                }
+                // --- Page Image Handling (Upload to Storage only) ---
+                const isBase64 = typeof page.image === 'string' && page.image.startsWith('data:image/png;base64,');
+                let pageStoragePath = null; // To track if we have a storage path
+
+                if (isBase64) {
+                    // 1. Prepare Page Image Upload
+                    pageStoragePath = `tests/${testId}/pages/${page.id}/full.png`;
+                    const storageRef = ref(storage, pageStoragePath);
+                    // Use Blob in browser environment, Buffer in Node.js
+                    let uploadData;
+
+                    // Assuming Node.js environment based on original code using Buffer
+                    uploadData = Buffer.from(page.image.split(',')[1], 'base64');
 
 
-                for (const section of page.sections) {
-                    // Save Section Files Metadata (Full, Finder, Selector, Answer)
-                    const sectionFiles = [{
-                        base64Data: section.base64_full,
-                        type: 'section_full',
-                        storagePath: `sections/${section.id}/full.png`
-                    }, {
-                        base64Data: section.base64_section_finder,
-                        type: 'section_finder',
-                        storagePath: `sections/${section.id}/sectionFinder.png`
-                    }, {
-                        base64Data: section.base64_question_selector,
-                        type: 'section_question_selector',
-                        storagePath: `sections/${section.id}/questionSelector.png`
-                    }, {
-                        base64Data: section.base64_answer,
-                        type: 'section_answer',
-                        storagePath: `sections/${section.id}/answer.png`
-                    }];
 
-                    for (const sectionFileDetail of sectionFiles) {
-                        if (sectionFileDetail.base64Data) { // Only if there's base64 data
-                            const storageRef = ref(storage, sectionFileDetail.storagePath);
-                            const buffer = Buffer.from(sectionFileDetail.base64Data.split(',')[1], 'base64')
-
-                            await uploadBytes(storageRef, buffer, {
-                                contentType: 'image/png'
-                            }); // Upload to Firebase Storage
-
-                            const sectionFileData = {
-                                test_id: testId,
-                                location: sectionFileDetail.storagePath, // Store path NOT URL
-                                file_type: sectionFileDetail.type
-                            };
-                            const sectionFileRef = sectionFileDetail.file.id ? doc(collection(db, 'files'), sectionFileDetail.file.id) : doc(collection(db, 'files'));
-                            batch.set(sectionFileRef, sectionFileData, {
-                                merge: true
-                            }); // Use set with merge for updates/inserts
-                            if (!sectionFileDetail.file.id) {
-                                sectionFileDetail.file.id = sectionFileRef.id; // Assign new ID if it's a new section file
-                            }
-                        }
-                    }
-                }
-            }
-
-            await batch.commit(); // Commit the batch write
-            console.log("Test: Pages and Sections Files Uploaded Successfully. Test ID:", testId);
-            return true;
-
-        } catch (e) {
-            console.error("Test: Exception saving pages and sections metadata:", e);
-            return false;
-        }
-    }
-
-
-    async saveStudentResultFiles(testId) {
-        console.log("Test: Starting Student Result Files Upload...");
-        if (!testId) {
-            console.error("Test: Test ID is missing. Cannot save student result files.");
-            return false;
-        }
-
-        try {
-            // Use a Firestore Batch for efficiency
-            const batch = writeBatch(db);
-
-            for (const student of this.students) {
-                for (const result of student.results) {
-                    if (result.scan_base64) { // Only store if there's base64 data (new file uploaded)
-                        const storagePath = `tests/${testId}/student_answers/${result.id}/answer.png`;
-                        const storageRef = ref(storage, storagePath);
-                        const buffer = Buffer.from(result.scan_base64.split(',')[1], 'base64')
-                        await uploadBytes(storageRef, buffer, {
+                    // Add upload task to promises array
+                    uploadPromises.push(
+                        uploadBytes(storageRef, uploadData, { // Use uploadData (Buffer or Blob)
                             contentType: 'image/png'
-                        }); // Store to Firebase Storage, using result ID
+                        }).then(() => {
+                            console.log(`Test: Uploaded page ${page.id} image to ${pageStoragePath}`);
+                        }).catch(err => {
+                            console.error(`Test: Failed to upload page ${page.id} image:`, err);
+                            throw err; // Propagate error to Promise.all
+                        })
+                    );
 
-                        const resultFileData = {
-                            student_question_result_id: result.id,
-                            location: storagePath, // Store Path NOT URL
-                            file_type: 'png',
-                        }
-                        const resultFileRef = result.scan.file.id ? doc(collection(db, 'files'), result.scan.file.id) : doc(collection(db, 'files'));
-                        batch.set(resultFileRef, resultFileData, {
-                            merge: true
-                        }); // Use set with merge for updates/inserts
-                        if (!result.scan.file.id) {
-                            result.scan.file.id = resultFileRef.id; // Assign new ID if it's a new result file
+                } else if (typeof page.image === 'string' && page.image.length > 0) {
+                    // Assume page.image is an existing URL/storage path. No upload needed.
+                    console.log(`Test: Page ${page.id} image uses existing URL/path: ${page.image}. No upload performed.`);
+                    pageStoragePath = page.image; // Keep track of the existing path/URL
+                } else {
+                    console.warn(`Test: Page ${page.id} has no valid image data or URL. No image saved.`);
+                }
+
+
+                // --- Section Handling (within page loop) ---
+                for (const section of page.sections) {
+                    // 1. Save/Update Section Metadata to Firestore 'sections' collection
+                    const isNewSection = !section.id;
+
+                    const sectionData = {
+                        test_id: testId,
+                        page_id: page.id,
+                        question_number: section.question_number,
+                        student_id: section.student_id,
+                    };
+
+
+
+
+
+                    // 2. Define and Process Section Image Files (Upload to Storage only)
+                    const sectionFilesToProcess = [
+                        // Define the different image types associated with a section
+                        {
+                            base64Data: section.base64_full,
+                            fileType: 'section_full'
+                        },
+                        {
+                            base64Data: section.base64_section_finder,
+                            fileType: 'section_finder'
+                        },
+                        {
+                            base64Data: section.base64_question_selector,
+                            fileType: 'section_question_selector'
+                        },
+                        {
+                            base64Data: section.base64_answer,
+                            fileType: 'section_answer'
+                        },
+                    ];
+
+                    for (const fileDetail of sectionFilesToProcess) {
+                        // Only process if there's new base64 data for this file type
+                        if (fileDetail.base64Data && typeof fileDetail.base64Data === 'string' && fileDetail.base64Data.startsWith('data:image/png;base64,')) {
+
+                            // Prepare Upload Path (deterministic)
+                            const sectionStoragePath = `tests/${testId}/sections/${section.id}/${fileDetail.fileType}.png`;
+                            const storageRef = ref(storage, sectionStoragePath);
+
+                            // Use Blob in browser environment, Buffer in Node.js
+                            let sectionUploadData;
+
+                            sectionUploadData = Buffer.from(fileDetail.base64Data.split(',')[1], 'base64');
+
+
+
+                            // Add upload task to promises array
+                            uploadPromises.push(
+                                uploadBytes(storageRef, sectionUploadData, { // Use sectionUploadData
+                                    contentType: 'image/png'
+                                }).then(() => {
+                                    console.log(`Test: Uploaded ${fileDetail.fileType} for section ${section.id} to ${sectionStoragePath}`);
+                                    // Optionally clear base64 data from memory after upload attempt starts
+                                    // fileDetail.base64Data = null; // Be careful if you need the data later in this function
+                                }).catch(err => {
+                                    console.error(`Test: Failed to upload ${fileDetail.fileType} for section ${section.id}:`, err);
+                                    throw err; // Propagate error
+                                })
+                            );
+
+                            // No Firestore 'files' collection interaction needed here
+
+                            // Clear base64 data from the section object in memory (optional, saves memory)
+                            // Find the key corresponding to the base64 data (e.g., 'base64_full') and set it to null
+                            for (const key in section) {
+                                if (section[key] === fileDetail.base64Data) {
+                                    section[key] = null;
+                                    break;
+                                }
+                            }
+
                         }
                     }
                 }
             }
 
-            await batch.commit(); // Commit the batch write
-            console.log("Test: Student Result Files Uploaded Successfully. Test ID:", testId);
+            // --- Execute Uploads and Batch Write ---
+            console.log(`Test: Waiting for ${uploadPromises.length} file uploads...`);
+            await Promise.all(uploadPromises); // Wait for all Storage uploads to complete
+            console.log("Test: All file uploads completed.");
+
             return true;
 
         } catch (e) {
-            console.error("Test: Exception uploading student result files:", e);
+            console.error("Test: Exception during unified save:", e);
+            // Consider adding more specific error handling or cleanup if needed
             return false;
         }
     }
+
 
     async saveTargetsAndQuestions(testId) {
         console.log("Test: Starting Targets and Questions Save to Firestore...")
@@ -2125,262 +2399,215 @@ class Test extends FirestoreBase {
         }
     }
 
-    async savePagesAndSections(testId) {
-        console.log("Test: Starting Pages and Sections Save to Firestore...");
+
+    async saveStudentsResultsAndFiles(testId) {
+        console.log("Test: Starting Combined Students, Results, and Files Save. Test ID:", testId)
         if (!testId) {
-            console.error("Test: Test ID is missing. Cannot save pages and sections.");
+            console.error("Test: Test ID is missing. Cannot save students, results, and files.");
             return false;
         }
+
+        const batch = writeBatch(db); // Single batch for all Firestore metadata writes
+        const uploadPromises = []; // Store promises for all student answer file uploads
 
         try {
-            // Use a Firestore Batch for efficiency
-            const batch = writeBatch(db);
+            // --- Fetch Existing Child IDs (Optional but good for updates) ---
+            // You might fetch existing IDs beforehand if complex update/delete logic is needed,
+            // but for set({merge: true}), it's often sufficient to rely on the object's current ID.
 
-            // Store all pages and section metadata (excluding files for now)
-            for (const page of this.pages) {
-                const pageData = {
-                    test_id: testId,
-                    file_type: page.file.file_type || "pdf" // Keep file_type metadata
-                }
-                const pageFileRef = page.file.id ? doc(collection(db, 'files'), page.file.id) : doc(collection(db, 'files')); // Assuming 'files' collection for pages too
-                batch.set(pageFileRef, pageData, {
-                    merge: true
-                }); // Use set with merge for updates/inserts
-                if (!page.file.id) {
-                    page.file.id = pageFileRef.id; // Assign new ID if it's a new page file
-                }
-
-
-                for (const section of page.sections) {
-                    // Store section details (no file locations for now)
-                    const sectionData = {
-                        test_id: testId,
-                        question_number: section.question_number || 0, // Default question number
-                        is_qr_section: section.is_qr_section || false,
-                        student_id: section.student_id || "unknown_student",
-                    };
-                    const sectionRef = section.id ? doc(collection(db, 'sections'), section.id) : doc(collection(db, 'sections'));
-                    batch.set(sectionRef, sectionData, {
-                        merge: true
-                    }); // Use set with merge for updates/inserts
-                    if (!section.id) {
-                        section.id = sectionRef.id; // Assign new ID if it's a new section
-                    }
-
-                    // Save Section Files Metadata (Full, Finder, Selector, Answer)
-                    const sectionFiles = [{
-                        file: section.file_full,
-                        type: 'section_full'
-                    }, {
-                        file: section.file_section_finder,
-                        type: 'section_finder'
-                    }, {
-                        file: section.file_question_selector,
-                        type: 'section_question_selector'
-                    }, {
-                        file: section.file_answer,
-                        type: 'section_answer'
-                    }];
-
-                    for (const sectionFileDetail of sectionFiles) {
-                        if (sectionFileDetail.file.base64Data) { // Only if there's new base64 data
-                            await sectionFileDetail.file.storeFile(testId); // Store to Firebase Storage
-                        }
-                        const sectionFileData = {
-                            test_id: testId,
-                            location: sectionFileDetail.file.location,
-                            file_type: sectionFileDetail.type
-                        };
-                        const sectionFileRef = sectionFileDetail.file.id ? doc(collection(db, 'files'), sectionFileDetail.file.id) : doc(collection(db, 'files'));
-                        batch.set(sectionFileRef, sectionFileData, {
-                            merge: true
-                        }); // Use set with merge for updates/inserts
-                        if (!sectionFileDetail.file.id) {
-                            sectionFileDetail.file.id = sectionFileRef.id; // Assign new ID if it's a new section file
-                        }
-                    }
-                }
-            }
-
-            await batch.commit(); // Commit the batch write
-            console.log("Test: Pages and Sections Saved Successfully. Test ID:", testId);
-            return true;
-
-        } catch (e) {
-            console.error("Test: Exception saving pages and sections metadata:", e);
-            return false;
-        }
-    }
-
-
-    async saveStudentsAndResults(testId) {
-        console.log("Test: Starting Students and Results Save to Firestore...");
-        if (!testId) {
-            console.error("Test: Test ID is missing. Cannot save students and results.");
-            return false;
-        }
-
-        try {
-            // Use a Firestore Batch for efficiency
-            const batch = writeBatch(db);
-
-            // 4. Store Students and Results
             for (const student of this.students) {
+                // --- Save/Update Student Metadata ---
+                const studentRef = student.id ? doc(db, 'students', student.id) : doc(collection(db, 'students'));
+                if (!student.id) {
+                    student.id = studentRef.id; // *** Assign new Firestore-generated ID back ***
+                }
                 const studentData = {
                     test_id: testId,
-                    student_id: student.student_id || "unknown_student", // Default student ID
+                    student_id: student.student_id || "-1", // Use external ID or default
+                    // Add any other student-level metadata here if needed
                 };
-                const studentRef = student.id ? doc(collection(db, 'students'), student.id) : doc(collection(db, 'students'));
                 batch.set(studentRef, studentData, {
                     merge: true
-                }); // Use set with merge for updates/inserts
-                if (!student.id) {
-                    student.id = studentRef.id; // Assign new ID if it's a new student
-                }
+                }); // Add student save to batch
 
-                // Store StudentQuestionResults
+                // --- Process StudentQuestionResults ---
                 for (const result of student.results) {
+                    // *** Ensure student.id is assigned before using it here if the student was new ***
+                    if (!student.id) {
+                        console.error(`Critical Error: New student object missing Firestore ID before processing results. Student Identifier: ${student.student_id}`);
+                        continue
+                        // throw new Error(`Student Firestore ID missing for student ${student.student_id}`);
+                    }
+
+                    const resultRef = result.id ? doc(db, 'students_question_results', result.id) : doc(collection(db, 'students_question_results'));
+                    if (!result.id) {
+                        result.id = resultRef.id; // *** Assign new Firestore-generated ID back ***
+                    }
+
+                    // --- Upload Student Answer Scan Image (if new base64 exists) ---
+                    // Use result.scan_base64 as the primary source
+                    let imageDataToUpload = result.scan_base64;
+
+                    // Fallback to the older structure if necessary (optional, remove if not needed)
+                    if (!imageDataToUpload && result.scan?.file?.base64Data) {
+                        console.warn(`Test: Using fallback scan.file.base64Data for result ${result.id}. Consider migrating to scan_base64.`);
+                        imageDataToUpload = result.scan.file.base64Data;
+                    }
+
+
+                    if (imageDataToUpload && typeof imageDataToUpload === 'string' && imageDataToUpload.startsWith('data:image/png;base64,')) {
+                        // *** Ensure result.id is assigned before using it in the path ***
+                        if (!result.id) {
+                            console.error(`Critical Error: New result object missing Firestore ID before image upload. Question ID: ${result.question_id}, Student ID: ${student.student_id}`);
+                            continue
+                            // throw new Error(`Result Firestore ID missing for question ${result.question_id}, student ${student.student_id}`);
+                        }
+
+                        const storagePath = `tests/${testId}/student_answers/${result.id}/answer.png`; // Deterministic path
+                        const storageRef = ref(storage, storagePath);
+
+                        // Convert base64 to data suitable for upload
+                        // Assuming a Node.js environment (like Cloud Functions) based on original code using Buffer
+                        // If in BROWSER, use Blob: const blob = await (await fetch(imageDataToUpload)).blob();
+                        let uploadData;
+                        try {
+                            uploadData = Buffer.from(imageDataToUpload.split(',')[1], 'base64');
+                        } catch (bufferError) {
+                            console.error(`Test: Error creating Buffer from base64 for result ${result.id}:`, bufferError);
+                            // Decide how to handle: skip upload, throw error?
+                            // Let's skip upload for this specific image if Buffer creation fails
+                            uploadData = null; // Ensure it doesn't proceed to upload
+                        }
+
+
+                        if (uploadData) {
+                            // Add upload task to promises array
+                            uploadPromises.push(
+                                uploadBytes(storageRef, uploadData, {
+                                    contentType: 'image/png'
+                                }).then(() => {
+                                    console.log(`Test: Uploaded student answer scan for result ${result.id} to ${storagePath}`);
+                                    // Optionally clear base64 data from memory AFTER upload promise added
+                                    result.scan_base64 = null;
+                                    if (result.scan?.file) result.scan.file.base64Data = null; // Clear fallback too
+                                }).catch(err => {
+                                    console.error(`Test: Failed to upload student answer scan for result ${result.id} to ${storagePath}:`, err);
+                                    // Allow other uploads/writes to continue, but log the specific failure.
+                                    // Do NOT throw err here unless you want the whole batch to fail on one image upload error.
+                                })
+                            );
+                            // No interaction with a separate 'files' collection for student answers is needed here.
+                            // The location is deterministic and derivable.
+                        }
+
+                    } else if (imageDataToUpload) {
+                        // Log if scan data exists but isn't a valid base64 data URI
+                        console.warn(`Test: Result ${result.id} has image data, but it's not a valid 'data:image/png;base64,...' string. Skipping upload.`);
+                        // Decide if you want to clear invalid data:
+                        // result.scan_base64 = null;
+                        // if(result.scan?.file) result.scan.file.base64Data = null;
+                    }
+
+                    // --- Save/Update StudentQuestionResult Metadata ---
+                    // Note: We DO NOT store the storagePath in Firestore. It's derived from testId and result.id.
                     const resultData = {
-                        student_id: student.id,
-                        question_id: result.question_id,
-                        feedback: result.feedback || "No feedback", // Default feedback
+                        test_id: testId,
+                        student_id: student.id, // Link to the student document using Firestore ID
+                        question_id: result.question_id, // Link to the question document
+                        feedback: result.feedback || "", // Default to empty string
                         student_handwriting_percent: result.student_handwriting_percent || 0,
+                        scan_text: result.scan?.text || "", // Store extracted text if available
+                        // Add other relevant fields from StudentQuestionResult
                     };
-                    const resultRef = result.id ? doc(collection(db, 'students_question_results'), result.id) : doc(collection(db, 'students_question_results'));
                     batch.set(resultRef, resultData, {
                         merge: true
-                    }); // Use set with merge for updates/inserts
+                    }); // Add result metadata save to batch
+
+
+                    // --- Process StudentPointResults ---
+                    // *** Ensure result.id is assigned before using it here if the result was new ***
                     if (!result.id) {
-                        result.id = resultRef.id; // Assign new ID if it's a new result
+                        console.error(`Critical Error: New result object missing Firestore ID before processing points. Question ID: ${result.question_id}, Student ID: ${student.student_id}`);
+                        // throw new Error(`Result Firestore ID missing for question ${result.question_id}, student ${student.student_id}`);
+                        continue;
+                    }
+                    // Iterate through the point_results *object*
+                    for (const pointIndexStr in result.point_results) {
+                        if (Object.hasOwnProperty.call(result.point_results, pointIndexStr)) {
+                            const pointResult = result.point_results[pointIndexStr];
+                            if (!pointResult) {
+                                console.warn(`Test: Missing point result object for index ${pointIndexStr} in result ${result.id}`);
+                                continue; // Skip if the entry is somehow null/undefined
+                            }
+
+                            const pointResultRef = pointResult.id ? doc(db, 'students_points_results', pointResult.id) : doc(collection(db, 'students_points_results'));
+                            if (!pointResult.id) {
+                                pointResult.id = pointResultRef.id; // *** Assign new Firestore-generated ID back ***
+                            }
+                            const pointResultData = {
+                                student_question_result_id: result.id, // Link to the parent result document
+                                // Ensure point_index is stored correctly (should match the key)
+                                point_index: parseInt(pointIndexStr, 10), // Convert key back to number if needed, or use pointResult.point_index
+                                has_point: pointResult.has_point === true, // Ensure boolean
+                                feedback: pointResult.feedback || "", // Default to empty string
+                                // Include point_id from RubricPoint if needed for easier querying (denormalization)
+                                // point_id: pointResult.point?.id || null // Get the original RubricPoint ID
+                            };
+                            batch.set(pointResultRef, pointResultData, {
+                                merge: true
+                            }); // Add point result save to batch
+                        }
                     }
 
-                    // Store StudentPointResults
-                    for (const pointIndex in result.point_results) {
-                        const pointResult = result.point_results[pointIndex];
-                        const pointResultData = {
-                            student_question_result_id: result.id,
-                            point_index: pointResult.point_index,
-                            has_point: pointResult.has_point || false, // Default has_point
-                            feedback: pointResult.feedback || "No point feedback", // Default point feedback
+
+                    // --- Process Grade Instance ---
+                    if (result.grade_instance) { // Check if grade_instance exists
+                        // *** Ensure result.id is assigned before using it here if the result was new ***
+                        if (!result.id) {
+                            console.error(`Critical Error: New result object missing Firestore ID before processing grade instance. Question ID: ${result.question_id}, Student ID: ${student.student_id}`);
+                            continue
+                            // throw new Error(`Result Firestore ID missing for question ${result.question_id}, student ${student.student_id}`);
+                        }
+
+                        const gradeInstanceRef = result.grade_instance.id ? doc(db, 'grade_instances', result.grade_instance.id) : doc(collection(db, 'grade_instances'));
+                        if (!result.grade_instance.id) {
+                            result.grade_instance.id = gradeInstanceRef.id; // *** Assign new Firestore-generated ID back ***
+                        }
+                        const gradeInstanceData = {
+                            student_question_result_id: result.id, // Link to the parent result document
+                            is_gpt: result.grade_instance.is_gpt || false,
+                            model: result.grade_instance.model || null,
+                            provider: result.grade_instance.provider || null,
                         };
-                        const pointResultRef = pointResult.id ? doc(collection(db, 'students_points_results'), pointResult.id) : doc(collection(db, 'students_points_results'));
-                        batch.set(pointResultRef, pointResultData, {
+                        batch.set(gradeInstanceRef, gradeInstanceData, {
                             merge: true
-                        }); // Use set with merge for updates/inserts
-                        if (!pointResult.id) {
-                            pointResult.id = pointResultRef.id; // Assign new ID if it's a new point result
-                        }
+                        }); // Add grade instance save to batch
+                    } else {
+                        // Optional: Decide if you want to explicitly delete an existing grade instance if result.grade_instance is now null/undefined
+                        // const gradeQuery = query(collection(db, 'grade_instances'), where("student_question_result_id", "==", result.id));
+                        // getDocs(gradeQuery).then(snapshot => snapshot.forEach(doc => batch.delete(doc.ref)));
+                        console.warn(`Test: Result ${result.id} is missing grade_instance data. No grade instance saved/updated.`);
                     }
+                } // End of results loop
+            } // End of students loop
 
-                    // Store Grade Instance
-                    const gradeInstanceData = {
-                        student_question_result_id: result.id,
-                        is_gpt: result.grade_instance.is_gpt || false, // Default is_gpt
-                        model: result.grade_instance.model || "default_model", // Default model
-                        provider: result.grade_instance.provider || "default_provider", // Default provider
-                    }
-                    const gradeInstanceRef = result.grade_instance.id ? doc(collection(db, 'grade_instances'), result.grade_instance.id) : doc(collection(db, 'grade_instances'));
-                    batch.set(gradeInstanceRef, gradeInstanceData, {
-                        merge: true
-                    }); // Use set with merge for updates/inserts
-                    if (!result.grade_instance.id) {
-                        result.grade_instance.id = gradeInstanceRef.id; // Assign new ID if it's a new grade instance
-                    }
-                }
-            }
+            // --- Execute Uploads and Batch Write ---
+            console.log(`Test: Waiting for ${uploadPromises.length} student answer file uploads...`);
+            // Wait for all storage uploads to attempt completion.
+            // Promise.allSettled might be better if you want to know which uploads failed
+            // but still proceed with the Firestore batch if some succeed.
+            await Promise.all(uploadPromises);
+            console.log("Test: All pending student answer file uploads attempted.");
 
-            await batch.commit(); // Commit the batch write
-            console.log("Test: Students and Results Saved Successfully. Test ID:", testId);
+            console.log("Test: Committing Firestore batch write for students, results, points, and grade instances...");
+            await batch.commit(); // Commit all Firestore metadata changes atomically
+
+            console.log("Test: Combined Students, Results, and Files Save completed successfully. Test ID:", testId);
             return true;
 
         } catch (e) {
-            console.error("Test: Exception saving students and results metadata:", e);
-            return false;
-        }
-    }
-
-    async saveStudentResultFiles(testId) {
-        console.log("Test: Starting Student Result Files Upload...");
-        if (!testId) {
-            console.error("Test: Test ID is missing. Cannot save student result files.");
-            return false;
-        }
-
-        try {
-            // Use a Firestore Batch for efficiency
-            const batch = writeBatch(db);
-
-            for (const student of this.students) {
-                for (const result of student.results) {
-                    if (result.scan.file.base64Data) { // Only store if there's base64 data (new file uploaded)
-                        await result.scan.file.storeFile(null, result.id); // Store to Firebase Storage, using result ID
-                        const resultFileData = {
-                            student_question_result_id: result.id,
-                            location: result.scan.file.location,
-                            file_type: result.scan.file.file_type,
-                        }
-                        const resultFileRef = result.scan.file.id ? doc(collection(db, 'files'), result.scan.file.id) : doc(collection(db, 'files'));
-                        batch.set(resultFileRef, resultFileData, {
-                            merge: true
-                        }); // Use set with merge for updates/inserts
-                        if (!result.scan.file.id) {
-                            result.scan.file.id = resultFileRef.id; // Assign new ID if it's a new result file
-                        }
-                    }
-                }
-            }
-
-            await batch.commit(); // Commit the batch write
-            console.log("Test: Student Result Files Uploaded Successfully. Test ID:", testId);
-            return true;
-
-        } catch (e) {
-            console.error("Test: Exception uploading student result files:", e);
-            return false;
-        }
-    }
-
-    async savePageAndSectionFiles(testId) {
-        console.log("Test: Starting Page and Section Files Upload...");
-        if (!testId) {
-            console.error("Test: Test ID is missing. Cannot save page and section files.");
-            return false;
-        }
-
-        try {
-            // Use a Firestore Batch for efficiency
-            const batch = writeBatch(db);
-
-            for (const page of this.pages) {
-                if (page.file.base64Data) { // Only store if there's base64 data (new page file)
-                    await page.file.storeFile(testId); // Store page file to Firebase Storage
-                    const pageFileData = {
-                        test_id: testId,
-                        location: page.file.location,
-                        file_type: page.file.file_type
-                    }
-                    const pageFileRef = page.file.id ? doc(collection(db, 'files'), page.file.id) : doc(collection(db, 'files')); // Assuming 'files' table for pages too
-                    batch.set(pageFileRef, pageFileData, {
-                        merge: true
-                    }); // Use set with merge for updates/inserts
-                    if (!page.file.id) {
-                        page.file.id = pageFileRef.id; // Assign new ID if it's a new page file
-                    }
-                }
-
-                for (const section of page.sections) {
-                    // Section files are handled in savePagesAndSections function already.
-                    // No need to re-upload or re-save metadata here.
-                    // This function is primarily for the page file itself.
-                }
-            }
-
-            await batch.commit(); // Commit the batch write
-            console.log("Test: Page and Section Files Uploaded Successfully. Test ID:", testId);
-            return true;
-
-        } catch (e) {
-            console.error("Test: Exception uploading page and section files:", e);
+            console.error("Test: Exception during combined students/results/files save:", e);
+            // Consider adding more specific error handling or cleanup if needed
             return false;
         }
     }
@@ -2454,277 +2681,264 @@ class Test extends FirestoreBase {
             // Continue even if file deletion fails from storage, as database entry is more critical to delete.
         }
     }
-    async cleanupUnusedChildren(testId) {
-        if (!testId) {
-            console.error("Test: cleanupUnusedChildren requires a testId.");
-            return;
-        }
-        const batch = writeBatch(db); // Use a batch for efficient deletion
-
-        try {
-            // --- Questions ---
-            const questionQuery = query(collection(db, 'questions'), where("test_id", "==", testId));
-            const questionSnapshot = await getDocs(questionQuery);
-            questionSnapshot.forEach(doc => {
-                // Check if the question exists in the current this.questions array
-                if (!this.questions.some(q => q.id === doc.id)) {
-                    console.log(`Deleting orphaned question: ${doc.id}`);
-                    batch.delete(doc.ref); // Delete orphaned questions
-
-                    // Also delete associated rubric_points
-                    const pointsQuery = query(collection(db, 'rubric_points'), where("question_id", "==", doc.id));
-                    getDocs(pointsQuery).then(pointsSnapshot => {
-                        pointsSnapshot.forEach(pointDoc => {
-                            batch.delete(pointDoc.ref);
-                        });
-                    });
-
-                }
-            });
-
-            // --- Targets ---
-            const targetQuery = query(collection(db, 'targets'), where("test_id", "==", testId));
-            const targetSnapshot = await getDocs(targetQuery);
-            targetSnapshot.forEach(doc => {
-                if (!this.targets.some(t => t.id === doc.id)) {
-                    console.log(`Deleting orphaned target: ${doc.id}`);
-                    batch.delete(doc.ref); // Delete orphaned targets
-                }
-            });
-
-
-            // --- Students (and related data) ---
-            const studentQuery = query(collection(db, 'students'), where("test_id", "==", testId));
-            const studentSnapshot = await getDocs(studentQuery);
-            studentSnapshot.forEach(studentDoc => {
-                if (!this.students.some(s => s.id === studentDoc.id)) {
-                    console.log(`Deleting orphaned student: ${studentDoc.id}`);
-                    // Also delete associated studentQuestionResults, and within those:
-                    //  - studentPointResults
-                    //  - gradeInstances
-
-                    const resultsQuery = query(collection(db, "students_question_results"), where("student_id", "==", studentDoc.id));
-                    getDocs(resultsQuery).then(resultSnapshot => {
-                        resultSnapshot.forEach(async resultDoc => {
-                            // Delete studentPointResults
-                            const pointsQuery = query(collection(db, 'students_points_results'), where("student_question_result_id", "==", resultDoc.id));
-                            getDocs(pointsQuery).then(pointsSnapshot => {
-                                pointsSnapshot.forEach(pointDoc => {
-                                    batch.delete(pointDoc.ref);
-                                });
-                            });
-
-                            // Delete gradeInstances
-                            const gradeQuery = query(collection(db, 'grade_instances'), where("student_question_result_id", "==", resultDoc.id));
-                            getDocs(gradeQuery).then(gradeSnapshot => {
-                                gradeSnapshot.forEach(gradeDoc => {
-                                    batch.delete(gradeDoc.ref);
-                                });
-                            });
-                            // Delete Student files
-                            const fileQuery = query(collection(db, 'files'), where("student_question_result_id", "==", resultDoc.id));
-                            getDocs(fileQuery).then(filesSnapshot => {
-                                filesSnapshot.forEach(fileDoc => {
-                                    batch.delete(fileDoc.ref);
-                                    // Also delete from storage.
-                                    const file = new File({
-                                        id: fileDoc.id,
-                                        test_id: fileDoc.data().test_id,
-                                        student_question_result_id: fileDoc.data().student_question_result_id,
-                                        location: fileDoc.data().location,
-                                        file_type: fileDoc.data().fileType,
-                                        is_stored: true,
-                                    })
-                                    file.deleteFileFromStorage()
-                                });
-                            });
-                            batch.delete(resultDoc.ref); //Delete the student result
-
-                        })
-                    })
-
-                    batch.delete(studentDoc.ref); // Delete the student
-                }
-            })
-
-            // --- Sections ---
-            // For sections, you will need to add more information, I dont know on what basis the should be deleted.
-            const sectionQuery = query(collection(db, 'sections'), where("test_id", "==", testId));
-            const sectionSnapshot = await getDocs(sectionQuery);
-            sectionSnapshot.forEach(doc => {
-                // if (!this.sections.some(s => s.id === doc.id)) { // Check this condition
-                console.log(`Deleting orphaned section: ${doc.id}`);
-                batch.delete(doc.ref); // Delete orphaned sections
-                // }
-            });
-
-            await batch.commit(); // Commit all deletions in a single batch
-        } catch (error) {
-            console.error("Error cleaning up unused children:", error);
-        }
-    }
 
     // Inside the Test class, add the following method:
+    // Updated loadFromFirestore method
     async loadFromFirestore(testId) {
         if (!testId) {
             console.error("Test.loadFromFirestore: testId is required.");
-            return null; // Or throw an error, depending on your preference
+            return null;
         }
+        console.log(`Test: Loading test data from Firestore for ID: ${testId}`);
+        this.loading.save_to_database = true; // Indicate loading state
 
-        // try {
-        // 1. Fetch the main test document
-        const testDoc = await this.getById(testId); // Use inherited getById
-        if (!testDoc) {
-            console.warn(`Test with ID ${testId} not found.`);
-            return null; // Or throw an error
-        }
+        try {
+            // 1. Fetch the main test document
+            const testDoc = await super.getById(testId);
+            if (!testDoc) {
+                console.warn(`Test with ID ${testId} not found.`);
+                this.loading.save_to_database = false;
+                return null;
+            }
 
-        // 2. Populate the Test instance
-        this.id = testDoc.id;
-        this.user_id = testDoc.user_id;
-        this.name = testDoc.name;
-        this.is_public = testDoc.is_public;
-        this.gpt_provider = testDoc.gpt_provider;
-        this.gpt_model = testDoc.gpt_model;
-        this.grade_rules = testDoc.grade_rules;
-        this.test_data_result = testDoc.test_data_result;
-        // Load related data (similar to your existing TestManager, but simplified)
+            // 2. Populate the Test instance with basic data
+            this.id = testDoc.id;
+            this.user_id = testDoc.user_id;
+            this.name = testDoc.name;
+            this.is_public = testDoc.is_public ?? false; // Default to false if missing
+            this.gpt_provider = testDoc.gpt_provider;
+            this.gpt_model = testDoc.gpt_model;
+            this.grade_rules = testDoc.grade_rules || "";
+            // Only load test_data_result if it exists, avoid overwriting if null
+            if (testDoc.test_data_result !== undefined) {
+                this.test_data_result = testDoc.test_data_result;
+            }
 
-        this.files = {
-            test: new TestFile(testDoc.files?.test || {}),
-            rubric: new TestFile(testDoc.files?.rubric || {}),
-            students: new TestFile(testDoc.files?.students || {}),
-        }
+            // 3. Load Test-Level Files (Instantiate TestFile with Firestore data)
+            this.files = {
+                test: new TestFile(testDoc.files?.test || {}),
+                rubric: new TestFile(testDoc.files?.rubric || {}),
+                students: new TestFile(testDoc.files?.students || {}),
+            };
+            // Ensure TestFile instances get the id if available from Firestore data
+            if (testDoc.files?.test?.id) this.files.test._id = testDoc.files.test.id;
+            if (testDoc.files?.rubric?.id) this.files.rubric._id = testDoc.files.rubric.id;
+            if (testDoc.files?.students?.id) this.files.students._id = testDoc.files.students.id;
 
 
-        // 3. Fetch child collections concurrently using Promise.all
-        const [
-            questionsSnapshot,
-            targetsSnapshot,
-            studentsSnapshot,
-            gptTestSettingsSnapshot,
-            gptQuestionSettingsSnapshot,
-            testPdfSettingsSnapshot,
-            // filesSnapshot
-        ] = await Promise.all([
-            getDocs(query(collection(db, 'questions'), where("test_id", "==", testId))),
-            getDocs(query(collection(db, 'targets'), where("test_id", "==", testId))),
-            getDocs(query(collection(db, 'students'), where("test_id", "==", testId))),
-            getDocs(query(collection(db, 'gpt_tests_settings'), where("test_id", "==", testId))),
-            getDocs(query(collection(db, 'gpt_questions_settings'), where("test_id", "==", testId))),
-            getDocs(query(collection(db, 'test_pdf_settings'), where("test_id", "==", testId))),
-            // getDocs(query(collection(db, 'files'), where("test_id", "==", testId))), // Get file metadata
-        ]);
+            // 4. Fetch child collections concurrently
+            console.log("Test: Fetching child collections...");
+            const [
+                questionsSnapshot,
+                targetsSnapshot,
+                studentsSnapshot,
+                gptTestSettingsSnapshot,
+                gptQuestionSettingsSnapshot,
+                testPdfSettingsSnapshot,
+            ] = await Promise.all([
+                getDocs(query(collection(db, 'questions'), where("test_id", "==", testId))),
+                getDocs(query(collection(db, 'targets'), where("test_id", "==", testId))),
+                getDocs(query(collection(db, 'students'), where("test_id", "==", testId))),
+                getDocs(query(collection(db, 'gpt_tests_settings'), where("test_id", "==", testId))),
+                getDocs(query(collection(db, 'gpt_questions_settings'), where("test_id", "==", testId))),
+                getDocs(query(collection(db, 'test_pdf_settings'), where("test_id", "==", testId))),
+            ]);
+            console.log("Test: Child collections fetched.");
 
-        // 4. Process and assign child data
-        this.questions = questionsSnapshot.docs.map(doc => new Question({
-            test: this,
-            ...doc.data(),
-            id: doc.id
-        })); // Create Question instances
-        this.targets = targetsSnapshot.docs.map(doc => new Target({
-            test: this,
-            ...doc.data(),
-            id: doc.id
-        }));
-        this.students = studentsSnapshot.docs.map(doc => {
-            const student = new Student({
+            // 5. Process Targets first (needed for Questions/RubricPoints)
+            this.targets = targetsSnapshot.docs.map(doc => new Target({
                 test: this,
                 ...doc.data(),
                 id: doc.id
-            });
-            return student;
-        });
-        this.gpt_test = new GptTestSettings({
-            test: this,
-            ...(gptTestSettingsSnapshot.docs[0]?.data() || {}),
-            id: gptTestSettingsSnapshot.docs[0]?.id
-        });
-        this.gpt_question = new GptQuestionSettings({
-            test: this,
-            ...(gptQuestionSettingsSnapshot.docs[0]?.data() || {}),
-            id: gptQuestionSettingsSnapshot.docs[0]?.id
-        });
-        this.test_settings = new TestPdfSettings({
-            test: this,
-            ...(testPdfSettingsSnapshot.docs[0]?.data() || {}),
-            id: testPdfSettingsSnapshot.docs[0]?.id
-        })
-
-
-        // Load rubric points for each question
-        for (const question of this.questions) {
-            const pointsQuery = query(collection(db, 'rubric_points'), where("question_id", "==", question.id));
-            const pointsSnapshot = await getDocs(pointsQuery);
-            question.points = pointsSnapshot.docs.map(doc => new RubricPoint({
-                question: question,
-                ...doc.data(),
-                target: this.targets.find(e => e.id == doc.data().target_id) || new Target({}),
-                id: doc.id
             }));
-        }
+            console.log(`Test: Loaded ${this.targets.length} targets.`);
 
-        // Load results, scans, and grade instances for each student
-        for (const student of this.students) {
-            const resultsQuery = query(collection(db, 'students_question_results'), where("student_id", "==", student.id));
-            const resultsSnapshot = await getDocs(resultsQuery);
-
-            student.results = await Promise.all(resultsSnapshot.docs.map(async (resultDoc) => {
-                const resultData = resultDoc.data();
-                const questionResult = new StudentQuestionResult({
-                    student: student,
-                    ...resultData,
-                    id: resultDoc.id
+            // 6. Process Questions and their Rubric Points
+            this.questions = []; // Clear existing before loading
+            for (const qDoc of questionsSnapshot.docs) {
+                const question = new Question({
+                    test: this,
+                    ...qDoc.data(),
+                    id: qDoc.id
                 });
 
-                // Load points for this result
-                const pointsQuery = query(collection(db, 'students_points_results'), where("student_question_result_id", "==", resultDoc.id));
+                // Fetch and assign Rubric Points for this question
+                const pointsQuery = query(collection(db, 'rubric_points'), where("question_id", "==", question.id));
                 const pointsSnapshot = await getDocs(pointsQuery);
-                pointsSnapshot.forEach(pointDoc => {
-                    questionResult.point_results[pointDoc.data().point_index] = new StudentPointResult({
-                        student_result: questionResult,
-                        ...pointDoc.data(),
-                        id: pointDoc.id,
+                question.points = pointsSnapshot.docs.map(pDoc => {
+                    const pointData = pDoc.data();
+                    // Find the corresponding Target instance using the target_id
+                    const target = this.targets.find(t => t.id === pointData.target_id);
+                    if (!target) {
+                        console.warn(`RubricPoint ${pDoc.id} for Question ${question.id} has missing or invalid target_id: ${pointData.target_id}`);
+                    }
+                    return new RubricPoint({
+                        question: question,
+                        ...pointData,
+                        id: pDoc.id,
+                        target: target || new Target({}) // Assign found target or a default empty one
                     });
+                }).sort((a, b) => a.point_index - b.point_index); // Ensure points are ordered
+                this.questions.push(question);
+            }
+            this.questions.sort((a, b) => {
+                // Handle potential non-numeric parts in question_number (e.g., '1a', '1b')
+                const numA = parseFloat(a.question_number);
+                const numB = parseFloat(b.question_number);
+                if (numA !== numB) {
+                    return numA - numB;
+                }
+                // If numbers are equal, compare alphabetically
+                return a.question_number.localeCompare(b.question_number);
+            });
+            console.log(`Test: Loaded ${this.questions.length} questions with their rubric points.`);
+
+
+            // 7. Process Students and their Results (including Scan Images)
+            this.students = []; // Clear existing before loading
+            const studentPromises = studentsSnapshot.docs.map(async (sDoc) => {
+                const student = new Student({
+                    test: this,
+                    ...sDoc.data(),
+                    id: sDoc.id
                 });
 
-                // Load grade instance
-                const gradeQuery = query(collection(db, 'grade_instances'), where("student_question_result_id", "==", resultDoc.id));
-                const gradeSnapshot = await getDocs(gradeQuery);
-                if (gradeSnapshot.docs.length > 0) {
-                    questionResult.grade_instance = new GradeInstance({
-                        ...gradeSnapshot.docs[0].data(),
-                        id: gradeSnapshot.docs[0].id,
+                // Fetch Results for this student
+                const resultsQuery = query(collection(db, 'students_question_results'), where("student_id", "==", student.id));
+                const resultsSnapshot = await getDocs(resultsQuery);
+
+                student.results = await Promise.all(resultsSnapshot.docs.map(async (rDoc) => {
+                    const resultData = rDoc.data();
+                    const questionResult = new StudentQuestionResult({
+                        student: student,
+                        ...resultData,
+                        id: rDoc.id,
+                        // Initialize scan object - URL will be added below
+                        scan: new ScanQuestion({}), // Provide minimal initial ScanQuestion
+                        scan_base64: null // Explicitly set base64 to null initially
                     });
-                }
 
-                //Get File
-                const file = filesSnapshot.docs.find(e => e.data().student_question_result_id == questionResult.id)
-                if (file) {
-                    questionResult.scan.file = new File({
-                        id: file.id,
-                        test_id: file.data().test_id,
-                        student_question_result_id: file.data().student_question_result_id,
-                        location: file.data().location,
-                        file_type: file.data().file_type,
-                        is_stored: true
+                    // --- Load Student Answer Scan Image URL ---
+                    const storagePath = `tests/${testId}/student_answers/${rDoc.id}/answer.png`;
+                    try {
+                        const storageRef = ref(storage, storagePath);
+                        const downloadURL = await getDownloadURL(storageRef);
+                        questionResult.scan_base64 = downloadURL; // Store URL in scan_base64 (or create scan_url)
+                        // Optionally update the nested scan object if needed elsewhere, though scan_base64 is now the primary
+                        questionResult.scan.file = new TestFile({
+                            url: downloadURL,
+                            storage_path: storagePath
+                        }); // Assuming TestFile can handle this
+                        console.log(`Test: Loaded scan image URL for result ${rDoc.id}: ${downloadURL}`);
+                    } catch (error) {
+                        if (error.code === 'storage/object-not-found') {
+                            console.warn(`Test: Scan image not found in Storage for result ${rDoc.id} at path ${storagePath}`);
+                        } else {
+                            console.error(`Test: Error getting download URL for result ${rDoc.id}:`, error);
+                        }
+                        questionResult.scan_base64 = null; // Ensure it's null if loading failed
+                    }
+                    // --- End Load Scan Image URL ---
+
+                    // Fetch and assign Point Results
+                    const pointResultsQuery = query(collection(db, 'students_points_results'), where("student_question_result_id", "==", rDoc.id));
+                    const pointResultsSnapshot = await getDocs(pointResultsQuery);
+                    questionResult.point_results = {}; // Initialize as object
+                    pointResultsSnapshot.forEach(prDoc => {
+                        const pointResultData = prDoc.data();
+                        questionResult.point_results[pointResultData.point_index] = new StudentPointResult({
+                            student_result: questionResult,
+                            ...pointResultData,
+                            id: prDoc.id,
+                        });
                     });
+
+                    // Fetch and assign Grade Instance
+                    const gradeQuery = query(collection(db, 'grade_instances'), where("student_question_result_id", "==", rDoc.id));
+                    const gradeSnapshot = await getDocs(gradeQuery);
+                    if (gradeSnapshot.docs.length > 0) {
+                        questionResult.grade_instance = new GradeInstance({
+                            student_question_result: questionResult, // Link back if needed by GradeInstance
+                            ...gradeSnapshot.docs[0].data(),
+                            id: gradeSnapshot.docs[0].id,
+                        });
+                    } else {
+                        questionResult.grade_instance = null; // Explicitly set to null if not found
+                    }
+
+                    return questionResult;
+                })); // End map results
+
+                // Sort results by question number after loading
+                student.results.sort((a, b) => {
+                    const qA = this.questions.find(q => q.id === a.question_id);
+                    const qB = this.questions.find(q => q.id === b.question_id);
+                    if (!qA || !qB) return 0; // Should not happen if data is consistent
+
+                    const numA = parseFloat(qA.question_number);
+                    const numB = parseFloat(qB.question_number);
+                    if (numA !== numB) {
+                        return numA - numB;
+                    }
+                    return qA.question_number.localeCompare(qB.question_number);
+                });
+
+
+                return student;
+            }); // End map students
+
+            this.students = await Promise.all(studentPromises);
+            this.students.sort((a, b) => {
+                // Sort by student_id numerically if possible, otherwise alphabetically
+                const idA = Number(a.student_id);
+                const idB = Number(b.student_id);
+                if (!isNaN(idA) && !isNaN(idB)) {
+                    return idA - idB;
                 }
+                return (a.student_id || "").localeCompare(b.student_id || "");
+            });
+            console.log(`Test: Loaded ${this.students.length} students with their results, points, grades and scan URLs.`);
 
 
-                return questionResult;
+            // 8. Load Settings Objects
+            this.gpt_test = new GptTestSettings({
+                test: this,
+                ...(gptTestSettingsSnapshot.docs[0]?.data() || {}),
+                id: gptTestSettingsSnapshot.docs[0]?.id
+            });
+            this.gpt_question = new GptQuestionSettings({
+                test: this,
+                ...(gptQuestionSettingsSnapshot.docs[0]?.data() || {}),
+                id: gptQuestionSettingsSnapshot.docs[0]?.id
+            });
+            this.test_settings = new TestPdfSettings({
+                test: this,
+                ...(testPdfSettingsSnapshot.docs[0]?.data() || {}),
+                id: testPdfSettingsSnapshot.docs[0]?.id
+            });
+            if (!this.test_settings.name && this.name) {
+                this.test_settings.name = this.name; // Fallback pdf name to test name
+            }
+            console.log("Test: Loaded GPT and PDF settings.");
 
-            }));
+            // 9. Load Pages and Sections (NOT IMPLEMENTED as per current save logic)
+            // The current save structure doesn't store page/section metadata in Firestore.
+            // If you need to load page/section *images* or *metadata*, the save logic
+            // (savePagesAndSections) needs to be updated to store relevant info in Firestore.
+            // For now, student answer images are loaded directly via StudentQuestionResult.
+            this.pages = []; // Keep pages empty as they are not loaded from Firestore
+            console.warn("Test: Loading Pages and Sections from Firestore is not implemented due to current save logic.");
+
+
+            console.log(`Test: Successfully loaded all data for Test ID: ${testId}`);
+            this.loading.save_to_database = false;
+            return this; // Return the populated Test instance
+
+        } catch (error) {
+            console.error(`Test: Error loading test ${testId} from Firestore:`, error);
+            this.loading.save_to_database = false;
+            return null; // Indicate failure
         }
-
-
-
-        return this; // Return the populated Test instance
-
-        // } catch (error) {
-        //     console.error("Error loading test from Firestore:", error);
-        //     return null; // Or throw the error, depending on your error handling
-        // }
     }
 
 
@@ -2996,22 +3210,10 @@ class StudentQuestionResult extends FirestoreBase {
         this.question_id = question_id
         this.feedback = feedback
         this.point_results = point_results
-        // this.scan = new ScanQuestion({ //REMOVED File instance
-        //     ...scan,
-        //     file: scan.file
-        // })
-        this.scan_base64 = scan.base64Data || null //NEW, store base64 directly
-        this.scan = { //NEW: quick fix for old code
-            text: scan.text || "",
-            question_number: scan.question_number || "",
-            page: scan.page || null,
-            is_loading: scan.is_loading || false,
-            file: {
-                base64Data: scan.base64Data || null
-            },
-            file_type: scan.file_type || "png",
-
-        }
+        this.scan = new ScanQuestion({ //REMOVED File instance
+            ...scan,
+        })
+        this.scan_base64 = scan_base64 || null //NEW, store base64 directly
         this.is_grading = is_grading
         this.student_handwriting_percent = student_handwriting_percent
 

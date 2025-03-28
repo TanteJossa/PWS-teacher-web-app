@@ -43,7 +43,6 @@ component(:is="$vuetify.display.mdAndUp ? 'v-layout' : 'div'")
                 :test="test"
                 v-model:selected_page_id="selected_page_id"
                 @update:selected_page_id="selected_page_id = $event"
-                @load-student-pages="loadStudentPages"
             )
 
         div.h-100(v-if="selected_section_id == 'grade'")
@@ -82,7 +81,6 @@ import GradeSection from '@/components/full_view/GradeSection/GradeSection.vue';
 import AnalyzeSection from '@/components/full_view/AnalyzeSection/AnalyzeSection.vue';
 import RequestDialog from '@/components/full_view/RequestDialog.vue';
 import GoogleLoginButton from '@/components/auth/GoogleLoginButton.vue'; // IMPORT GoogleLoginButton
-import { initializeFileStructure, safelyLoadStudentFiles } from '@/file-fixes.js';
 
 import {
     total_requests,
@@ -350,31 +348,7 @@ export default {
                 xhr.send();
             });
         },
-        async loadStudentPages(event) {
-            console.log(event)
-            if (!event){
-                return 
-            }
-            for (var i = 0; i < event.target.files.length; i++){
-
-                var file = event.target.files[0]
-                if (file.type.startsWith('image/')) {
-                    const base64png = await imageToPngBase64(file)
-                    if (base64png) {
-                        if (this.test.files.students.data == null){
-                            this.test.files.students.data = []
-                        }
-                        this.test.files.students.data.push(base64png)
-                        this.test.addPage(base64png)
-                    }
-                }
-                if (file.type.startsWith('application/pdf')) {
-                    this.test.files.students = file
-
-
-                }
-            }
-        },
+        
         printTest() {
             console.log(this.test.students.map(student => {
                 return {
