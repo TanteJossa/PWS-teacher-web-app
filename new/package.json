@@ -1,0 +1,39 @@
+{
+  "name": "toetspws",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mdi/font": "^7.4.47",
+    "axios": "^1.8.4",
+    "circular-json": "^0.5.9",
+    "firebase": "^11.5.0",
+    "katex": "^0.16.21",
+    "lodash": "^4.17.21",
+    "markdown-it": "^14.1.0",
+    "markdown-it-multimd-table": "^4.2.3",
+    "markdown-it-texmath": "^1.0.0",
+    "markdown-it-title": "^4.0.0",
+    "pdfjs": "^2.5.3",
+    "pdfjs-dist": "^5.0.375",
+    "pinia": "^3.0.1",
+    "pretty-ms": "^9.2.0",
+    "pug": "^3.0.3",
+    "three": "^0.175.0",
+    "uuid": "^11.1.0",
+    "vite-plugin-vuetify": "^2.1.0",
+    "vue": "^3.5.13",
+    "vue-json-viewer": "^3.0.4",
+    "vue-pug-plugin": "^2.0.3",
+    "vue-router": "^4.5.0",
+    "vuetify": "^3.7.19"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.2.0"
+  }
+}
