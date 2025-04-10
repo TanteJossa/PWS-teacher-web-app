@@ -1,256 +1,181 @@
 <template lang="pug">
-canvas(ref="canvasRef")
+v-container 
+    v-card
+        v-card-title Welkom op onze PWS site
+        v-card-text
+            p Hier laten wij een demo over wat we gemaakt hebben.
+            | Hierboven zie je een app-bar met daarin verschillende pagina's:
+            v-divider
+            v-table
+                tbody
+                    tr
+                        td
+                            b Demo:
+                        td Een voorbeeld van hier het inladen van handgeschreven toetsblaadjes gaat, 99% correct (op slecht leesbar handschriften na)
+                    tr 
+                        td 
+                            b Tests: 
+                        td Een lijst met tests die in onze database staan en docenten hebben opgeslagen, klik om te openen en te bekijken. We slaan niet elke foto en sectie op in de database ivm opslag, daarom lijken dingen soms te missen
+                    tr
+                        td 
+                            b PWS:
+                        td ons pdf document
+                    tr
+                        td 
+                            b Antwoordpagina: 
+                        td Een uitprintbare antwoordpagina zodat elke docent dit programma gratis kan gebruiken
+            v-divider.mt-2
+            v-row
+                v-col
+                    h2 Dingen die het programma kan:
+                    v-divider
+                    v-table
+                        tbody
+                            tr
+                                td Toetsen maken
+                                td
+                                    ul
+                                        li Voor alle vakken een toets maken
+                                        li Een hele toets in 45 seconden, met: vragen, punten en leerdoelen
+                                        li Onbewuste nakijkregels van docenten worden vastgelegd
+                                        li Wiskundige formules en tabellen
+                                        li Output naar Word/.docx (met wiskundige formules en tabellen) in examenformaat, zodat docenten specifieke vragen kunnen kopieren naar eigen toetsen
+                            tr
+                                td Inscannen
+                                td 
+                                    ul
+                                        li Open vragen
+                                        li (bijna) alle handschriften
+                                        li Programma "weet" waar een antwoord is gegeven op een vraag
+                                        li Leerling nummers herkennen
+                                        li 5 minuten voor 30 leerlingen
+                                        li docent controle over hele process
+                            tr
+                                td Nakijken
+                                td
+                                    ul 
+                                        li Gesloten, open, en teken vragen
+                                        li correlatie van 97% met mens bij een echte scheikundetoets 
+                                        li Feedback per punt en tips over stof per punt (scheelt discussies met leerlingen voor docent)
+                                        li 5 minuten een hele klas van 30 leerlingen nagekeken
+                                        li docent controle over hele process
+                            tr  
+                                td Analyse
+                                td
+                                    ul 
+                                        li Per leerling een pdf met alle feedback, per vraag en per rubric punt
+                                        li Per leerling een score per leerdoel
+                                        li Voor docent overzicht welke leerdoelen behaald en welke niet behaald zijn door de klas
+                    v-divider.mt-2
+                v-col
+                    h2 Dingen die wij hebben gedaan/geleerd:
+                    v-divider
+                    v-table
+                        tbody
+                            tr
+                                td Onderzoek
+                                td
+                                    ul
+                                        li Meer dan 14 AI-modellen met elkaar vergeleken in meer dan 15 000 geautomatiseerde api-requests
+                                        li Onderzoek naar verschillende type ai modellen en de toepassing en implementatie, zoals: yolo, diffusion, ffn, llm's, latent-space-models etc.
+                            tr
+                                td Enquête
+                                td
+                                    ul 
+                                        li Enquête afgenomen bij 51 docenten met verschillende achtergronden
+                                        li Vragen met een specifiek doel gesteld, geen dubbele vragen of verschillend interpreteerbare vragen
+                                        li Statistische analyse dvm: draaitabellen, t-tests en een correlatie matrix
+                                        li Analyse mbv. Ai modellen om de open vragen te analyseren en samen te vatten tot korte duidelijke punten
+                            tr
+                                td Onderzoek uitvoeren
+                                td
+                                    ul
+                                        li Voornamelijk met python (onderzoek ongeveer 4000 regels code)
+                                        li Github voor opslag
+                                        li Google Sheets voor analyse
+                                        li Python libraries zoals:  
+                                            i Flask, jinja, jedi, imutuls, numpy, pandas, pydantic, pyzbar, segno, skikit-image, sympy, torch, torchvision, uv, ultralitics, opencv-pythonn en tqdm
+                            tr  
+                                td Backend (veilig systeem dat de berekeningen doet)
+                                td
+                                    ul 
+                                        li 3 python flask servers op GCP (Google Cloud Platform) run: 
+                                            i Hoofdserver, ai/gpt server en document-maak-server
+                                        li route handling en onderzoek functies omzetten naar publieke routes die bestanden kunnen ontvangen en versturen
+                                        li Github voor code opslag
+                                        li 3500 regels handgeschreven python
+                                        li error handling
+                            tr
+                                td Frontend (deze website)
+                                td
+                                    ul 
+                                        li Node.js (javascript) met vite voor laad tijd van 4 seconden
+                                        li Vuejs met Vuetify voor automatische material design opmaak een hoge responsiveness
+                                        li Axios voor requests en pug voor betere html opmaak
+                                        li Pinia voor locale datastore, en vuejs router voor route management
+                                        li Google Firebase Hosting voor publiek draaien van deze site
+                                        li Github voor version history
+                                        li Google Firstore met Google Firebase Datastore voor opslag van toetsen en account management
+                                        li OOP based data systeem met 4000 regels aan classes, zoals:
+                                            i User, File, Question, RubricPoint, Target, GptQuestionSettings, GptTestSettings, TestPdfSettings, Test, ContextData, ScanPage, ScanSection, ScanQuestion, Student, StudentQuestionResult, StudentPointResult, GradeInstance en TestManager
+                                        li Totale frontend ongeveer 8000 regels code
+                                        li Pdf worken voor tekstextractie uit pdf
+                                        li katex voor wiskundige formules
+
+
+
+
+
+                    v-divider.mt-2
+
+
+
+
+
 </template>
 
 <script>
-import * as THREE from 'three';
-import { onMounted, onBeforeUnmount, ref, reactive, shallowReactive } from 'vue';
+// Data 
 
-// EnergyWave class remains the same...
+
+// Components
+
 
 export default {
-    name: 'ThreejsHero',
+    name: 'HomeView',
+    components: {
+
+    },
+    props: {
+
+    },
+    emits: [],
     setup() {
-        const canvasRef = ref(null);
-        let scene;
-        let camera;
-        let renderer;
-        // let ambientLight; // Temporarily disable
-        // let pointLight; // Temporarily disable
-        // let raycaster; // Temporarily disable
-        let clock;
-        let animationFrameId = null;
 
-        const waves = [];
-        // const spheresGlobalData = []; // Temporarily disable complex data
-        const layerData = shallowReactive([
-             // Keep layerData structure, but we won't use all its props initially
-            { id: 0, zOffset: 0,    parallaxFactor: 1,   group: new THREE.Group(), count: 5, basePosition: new THREE.Vector3(0, 0, 0) },
-            { id: 1, zOffset: -5,   parallaxFactor: 0.7, group: new THREE.Group(), count: 5, basePosition: new THREE.Vector3(0, 0, -5) },
-            // Add more layers if needed for testing depth
-        ]);
-
-        // const mouse = reactive(new THREE.Vector2()); // Temporarily disable
-        // const clickPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0); // Temporarily disable
-        // let targetScrollProgress = 0; // Temporarily disable
-        // let currentScrollProgress = 0; // Temporarily disable
-        // const scrollLerpFactor = 0.05;
-        // const velocityDamping = 0.98;
-
-        const initThreeJS = () => {
-            console.log("Attempting initThreeJS...");
-            if (!canvasRef.value) {
-                console.error("Canvas element not found in initThreeJS");
-                return;
-            }
-            const canvas = canvasRef.value;
-            clock = new THREE.Clock();
-
-            /** SCENE, CAMERA, RENDERER */
-            scene = new THREE.Scene();
-            // --- TEST: Set a visible background color ---
-            scene.background = new THREE.Color(0x555555); // Gray background
-
-            camera = new THREE.PerspectiveCamera(
-                75, // Wider FOV for testing
-                window.innerWidth / window.innerHeight,
-                0.1,
-                1000 // Increased far plane for testing
-            );
-             // --- TEST: Set a fixed, simple camera position ---
-             camera.position.set(0, 0, 15); // Positioned on Z axis, looking towards origin
-             camera.lookAt(0, 0, 0); // Look at the center
-             scene.add(camera);
-
-            renderer = new THREE.WebGLRenderer({
-                canvas: canvas,
-                // alpha: true, // Disable alpha for testing background color
-                antialias: true
-            });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-             // --- TEST: Ensure renderer clear color is opaque ---
-             renderer.setClearColor(0x000000, 1); // Set black clear color (will be overridden by scene.background if set)
-
-
-            /** LIGHTS */
-             // --- TEST: Add a simple bright light ---
-             const simpleLight = new THREE.DirectionalLight(0xffffff, 1.0);
-             simpleLight.position.set(1, 1, 1).normalize();
-             scene.add(simpleLight);
-             const simpleAmbient = new THREE.AmbientLight(0x404040, 1.0); // Add some ambient
-             scene.add(simpleAmbient);
-
-            /** LAYER SETUP */
-            layerData.forEach(layer => {
-                layer.group.position.copy(layer.basePosition); // Use base position only
-                scene.add(layer.group);
-            });
-
-            /** SPHERE GENERATION */
-             // --- TEST: Add ONE simple, visible sphere ---
-             const testGeo = new THREE.SphereGeometry(1, 32, 32); // Make it larger
-             // --- TEST: Use MeshBasicMaterial (doesn't need lights) first ---
-             // const testMat = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Bright Red
-             // --- TEST: Or use Phong with the lights ---
-             const testMat = new THREE.MeshPhongMaterial({ color: 0x00ff00 }); // Bright Green
-
-             const testSphere = new THREE.Mesh(testGeo, testMat);
-             testSphere.position.set(0, 0, 0); // Place it directly at the origin (world space)
-             // scene.add(testSphere); // Add directly to scene first
-
-             // OR Add to a layer group to test group positioning:
-             if(layerData.length > 0) {
-                 // Place it relative to the first layer's group
-                 testSphere.position.set(2, 0, 0); // Offset within the group
-                 layerData[0].group.add(testSphere);
-                 console.log(`Test sphere added to group at ${layerData[0].group.position.z}z`);
-             } else {
-                 scene.add(testSphere); // Fallback if no layers
-                 console.log("Test sphere added directly to scene at origin");
-             }
-
-
-             // --- Disable complex sphere generation for now ---
-             /*
-            const sphereGeometry = new THREE.SphereGeometry(0.5, 16, 16);
-            layerData.forEach(layer => {
-                // ... original sphere loop ...
-            });
-            */
-
-             // raycaster = new THREE.Raycaster(); // Disabled
-
-             console.log("initThreeJS finished. Scene contains:", scene.children.length, "children");
-             console.log("Camera position:", camera.position);
-             console.log("Renderer size:", renderer.getSize(new THREE.Vector2()));
-
-        };
-
-        // --- Event Handlers (Keep Resize, disable others for test) ---
-
-        // const onClick = (event) => { /* ... */ };
-        // const onMouseMove = (event) => { /* ... */ };
-        // const onScroll = () => { /* ... */ };
-
-        const onWindowResize = () => {
-             console.log("Window resize triggered");
-            if (!camera || !renderer) return;
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-             console.log("Resize finished. New Renderer size:", renderer.getSize(new THREE.Vector2()));
-        };
-
-        // --- Animation Loop ---
-
-        const animate = () => {
-            // console.log("Animating frame..."); // Uncomment for verbose logging
-            animationFrameId = requestAnimationFrame(animate);
-            const deltaTime = clock.getDelta();
-
-            // --- Disable complex updates ---
-            // currentScrollProgress += (targetScrollProgress - currentScrollProgress) * scrollLerpFactor;
-            // Camera Movement (disabled - using fixed position)
-            // Wave Update (disabled)
-            // Color Transition (disabled)
-            // Layer Parallax Update (disabled)
-            // Sphere Update Loop (disabled)
-
-
-            // --- TEST: Simple rotation of the test sphere's group (if added to group) ---
-             if (layerData.length > 0 && layerData[0].group.children.length > 0) {
-                 layerData[0].group.rotation.y += 0.005;
-             }
-            // --- TEST: Or rotate sphere if added directly ---
-            // else if (scene.getObjectByName("testSphere")) { // Assuming you set .name = "testSphere"
-            //     scene.getObjectByName("testSphere").rotation.y += 0.01;
-            // }
-
-
-            // --- Render ---
-            if (renderer && scene && camera) {
-                renderer.render(scene, camera);
-            } else {
-                console.error("Render aborted: Missing renderer, scene, or camera");
-                cancelAnimationFrame(animationFrameId); // Stop loop if something is wrong
-            }
-        };
-
-        const cleanup = () => {
-            console.log("Cleaning up Three.js scene...");
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
-            // window.removeEventListener('mousemove', onMouseMove); // Disabled
-            window.removeEventListener('resize', onWindowResize);
-            // window.removeEventListener('scroll', onScroll); // Disabled
-            // window.removeEventListener('click', onClick); // Disabled
-
-             // Dispose of the test geometry/material explicitly
-             scene?.traverse(object => {
-                if (object.isMesh) {
-                    object.geometry?.dispose();
-                    if(Array.isArray(object.material)) {
-                        object.material.forEach(m => m.dispose());
-                    } else {
-                        object.material?.dispose();
-                    }
-                }
-             });
-
-
-            if (renderer) {
-                renderer.dispose();
-                 // if (renderer.domElement && renderer.domElement.parentNode) { // Might cause issues if Vue unmounts first
-                 //     renderer.domElement.parentNode.removeChild(renderer.domElement);
-                 // }
-            }
-            // spheresGlobalData.length = 0; // Disabled
-            waves.length = 0;
-            console.log("Cleanup complete.");
-        };
-
-
-        onMounted(() => {
-            console.log("Component Mounted. Canvas ref:", canvasRef.value);
-            initThreeJS();
-            if (renderer && scene && camera) {
-                console.log("Starting animation loop...");
-                animate();
-                window.addEventListener('resize', onWindowResize);
-                // Add other listeners back if needed for testing them specifically
-                 onWindowResize(); // Initial call
-            } else {
-                 console.error("!!! Animation not started because init failed or didn't create renderer/scene/camera !!!");
-            }
-        });
-
-        onBeforeUnmount(() => {
-            cleanup();
-        });
-
+    },
+    data() {
         return {
-            canvasRef
-        };
-    }
+
+        }
+    },
+    computed: {
+
+    },
+    methods: {
+
+    },
+    watch: {
+
+    },
+    // created() {
+
+    // },
+    mounted() {
+
+    },
+
+
 }
 </script>
 
-<style scoped>
-/* Styles remain the same */
-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    /* Place behind other content */
-    display: block;
-    /* Prevent potential extra space below canvas */
-    outline: none;
-    /* Prevent outline on focus/click */
-}
-</style>
+<style scoped></style>
