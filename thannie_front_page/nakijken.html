@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nakijken - PWS Joost & Jonathan</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-blue-900 text-white min-h-screen">
+    <header class="py-4 px-6 md:px-12 flex justify-between items-center">
+        <div class="flex items-center">
+            <div class="text-blue-400 text-3xl mr-2"><i class="fas fa-robot"></i></div>
+            <h1 class="text-2xl font-bold text-blue-300">PWS Joost & Jonathan</h1>
+        </div>
+        <nav>
+            <ul class="flex space-x-6">
+                <li><a href="index.html#features" class="hover:text-blue-300 transition-colors">Functies</a></li>
+                <li><a href="index.html#how-it-works" class="hover:text-blue-300 transition-colors">Inscannen</a></li>
+                <li><a href="#" class="text-blue-400 transition-colors">Nakijken</a></li>
+                <li><a href="index.html#analyseren" class="hover:text-blue-300 transition-colors">Analyseren</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section py-32 px-6 md:px-12 flex flex-col lg:flex-row items-center justify-between min-h-[70vh]">
+            <div class="lg:w-1/2 mb-10 lg:mb-0" data-aos="fade-right" data-aos-duration="1000">
+                <h2 class="text-5xl md:text-6xl font-bold mb-8 leading-tight">
+                    <span class="text-blue-400">Automatisch Nakijken</span> met AI technologie
+                </h2>
+                <p class="text-xl mb-10 text-gray-300 max-w-2xl">
+                    Ons AI systeem beoordeelt antwoorden met een nauwkeurigheid die vergelijkbaar is met menselijke docenten. Ontdek hoe we de nieuwste AI-modellen en technieken hebben getest en toegepast.
+                </p>
+            </div>
+            <div class="lg:w-1/2 relative" data-aos="fade-left" data-aos-duration="1000">
+                <div class="floating-animation">
+                    <img src="https://via.placeholder.com/700x400" alt="AI Nakijken Dashboard" class="rounded-lg shadow-2xl">
+                </div>
+                <div class="absolute -bottom-8 -right-8 bg-blue-700 p-6 rounded-lg shadow-xl floating-animation-slow text-center">
+                    <p class="text-2xl font-bold">97%</p>
+                    <p class="text-md">Correlatie met mens</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hoe We Nakijken Section -->
+        <section id="hoe-we-nakijken" class="py-20 px-6 md:px-12 bg-gray-900 bg-opacity-50">
+            <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center" data-aos="fade-up">
+                Hoe wij <span class="text-blue-400">nakijken</span>
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-10 max-w-6xl mx-auto">
+                <div class="feature-card" data-aos="fade-right">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">AI-gestuurde beoordeling</h3>
+                    <p class="text-gray-300">
+                        Onze AI beoordeelt antwoorden door ze te vergelijken met het modelantwoord en geeft punten op basis van de inhoudelijke overeenkomst, niet alleen op basis van exacte woorden. Het systeem begrijpt de context en kan verschillende formuleringen herkennen die hetzelfde betekenen.
+                    </p>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-left">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Verschillende vraagtypen</h3>
+                    <p class="text-gray-300">
+                        Ons systeem kan meerdere soorten vragen beoordelen:
+                    </p>
+                    <ul class="text-gray-300 list-disc ml-6 mt-2 space-y-1">
+                        <li>Meerkeuzevragen</li>
+                        <li>Open vragen met korte antwoorden</li>
+                        <li>Wiskundige berekeningen</li>
+                        <li>Scheikundige reactievergelijkingen</li>
+                        <li>Tekenvragen</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-right">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Few-shot learning</h3>
+                    <p class="text-gray-300">
+                        We gebruiken few-shot learning om ons AI-model te trainen met slechts enkele voorbeelden per vraagtype. Dit betekent dat het model leert van een klein aantal voorbeelden hoe het antwoorden moet beoordelen, zonder dat er duizenden voorbeelden nodig zijn.
+                    </p>
+                    <p class="text-gray-300 mt-2">
+                        Door deze aanpak kan ons systeem snel worden aangepast aan nieuwe vakgebieden en vraagtypen zonder uitgebreide hertraining.
+                    </p>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-left">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Rubric-gebaseerd nakijken</h3>
+                    <p class="text-gray-300">
+                        Ons systeem gebruikt gedetailleerde rubrics om consistente beoordelingen te geven. Voor elke vraag stellen docenten criteria op die het systeem gebruikt om punten toe te kennen. Deze aanpak zorgt voor:
+                    </p>
+                    <ul class="text-gray-300 list-disc ml-6 mt-2 space-y-1">
+                        <li>Consistent nakijken tussen verschillende leerlingen</li>
+                        <li>Transparantie in de beoordeling</li>
+                        <li>Gedetailleerde feedback per criterium</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modeltesten Section -->
+        <section id="modeltesten" class="py-20 px-6 md:px-12">
+            <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center" data-aos="fade-up">
+                <span class="text-blue-400">Model testen</span> en resultaten
+            </h2>
+            
+            <div class="max-w-6xl mx-auto">
+                <div class="feature-card mb-12" data-aos="fade-up">
+                    <h3 class="text-xl font-bold mb-5">Vergelijking van AI-modellen</h3>
+                    <p class="text-gray-300 mb-6">
+                        We hebben verschillende AI-modellen getest om te bepalen welke het beste presteert bij het beoordelen van antwoorden. Hieronder zie je een vergelijking van de nauwkeurigheid van verschillende modellen ten opzichte van menselijke beoordelaars:
+                    </p>
+                    
+                    <div class="h-80 mb-10">
+                        <canvas id="modelComparisonChart"></canvas>
+                    </div>
+                    
+                    <p class="text-gray-300">
+                        Na uitgebreide tests hebben we gekozen voor een GPT-4 gebaseerd model dat het beste presteert voor complexe open vragen, aangevuld met gespecialiseerde modellen voor specifieke vraagtypen zoals wiskundige berekeningen.
+                    </p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-10">
+                    <div class="feature-card" data-aos="fade-right">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-vial"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Testmethode</h3>
+                        <p class="text-gray-300 mb-4">
+                            Onze testmethode bestond uit de volgende stappen:
+                        </p>
+                        <ol class="text-gray-300 list-decimal ml-6 space-y-2">
+                            <li>Verzamelen van 100+ antwoorden van leerlingen op verschillende vraagtypen</li>
+                            <li>Laten nakijken door mensen</li>
+                            <li>Dezelfde antwoorden door verschillende AI-modellen laten beoordelen</li>
+                            <li>Vergelijken van de AI-scores met de gemiddelde docentscores</li>
+                            <li>Berekenen van correlatie en afwijkingen</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="feature-card" data-aos="fade-left">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Resultaten</h3>
+                        <p class="text-gray-300">
+                            Onze tests hebben aangetoond dat:
+                        </p>
+                        <ul class="text-gray-300 list-disc ml-6 mt-2 space-y-2">
+                            <li>De correlatie tussen onze AI en menselijke beoordelaars is 97% voor scheikundevragen</li>
+                            <li>Het systeem werkt consistent over verschillende vakgebieden</li>
+                            <li></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Binomiale Verdelingen Section -->
+        <section id="binomiale-verdelingen" class="py-20 px-6 md:px-12 bg-gray-900 bg-opacity-50">
+            <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center" data-aos="fade-up">
+                <span class="text-blue-400">Binomiale verdelingen</span> en toetsen
+            </h2>
+            
+            <div class="max-w-6xl mx-auto">
+                <div class="grid md:grid-cols-2 gap-10 mb-12">
+                    <div class="feature-card" data-aos="fade-right">
+                        <h3 class="text-xl font-bold mb-3">Interactieve binomiale verdeling</h3>
+                        <p class="text-gray-300 mb-4">
+                            Experimenteer met verschillende parameters om te zien hoe een binomiale verdeling verandert. Dit model helpt ons bij het schatten van de betrouwbaarheid van onze AI-beoordelingen.
+                        </p>
+                        
+                        <div class="mb-6">
+                            <label class="block text-gray-300 mb-2">Aantal trials (n):</label>
+                            <input type="range" id="binomialN" min="1" max="50" value="20" class="w-full">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">1</span>
+                                <span id="binomialNValue" class="text-blue-400">20</span>
+                                <span class="text-gray-400">50</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-gray-300 mb-2">Kans op succes (p):</label>
+                            <input type="range" id="binomialP" min="1" max="99" value="50" class="w-full">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">0.01</span>
+                                <span id="binomialPValue" class="text-blue-400">0.50</span>
+                                <span class="text-gray-400">0.99</span>
+                            </div>
+                        </div>
+                        
+                        <div class="h-64">
+                            <canvas id="binomialChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card" data-aos="fade-left">
+                        <h3 class="text-xl font-bold mb-3">Toepassingen in nakijken</h3>
+                        <p class="text-gray-300 mb-4">
+                            Binomiale verdelingen helpen ons om de betrouwbaarheid van onze AI-beoordelingen te begrijpen en te verbeteren:
+                        </p>
+                        
+                        <div class="space-y-4">
+                            <div class="bg-gray-800 bg-opacity-70 p-4 rounded-lg">
+                                <h4 class="text-blue-300 font-bold mb-2">Kwaliteitscontrole</h4>
+                                <p class="text-gray-300">We gebruiken binomiale verdelingen om te bepalen hoeveel antwoorden we steekproefsgewijs moeten controleren om een bepaalde betrouwbaarheid te garanderen.</p>
+                            </div>
+                            
+                            <div class="bg-gray-800 bg-opacity-70 p-4 rounded-lg">
+                                <h4 class="text-blue-300 font-bold mb-2">Betrouwbaarheidsintervallen</h4>
+                                <p class="text-gray-300">Voor elke beoordeling berekenen we betrouwbaarheidsintervallen die aangeven hoe zeker we zijn van de gegeven score.</p>
+                            </div>
+                            
+                            <div class="bg-gray-800 bg-opacity-70 p-4 rounded-lg">
+                                <h4 class="text-blue-300 font-bold mb-2">Interfereren</h4>
+                                <p class="text-gray-300">Als we na meer testen nog steeds geen betrokkenheid kunnen garanderen, zullen we de vraag markeren als 'docent nakijken'.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+
+        <!-- Few-Shot Learning Section -->
+        <section id="few-shot-learning" class="py-20 px-6 md:px-12">
+            <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center" data-aos="fade-up">
+                <span class="text-blue-400">Few-Shot Learning</span> uitgelegd
+            </h2>
+            
+            <div class="max-w-6xl mx-auto">
+                <div class="feature-card mb-12" data-aos="fade-up">
+                    <h3 class="text-xl font-bold mb-3">Wat is Few-Shot Learning?</h3>
+                    <p class="text-gray-300">
+                        Few-Shot Learning is een machine learning-techniek waarbij een model leert om nieuwe taken uit te voeren met slechts enkele voorbeelden, in tegenstelling tot traditionele methoden die duizenden voorbeelden vereisen. 
+                    </p>
+                    <p class="text-gray-300 mt-4">
+                        Het is te vergelijken met hoe een mens kan leren: als je een paar voorbeelden ziet van hoe een vraag moet worden beoordeeld, kun je dat patroon herkennen en toepassen op nieuwe situaties.
+                    </p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-10">
+                    <div class="feature-card" data-aos="fade-right">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Hoe passen wij het toe?</h3>
+                        <p class="text-gray-300 mb-4">
+                            In ons nakijksysteem gebruiken we few-shot learning door:
+                        </p>
+                        <ul class="text-gray-300 list-disc ml-6 space-y-2">
+                            <li>Het AI-model 3-5 voorbeelden te geven van hoe een antwoord moet worden beoordeeld</li>
+                            <li>Het modelantwoord en een rubric met beoordelingscriteria mee te geven</li>
+                            <li>Enkele voorbeelden te tonen van foute antwoorden en waarom deze fout zijn</li>
+                            <li>Het model te laten generaliseren naar nieuwe antwoorden</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card" data-aos="fade-left">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">Voordelen</h3>
+                        <p class="text-gray-300 mb-4">
+                            De voordelen van few-shot learning in ons systeem zijn:
+                        </p>
+                        <ul class="text-gray-300 list-disc ml-6 space-y-2">
+                            <li>Snelle aanpassing aan nieuwe vraagtypen zonder uitgebreide hertraining</li>
+                            <li>Docenten kunnen het systeem aanpassen zonder AI-expertise</li>
+                            <li>Het systeem kan werken voor zeldzame vraagtypen waarvoor weinig trainingsdata beschikbaar is</li>
+                            <li>Minder afhankelijkheid van grote datasets, wat de privacy van leerlingen beschermt</li>
+                            <li>Betere prestaties bij complexe beoordelingen die context-afhankelijk zijn</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="feature-card mt-10" data-aos="fade-up">
+                    <h3 class="text-xl font-bold mb-5">Praktijkvoorbeeld</h3>
+                    
+                    <div class="bg-gray-800 bg-opacity-70 p-6 rounded-lg mb-6">
+                        <h4 class="text-blue-300 font-bold mb-3">Voorbeeld van few-shot prompt voor scheikunde</h4>
+                        <div class="bg-gray-900 p-4 rounded text-gray-300 font-mono text-sm overflow-auto">
+                            <p class="mb-3"><span class="text-blue-400">Vraag:</span> Leg uit waarom water een hoger kookpunt heeft dan methaan.</p>
+                            <p class="mb-3"><span class="text-blue-400">Modelantwoord:</span> Water heeft een hoger kookpunt dan methaan omdat watermoleculen onderling waterstofbruggen vormen. Dit zijn sterke intermoleculaire bindingen die meer energie (warmte) vereisen om te verbreken dan de zwakke vanderwaalskrachten tussen methaanmoleculen.</p>
+                            <p class="mb-3"><span class="text-blue-400">Rubric:</span> [2 punten voor uitleg over waterstofbruggen, 1 punt voor vergelijking met vanderwaalskrachten, 1 punt voor link met benodigde energie]</p>
+                            <hr class="my-4 border-gray-700">
+                            <p class="mb-3"><span class="text-green-400">Voorbeeld 1 (4/4 punten):</span> "Water heeft waterstofbruggen tussen de moleculen. Deze waterstofbruggen zijn sterker dan de vanderwaalskrachten tussen methaanmoleculen. Daarom is er meer energie nodig om watermoleculen uit elkaar te halen, wat leidt tot een hoger kookpunt."</p>
+                            <p class="mb-3"><span class="text-yellow-400">Voorbeeld 2 (3/4 punten):</span> "Watermoleculen hebben waterstofbruggen die sterker zijn dan de krachten tussen methaanmoleculen. Daarom heeft water een hoger kookpunt." [Mist expliciete link met benodigde energie]</p>
+                            <p><span class="text-red-400">Voorbeeld 3 (1/4 punten):</span> "Water heeft een hoger kookpunt omdat het polair is en methaan niet." [Noemt alleen polariteit, niet specifiek waterstofbruggen of vergelijking]</p>
+                        </div>
+                    </div>
+                    
+                    <p class="text-gray-300">
+                        Met slechts deze drie voorbeelden kan ons AI-model nieuwe antwoorden beoordelen met een nauwkeurigheid die vergelijkbaar is met die van een docent. Het model begrijpt welke elementen belangrijk zijn in het antwoord en hoe het punten moet toekennen volgens de rubric.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="py-8 px-6 md:px-12 bg-gray-900 bg-opacity-80">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center mb-4 md:mb-0">
+                <div class="text-blue-400 text-xl mr-2"><i class="fas fa-robot"></i></div>
+                <h1 class="text-xl font-bold text-blue-300">PWS Joost & Jonathan</h1>
+            </div>
+            <p class="text-gray-400">2025 gemaakt ter presentatie PWS</p>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Model comparison chart
+            const modelCtx = document.getElementById('modelComparisonChart').getContext('2d');
+            const modelChart = new Chart(modelCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['GPT-4', 'GPT-3.5', 'BERT', 'RoBERTa', 'Eigen Model'],
+                    datasets: [{
+                        label: 'Correlatie met menselijke beoordelaars',
+                        data: [0.97, 0.85, 0.77, 0.81, 0.93],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(59, 130, 246, 0.6)',
+                            'rgba(59, 130, 246, 0.6)',
+                            'rgba(59, 130, 246, 0.6)',
+                            'rgba(59, 130, 246, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(59, 130, 246, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Binomial distribution chart
+            const binomialN = document.getElementById('binomialN');
+            const binomialP = document.getElementById('binomialP');
+            const binomialNValue = document.getElementById('binomialNValue');
+            const binomialPValue = document.getElementById('binomialPValue');
+            const binomialCtx = document.getElementById('binomialChart').getContext('2d');
+            
+            let binomialChart;
+            
+            function updateBinomialChart() {
+                const n = parseInt(binomialN.value);
+                const p = parseInt(binomialP.value) / 100;
+                
+                binomialNValue.textContent = n;
+                binomialPValue.textContent = p.toFixed(2);
+                
+                const labels = [];
+                const data = [];
+                
+                for (let k = 0; k <= n; k++) {
+                    labels.push(k);
+                    data.push(binomialProbability(n, k, p));
+                }
+                
+                if (binomialChart) {
+                    binomialChart.data.labels = labels;
+                    binomialChart.data.datasets[0].data = data;
+                    binomialChart.update();
+                } else {
+                    binomialChart = new Chart(binomialCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Kans',
+                                data: data,
+                                backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                                borderColor: 'rgba(59, 130, 246, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    },
+                                    ticks: {
+                                        color: 'rgba(255, 255, 255, 0.7)'
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.1)'
+                                    },
+                                    ticks: {
+                                        color: 'rgba(255, 255, 255, 0.7)'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: 'rgba(255, 255, 255, 0.7)'
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return `Kans: ${(context.raw * 100).toFixed(2)}%`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            
+            function binomialProbability(n, k, p) {
+                const coef = binomialCoefficient(n, k);
+                return coef * Math.pow(p, k) * Math.pow(1 - p, n - k);
+            }
+            
+            function binomialCoefficient(n, k) {
+                let res = 1;
+                
+                if (k > n - k) {
+                    k = n - k;
+                }
+                
+                for (let i = 0; i < k; i++) {
+                    res *= (n - i);
+                    res /= (i + 1);
+                }
+                
+                return res;
+            }
+            
+            binomialN.addEventListener('input', updateBinomialChart);
+            binomialP.addEventListener('input', updateBinomialChart);
+            
+            updateBinomialChart();
+        });
+    </script>
+</body>
+</html>

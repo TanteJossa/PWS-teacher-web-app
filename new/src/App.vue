@@ -1,10 +1,11 @@
 <template lang="pug">
 v-app
     v-toolbar(app color="primary" dark density="compact")
-        v-toolbar-title Toets PWS
+        v-toolbar-title(@click="navigate('Home')") Toets PWS
         v-toolbar-items
 
 
+            v-btn(text @click="navigate('info')") Info
             v-btn(text @click="navigate('demo')") Demo
             v-btn(text @click="navigate('tests')") Tests
             //- v-btn(text v-if="user_store.user" @click="navigate('home')") Maak en Scan

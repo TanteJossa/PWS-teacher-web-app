@@ -4,7 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 // import AnalisisView from '@/views/AnalisisView'
 // import ScanView from '@/views/ScanView'
 // import FullView from '@/views/FullView.vue'
-import HomeView from '@/views/HomeView.vue'
+import InfoView from '@/views/InfoView.vue' // Renamed from HomeView
 import PdfView from '@/views/PdfView.vue'
 import AccountView from '@/views/AccountView.vue'
 import TestBrowser from '@/views/TestBrowser.vue'
@@ -12,6 +12,7 @@ import NewTestView from '@/views/NewTestView.vue'
 import TestView from '@/views/TestView.vue'
 import AnswerSheetView from '@/views/AnswerSheetView.vue'
 import DemoView from '@/views/DemoView.vue'
+import HomeView from '@/views/HomeView.vue' // The new HomeView with thannie content
 
 const routes = [
     // {
@@ -38,8 +39,13 @@ const routes = [
     },
     {
         path: '/',
-        name: 'Home',
-        component: HomeView
+        name: 'Home', // New Home route
+        component: HomeView // Use the new HomeView for the root path
+    },
+    {
+        path: '/info', // Changed from '/'
+        name: 'Info',  // Changed from 'Home'
+        component: InfoView // This was the original '/' component
     },
     {
         path: '/demo',

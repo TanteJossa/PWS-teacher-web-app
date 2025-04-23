@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWS Joost & Jonathan</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-blue-900 text-white min-h-screen">
+    <header class="py-4 px-6 md:px-12 flex justify-between items-center">
+        <div class="flex items-center">
+            <div class="text-blue-400 text-3xl mr-2"><i class="fas fa-robot"></i></div>
+            <h1 class="text-2xl font-bold text-blue-300">PWS Joost & Jonathan</h1>
+        </div>
+        <nav>
+            <ul class="flex space-x-6">
+                <li><a href="#features" class="hover:text-blue-300 transition-colors">Functies</a></li>
+                <li><a href="#how-it-works" class="hover:text-blue-300 transition-colors">Inscannen</a></li>
+                <li><a href="nakijken.html" class="hover:text-blue-300 transition-colors">Nakijken</a></li>
+                <li><a href="#analyseren" class="hover:text-blue-300 transition-colors">Analyseren</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section py-32 px-6 md:px-12 flex flex-col lg:flex-row items-center justify-between min-h-screen">
+            <div class="lg:w-1/2 mb-10 lg:mb-0" data-aos="fade-right" data-aos-duration="1000">
+                <h2 class="text-5xl md:text-6xl font-bold mb-8 leading-tight">
+                    Een onderzoek naar <span class="text-blue-400">Automatische Beoordeling</span> met behulp van AI
+                </h2>
+                <p class="text-xl mb-10 text-gray-300 max-w-2xl">
+                    Ontvang directe, gedetailleerde feedback op jouw opdrachten. Verbeter je leerproces met onze geavanceerde AI technologie.
+                </p>
+                <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white py-4 px-10 rounded-lg transition-all transform hover:scale-105 shadow-lg text-lg">
+                        Probeer het nu
+                    </button>
+                    <button class="bg-transparent border-2 border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-gray-900 py-4 px-10 rounded-lg transition-all transform hover:scale-105 text-lg">
+                        Meer informatie
+                    </button>
+                </div>
+            </div>
+            <div class="lg:w-1/2 relative" data-aos="fade-left" data-aos-duration="1000">
+                <div class="floating-animation">
+                    <img src="https://via.placeholder.com/700x500" alt="AI Auto Beoordelaar Dashboard" class="rounded-lg shadow-2xl">
+                </div>
+                <div class="absolute -bottom-8 -right-8 bg-blue-700 p-6 rounded-lg shadow-xl floating-animation-slow text-center">
+                    <p class="text-2xl font-bold">10 min</p>
+                    <p class="text-md">Per nagekeken toets</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-20 px-6 md:px-12 bg-gray-900 bg-opacity-50">
+            <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center" data-aos="fade-up">
+                Wat kan <span class="text-blue-400">ons programma</span>?
+            </h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-2 gap-10">
+                <div class="feature-card" data-aos="zoom-in" data-aos-delay="600">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-pen"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Toetsen Maken</h3>
+                    <p class="text-gray-300">Een hele toets in 45 seconden met vragen, punten en leerdoelen.</p>
+                </div>
+                <div class="feature-card" data-aos="zoom-in" data-aos-delay="500">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Inscannen</h3>
+                    <p class="text-gray-300">Ons systeem herkent vrijwel alle handschriften en weet waar een antwoord is gegeven op een vraag.</p>
+                </div>
+                <div class="feature-card" data-aos="zoom-in" data-aos-delay="300">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Nakijken</h3>
+                    <p class="text-gray-300">Onze AI begrijpt complexe opdrachten en beordeelt net zoals een mens.</p>
+                </div>
+                <div class="feature-card" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Analyseren</h3>
+                    <p class="text-gray-300">Ons programma analyseert alle resultaten en geeft handige feedback aan docent en leerling.</p>
+                </div>          
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="py-20 px-6 md:px-12">
+            <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center" data-aos="fade-up">
+                Hoe <span class="text-blue-400">werkt het</span>?
+            </h2>
+            <div class="steps-container">
+                <div class="step" data-aos="fade-right">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="text-xl font-bold mb-2">Upload je werk</h3>
+                        <p class="text-gray-300">Upload eenvoudig je toets naar de website.</p>
+                    </div>
+                </div>
+                <div class="step" data-aos="fade-left">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="text-xl font-bold mb-2">Inscannen</h3>
+                        <p class="text-gray-300">Ons programma herkent gemakkelijk de vragen. Daarna leest hij aan de hand van AI bijna alle handschriften.</p>
+                    </div>
+                </div>
+                <div class="step" data-aos="fade-right">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3 class="text-xl font-bold mb-2">Nakijken</h3>
+                        <p class="text-gray-300">Ons programma is in staat gesloten, open en teken vragen na te kijken met een correlatie van 97% met een mens bij een echte scheikunde toets.</p>
+                    </div>
+                </div>
+                <div class="step" data-aos="fade-left">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3 class="text-xl font-bold mb-2">Analyseren</h3>
+                        <p class="text-gray-300">Elke leerling krijgt een pdf met alle feedback, per vraag en per rubric punt. Daarnaast ook zijn score per leerdoel. Als docent kan je zien welke leerdoelen goed en slecht gaan.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Learnt Section -->
+        <section id="analyseren" class="py-20 px-6 md:px-12 bg-gray-900 bg-opacity-50">
+            <h2 class="text-3xl md:text-4xl font-bold mb-16 text-center" data-aos="fade-up">
+                Wat hebben wij <span class="text-blue-400">geleerd</span>?
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-10 max-w-6xl mx-auto">
+                <div class="feature-card" data-aos="fade-right" data-aos-delay="200">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Onderzoek</h3>
+                    <ul class="text-gray-300 space-y-2">
+                        <li>• Meer dan 14 AI-modellen met elkaar vergeleken in meer dan 15.000 geautomatiseerde API-requests</li>
+                        <li>• Onderzoek naar verschillende type AI-modellen en hun toepassingen, zoals: YOLO, diffusion, FFN, LLM's, latent-space-models etc.</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-left" data-aos-delay="300">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-poll"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Enquête</h3>
+                    <ul class="text-gray-300 space-y-2">
+                        <li>• Enquête afgenomen bij 51 docenten met verschillende achtergronden</li>
+                        <li>• Vragen met specifiek doel gesteld, geen dubbele vragen of verschillend interpreteerbare vragen</li>
+                        <li>• Statistische analyse d.m.v. draaitabellen, t-tests en een correlatie matrix</li>
+                        <li>• Analyse m.b.v. AI-modellen om open vragen te analyseren en samen te vatten</li>
+                        <li>• Duidelijke doelstelling voor ons onderzoek geformuleerd</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-right" data-aos-delay="400">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-flask"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Praktijktest</h3>
+                    <ul class="text-gray-300 space-y-2">
+                        <li>• Een scheikunde toets gemaakt voor een 3e klas en die gegeven</li>
+                        <li>• Onze zelfontwikkelde blaadjes uitgelegd en de 3e klas begreep het in één keer</li>
+                        <li>• De feedback blaadjes aan docent gegeven om aan de leerlingen uit te delen</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card" data-aos="fade-left" data-aos-delay="500">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Onderzoek uitvoeren</h3>
+                    <ul class="text-gray-300 space-y-2">
+                        <li>• Voornamelijk met Python (onderzoek ongeveer 4000 regels code)</li>
+                        <li>• GitHub voor opslag</li>
+                        <li>• Google Sheets voor analyse</li>
+                        <li>• Python libraries zoals: Flask, Jinja, Jedi, Imutils, NumPy, Pandas, Pydantic, PyZbar, Segno, Scikit-image, SymPy, Torch, TorchVision, UV, Ultralytics, OpenCV-Python en TQDM</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card md:col-span-2" data-aos="fade-up" data-aos-delay="600">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Backend (veilig systeem dat de berekeningen doet)</h3>
+                    <ul class="text-gray-300 space-y-2">
+                        <li>• 3 Python Flask servers op GCP (Google Cloud Platform): Hoofdserver, AI/GPT server en document-maak-server</li>
+                        <li>• Route handling en onderzoek functies omgezet naar publieke routes die bestanden kunnen ontvangen en versturen</li>
+                        <li>• GitHub voor code opslag</li>
+                        <li>• 3500 regels handgeschreven Python</li>
+                        <li>• Error handling geïmplementeerd</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="py-8 px-6 md:px-12 bg-gray-900 bg-opacity-80">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center mb-4 md:mb-0">
+                <div class="text-blue-400 text-xl mr-2"><i class="fas fa-robot"></i></div>
+                <h1 class="text-xl font-bold text-blue-300">PWS Joost & Jonathan</h1>
+            </div>
+            <p class="text-gray-400">2025 gemaakt ter presentatie PWS</p>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 

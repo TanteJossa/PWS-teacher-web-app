@@ -1,5 +1,6 @@
 <template lang="pug">
 v-container
+    v-btn(:to="'/'") home
     v-card
         v-card-text
             div.d-flex.flex-row.flex-wrap
